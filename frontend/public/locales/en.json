@@ -1,0 +1,197 @@
+{
+  "common": {
+    "home": "Home",
+    "tools": "Tools",
+    "pricing": "Pricing",
+    "blog": "Blog",
+    "contact": "Contact",
+    "login": "Login",
+    "signup": "Sign Up",
+    "language": "Language",
+    "theme": "Theme",
+    "english": "English",
+    "hindi": "Hindi",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "upload": "Upload",
+    "process": "Process",
+    "download": "Download",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "copy": "Copy",
+    "share": "Share",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info"
+  },
+  "header": {
+    "title": "WeLovePDF",
+    "subtitle": "Your All-in-One PDF Solution",
+    "nav": {
+      "all_tools": "All Tools",
+      "merge_pdf": "Merge PDF",
+      "split_pdf": "Split PDF",
+      "compress_pdf": "Compress PDF",
+      "convert_pdf": "Convert PDF",
+      "edit_pdf": "Edit PDF",
+      "ai_tools": "AI Tools"
+    }
+  },
+  "hero": {
+    "title": "Transform Your PDFs with Ease",
+    "subtitle": "Merge, split, compress, convert, and edit PDF files online for free. No installation required.",
+    "upload_label": "Drag & drop your PDF files here",
+    "upload_button": "Or choose files",
+    "stats": {
+      "users": "2M+ Users",
+      "files": "50M+ Files Processed",
+      "tools": "14+ PDF Tools",
+      "security": "100% Secure"
+    }
+  },
+  "tools": {
+    "merge_pdf": {
+      "title": "Merge PDF",
+      "description": "Combine multiple PDF files into one document"
+    },
+    "split_pdf": {
+      "title": "Split PDF",
+      "description": "Split a PDF into multiple documents"
+    },
+    "compress_pdf": {
+      "title": "Compress PDF",
+      "description": "Reduce PDF file size while maintaining quality"
+    },
+    "convert_pdf": {
+      "title": "Convert PDF",
+      "description": "Convert PDF to Word, Excel, PowerPoint, JPG and more"
+    },
+    "pdf_to_word": {
+      "title": "PDF to Word",
+      "description": "Convert PDF files to editable Word documents"
+    },
+    "word_to_pdf": {
+      "title": "Word to PDF",
+      "description": "Convert Word documents to PDF format"
+    },
+    "pdf_to_jpg": {
+      "title": "PDF to JPG",
+      "description": "Extract images from PDF or convert pages to JPG"
+    },
+    "jpg_to_pdf": {
+      "title": "JPG to PDF",
+      "description": "Convert JPG images to PDF documents"
+    },
+    "rotate_pdf": {
+      "title": "Rotate PDF",
+      "description": "Rotate PDF pages to correct orientation"
+    },
+    "protect_pdf": {
+      "title": "Protect PDF",
+      "description": "Add password protection to your PDF files"
+    },
+    "unlock_pdf": {
+      "title": "Unlock PDF",
+      "description": "Remove password protection from PDF files"
+    },
+    "organize_pdf": {
+      "title": "Organize PDF",
+      "description": "Rearrange, delete, or extract PDF pages"
+    },
+    "add_watermark": {
+      "title": "Add Watermark",
+      "description": "Add text or image watermarks to PDF files"
+    },
+    "page_numbering": {
+      "title": "Page Numbering",
+      "description": "Add page numbers to your PDF documents"
+    }
+  },
+  "features": {
+    "title": "Why Choose WeLovePDF?",
+    "security": {
+      "title": "Bank-Level Security",
+      "description": "Your files are encrypted and automatically deleted after processing"
+    },
+    "speed": {
+      "title": "Lightning Fast",
+      "description": "Process large PDF files in seconds with our optimized engine"
+    },
+    "ai": {
+      "title": "AI-Powered Tools",
+      "description": "Summarize, analyze, and extract insights from your PDFs"
+    },
+    "multilingual": {
+      "title": "Multi-Language Support",
+      "description": "Use our tools in English, Hindi, and more languages"
+    }
+  },
+  "testimonials": {
+    "title": "Trusted by Millions Worldwide",
+    "user1": {
+      "name": "Rajesh Kumar",
+      "role": "Business Owner",
+      "text": "This platform saved me hours of work. The PDF merging tool is incredibly fast and reliable."
+    },
+    "user2": {
+      "name": "Priya Sharma",
+      "role": "Student",
+      "text": "As a student, I use WeLovePDF daily for converting lecture notes. It's a lifesaver!"
+    },
+    "user3": {
+      "name": "Amit Patel",
+      "role": "Developer",
+      "text": "The API integration and batch processing capabilities are excellent for our business needs."
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "q1": {
+      "question": "Is WeLovePDF free to use?",
+      "answer": "Yes! All basic PDF tools are completely free. We offer premium features for advanced needs."
+    },
+    "q2": {
+      "question": "Are my files secure?",
+      "answer": "Absolutely. We use end-to-end encryption and automatically delete files after 1 hour."
+    },
+    "q3": {
+      "question": "What file sizes are supported?",
+      "answer": "We support files up to 100MB for free users and up to 2GB for premium users."
+    },
+    "q4": {
+      "question": "Do I need to install any software?",
+      "answer": "No installation required. WeLovePDF works entirely in your browser."
+    },
+    "q5": {
+      "question": "Can I use it on mobile?",
+      "answer": "Yes! Our website is fully responsive and works perfectly on all mobile devices."
+    }
+  },
+  "cta": {
+    "title": "Ready to Transform Your PDF Workflow?",
+    "subtitle": "Join 2 million+ users who trust WeLovePDF for their document needs.",
+    "button1": "Get Started Free",
+    "button2": "View All Tools"
+  },
+  "footer": {
+    "description": "WeLovePDF is your all-in-one PDF solution. Merge, split, compress, convert, and edit PDF files online for free.",
+    "company": "Company",
+    "tools": "Tools",
+    "resources": "Resources",
+    "legal": "Legal",
+    "copyright": "© 2024 WeLovePDF. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "cookies": "Cookie Policy",
+    "security": "Security",
+    "contact": "Contact Us",
+    "blog": "Blog",
+    "api": "API",
+    "status": "Status",
+    "help": "Help Center"
+  }
+}

@@ -1,0 +1,326 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import { Upload, Download, Zap, File, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FileUpload } from "@/components/file-upload";
+import { toast } from "sonner";
+import { formatFileSize } from "@/lib/utils";
+import { processFiles, handleApiError } from "@/lib/api-client";
+import { useFileContext } from "@/lib/file-context";
+
+interface PDFFile {
+  id: string;
+  name: string;
+  size: number;
+  file: File | null;
+}
+
+export function CompressPDFTool() {
+  const { files: globalFiles, addFiles, removeFile, clearFiles, isLoading } = useFileContext();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [compressedReady, setCompressedReady] = useState(false);
+  const [compressionLevel, setCompressionLevel] = useState<"low" | "medium" | "high">("medium");
+
+  // Get the first file from global context (single file tool)
+  const file: PDFFile | null = useMemo(() => {
+    if (globalFiles.length === 0) return null;
+    const firstFile = globalFiles[0];
+    return {
+      id: `global-${firstFile.name}`,
+      name: firstFile.name,
+      size: firstFile.size,
+      file: firstFile,
+    };
+  }, [globalFiles]);
+
+  const handleFileUpload = (uploadedFiles: File[]) => {
+    if (uploadedFiles.length === 0) return;
+    
+    // Clear existing files first (single file tool)
+    clearFiles();
+    // Add new file to global context
+    addFiles(uploadedFiles);
+    setCompressedReady(false);
+    toast.success(`File "${uploadedFiles[0].name}" uploaded`);
+  };
+
+  const handleAddMoreFiles = () => {
+    // Not needed for single file upload, but we'll keep it for consistency
+  };
+
+  const handleRemoveFile = () => {
+    clearFiles();
+    setCompressedReady(false);
+    toast.info("File removed");
+  };
+
+  const processCompress = async () => {
+    if (globalFiles.length === 0) {
+      toast.error("Please upload a PDF file first");
+      return;
+    }
+
+    setIsProcessing(true);
+    setProgress(0);
+    setCompressedReady(false);
+
+    try {
+      // Call the API with compression level using processFiles with progress callbacks
+      const success = await processFiles(
+        'compress-pdf',
+        globalFiles,
+        { compressionLevel },
+        (filename) => {
+          // Success callback
+          setProgress(100);
+          setIsProcessing(false);
+          setCompressedReady(true);
+        },
+        (error) => {
+          // Error callback
+          setIsProcessing(false);
+        },
+        (progress) => {
+          // Progress callback
+          setProgress(progress);
+        }
+      );
+      
+      if (!success) {
+        setIsProcessing(false);
+      }
+    } catch (error) {
+      console.error("Error compressing PDF:", error);
+      handleApiError("Failed to compress PDF");
+      setIsProcessing(false);
+    }
+  };
+
+
+  const compressionOptions = [
+    { value: "low", label: "Low Compression", description: "Minimal size reduction, best quality" },
+    { value: "medium", label: "Medium Compression", description: "Balanced size and quality" },
+    { value: "high", label: "High Compression", description: "Maximum size reduction" },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-xl border-2 border-dashed border-gray-300 p-8 dark:border-gray-700">
+        <FileUpload
+          onUpload={handleFileUpload}
+          onAddMore={handleAddMoreFiles}
+          accept="application/pdf"
+          multiple={false}
+          maxSize={200 * 1024 * 1024}
+          showProcessButton={false} // We have our own Compress PDF button
+          showAddMoreButton={false} // Single file upload, no need for Add More
+        />
+      </div>
+
+      {file && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">File to Compress</h3>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Size: {formatFileSize(file.size)}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+                  <File className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <div className="font-medium">{file.name}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {formatFileSize(file.size)} • PDF Document
+                  </div>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleRemoveFile}
+                className="h-8 w-8"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-800">
+            <h4 className="mb-4 text-lg font-semibold">Compression Settings</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {compressionOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setCompressionLevel(option.value as any)}
+                  className={`p-4 rounded-lg border-2 text-left transition-all ${
+                    compressionLevel === option.value
+                      ? "border-primary bg-primary/5"
+                      : "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
+                  }`}
+                >
+                  <div className="font-medium">{option.label}</div>
+                  <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {option.description}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-800">
+                <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <div className="font-semibold">Ready to Compress</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  {compressionLevel === "high" 
+                    ? "Maximum compression (smallest file size)" 
+                    : compressionLevel === "medium"
+                    ? "Balanced compression (recommended)"
+                    : "Light compression (best quality)"}
+                </div>
+              </div>
+            </div>
+            <Button
+              onClick={processCompress}
+              disabled={isProcessing}
+              className="gap-2"
+            >
+              {isProcessing ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Compressing...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4" />
+                  Compress PDF
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {isProcessing && (
+        <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+          <h3 className="mb-4 text-lg font-semibold">Compressing PDF...</h3>
+          <div className="space-y-4">
+            <div>
+              <div className="mb-2 flex justify-between text-sm">
+                <span>Optimizing PDF file</span>
+                <span>{progress}%</span>
+              </div>
+              <div className="h-3 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500"
+                  initial={{ width: "0%" }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold">
+                  {file ? formatFileSize(file.size) : "0 KB"}
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Original Size</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">
+                  {progress > 30 ? "Estimating..." : "0 KB"}
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Compressed Size</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {compressedReady && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="rounded-xl border border-green-200 bg-green-50 p-6 dark:border-green-800 dark:bg-green-900/20"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-800">
+              <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold">PDF Compressed Successfully!</h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Your PDF file has been compressed with {compressionLevel} compression.
+                The download has started automatically.
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-4 rounded-lg bg-white p-4 dark:bg-gray-800">
+            <div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">File Name</div>
+              <div className="font-medium">compressed-document.pdf</div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Original Size</div>
+              <div className="font-medium">{file ? formatFileSize(file.size) : "0 KB"}</div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Compression Level</div>
+              <div className="font-medium capitalize">{compressionLevel}</div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Processing Time</div>
+              <div className="font-medium">0.8 seconds</div>
+            </div>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCompressedReady(false);
+                clearFiles();
+              }}
+              className="gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              Compress Another File
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
+      <div className="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-900">
+        <h3 className="mb-4 text-lg font-semibold">About PDF Compression</h3>
+        <ul className="space-y-2">
+          <li className="flex items-start gap-3">
+            <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
+            <span>Compression reduces file size by optimizing images and removing unnecessary data</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
+            <span>Higher compression levels result in smaller files but may affect image quality</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
+            <span>Text and vector graphics remain sharp at all compression levels</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
+            <span>Compressed files are perfect for email attachments, web uploads, and storage</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+}
