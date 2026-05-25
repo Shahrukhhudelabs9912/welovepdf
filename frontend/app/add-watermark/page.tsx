@@ -32,6 +32,7 @@ export default function AddWatermarkPage() {
       description="Add text or image watermarks to protect and brand your PDF documents."
       toolName="Add Watermark"
       toolDescription="Easily add custom text or image watermarks to your PDF files. Control position, opacity, rotation, and size to create professional-looking watermarks for branding or protection."
+      toolKey="add_watermark"
       seoContent={{
         h1: "Add Watermark to PDF Online for Free",
         h2: "How to Add Watermark to PDF",

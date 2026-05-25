@@ -52,13 +52,12 @@ export function FileProvider({ children }: { children: ReactNode }) {
     }
     
     // If we're on a tool page, update lastToolPath
-    if (pathname.includes('/pdf-to-word') || 
-        pathname.includes('/pdf-to-jpg') || 
-        pathname.includes('/merge-pdf') || 
+    if (pathname.includes('/pdf-to-word') ||
+        pathname.includes('/pdf-to-jpg') ||
+        pathname.includes('/merge-pdf') ||
         pathname.includes('/split-pdf') ||
         pathname.includes('/jpg-to-pdf') ||
         pathname.includes('/compress-pdf') ||
-        pathname.includes('/rotate-pdf') ||
         pathname.includes('/add-watermark')) {
       setLastToolPath(pathname);
     }

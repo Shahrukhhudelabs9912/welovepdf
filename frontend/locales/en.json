@@ -86,17 +86,9 @@
       "title": "JPG to PDF",
       "description": "Convert JPG images to PDF documents"
     },
-    "rotate_pdf": {
-      "title": "Rotate PDF",
-      "description": "Rotate PDF pages to correct orientation"
-    },
     "protect_pdf": {
       "title": "Protect PDF",
       "description": "Add password protection to your PDF files"
-    },
-    "unlock_pdf": {
-      "title": "Unlock PDF",
-      "description": "Remove password protection from PDF files"
     },
     "organize_pdf": {
       "title": "Organize PDF",

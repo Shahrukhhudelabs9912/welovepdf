@@ -1,9 +1,12 @@
+"use client";
+
 import { Calendar, User, Tag, ArrowRight, Clock, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageMeta } from "@/components/seo-provider";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 const blogPosts = [
@@ -89,6 +92,8 @@ const popularTags = [
 ];
 
 export default function BlogPage() {
+  const t = useTranslations("blog");
+
   return (
     <>
       <PageMeta
@@ -103,10 +108,10 @@ export default function BlogPage() {
           <div className="mx-auto max-w-7xl">
             <div className="text-center">
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
-                PDF Blog & <span className="text-primary">Tutorials</span>
+                {t("hero_heading_part1")} <span className="text-primary">{t("hero_heading_part2")}</span>
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-                Expert insights, tutorials, and the latest trends in PDF technology. Learn how to get the most out of your documents.
+                {t("hero_subtitle")}
               </p>
               
               {/* Search Bar */}
@@ -115,7 +120,7 @@ export default function BlogPage() {
                   <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                   <Input
                     type="search"
-                    placeholder="Search articles, tutorials, tips..."
+                    placeholder={t("search_placeholder")}
                     className="pl-10 pr-4 py-6 text-base"
                   />
                 </div>
@@ -136,7 +141,7 @@ export default function BlogPage() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Tag className="h-5 w-5" />
-                        Categories
+                        {t("categories_title")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -159,7 +164,7 @@ export default function BlogPage() {
                   {/* Popular Tags */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Popular Tags</CardTitle>
+                      <CardTitle>{t("popular_tags_title")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
@@ -179,15 +184,15 @@ export default function BlogPage() {
                   {/* Newsletter */}
                   <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
                     <CardHeader>
-                      <CardTitle>Stay Updated</CardTitle>
+                      <CardTitle>{t("newsletter_title")}</CardTitle>
                       <CardDescription>
-                        Get the latest PDF tips and tutorials delivered to your inbox.
+                        {t("newsletter_description")}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        <Input placeholder="Your email address" />
-                        <Button className="w-full">Subscribe</Button>
+                        <Input placeholder={t("newsletter_placeholder")} />
+                        <Button className="w-full">{t("newsletter_subscribe")}</Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -233,7 +238,7 @@ export default function BlogPage() {
                           href={`/blog/${post.id}`}
                           className="flex items-center gap-2 text-primary hover:underline"
                         >
-                          Read article
+                          {t("read_article")}
                           <ArrowRight className="h-4 w-4" />
                         </Link>
                       </CardFooter>
@@ -270,18 +275,18 @@ export default function BlogPage() {
         <section className="px-4 py-16 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Want to contribute to our blog?
+              {t("cta_heading")}
             </h2>
             <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
-              We're always looking for PDF experts to share their knowledge with our community.
+              {t("cta_description")}
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Button size="lg" className="gap-2">
-                Submit an article
+                {t("cta_submit_article")}
                 <ArrowRight className="h-4 w-4" />
               </Button>
               <Button size="lg" variant="outline">
-                Contact our editors
+                {t("cta_contact_editors")}
               </Button>
             </div>
           </div>

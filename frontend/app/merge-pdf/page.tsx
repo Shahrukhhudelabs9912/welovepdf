@@ -32,6 +32,7 @@ export default function MergePDFPage() {
       description="Combine multiple PDF files into a single document in the order you want."
       toolName="Merge PDF"
       toolDescription="Easily merge multiple PDF files into one organized document. Drag and drop to rearrange pages, choose the order, and download the merged PDF instantly."
+      toolKey="merge_pdf"
       seoContent={{
         h1: "Merge PDF Files Online for Free",
         h2: "How to Merge PDF Files",
@@ -77,7 +78,7 @@ export default function MergePDFPage() {
     >
       <ToolComponent
         toolName="merge-pdf"
-        endpoint="http://127.0.0.1:8000/api/merge-pdf"
+        endpoint={`${process.env.NEXT_PUBLIC_PYTHON_API_BASE || 'http://localhost:8000/api'}/merge-pdf`}
         title="Merge PDF Files"
         description="Upload multiple PDF files to merge them into a single document."
         accept="application/pdf"

@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { routing } from '@/routing';
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { LanguageProvider } from "@/components/language-provider";
 import { AnalyticsInitializer } from "@/components/analytics-provider";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { FileProvider } from "@/lib/file-context";
+import { AuthProvider } from "@/lib/auth-context";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,30 +39,35 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Load messages for the current locale (detected via cookie by middleware)
+  const messages = await getMessages();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`min-h-screen flex flex-col ${inter.className}`} suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <LanguageProvider>
-            <AnalyticsInitializer />
-            <Header />
-            <FileProvider>
-              <main className="flex-1">{children}</main>
-            </FileProvider>
-            <Footer />
-            <Toaster />
-          </LanguageProvider>
-        </ThemeProvider>
+        <NextIntlClientProvider messages={messages}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <AuthProvider>
+              <AnalyticsInitializer />
+              <Header />
+              <FileProvider>
+                <main className="flex-1">{children}</main>
+              </FileProvider>
+              <Footer />
+              <Toaster />
+            </AuthProvider>
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

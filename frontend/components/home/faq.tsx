@@ -1,73 +1,70 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Lock, Zap, Brain, Shield } from "lucide-react";
 
-const faqs = [
-  {
-    question: "Is WeLovePDF really free to use?",
-    answer:
-      "Yes, all our basic PDF tools are completely free with no registration required. We offer premium features for advanced needs, but the core functionality remains free forever.",
-    icon: Zap,
-  },
-  {
-    question: "How do you ensure my files are secure?",
-    answer:
-      "We use end-to-end encryption, automatic file deletion (within minutes of processing), and never store your documents on our servers. All processing happens in secure, isolated environments.",
-    icon: Shield,
-  },
-  {
-    question: "What file sizes do you support?",
-    answer:
-      "We support files up to 100MB per file for free users and up to 2GB for premium users. For larger files, we recommend using our desktop application.",
-    icon: Zap,
-  },
-  {
-    question: "Do you support Hindi and other languages?",
-    answer:
-      "Yes! We have full UI support for English and Hindi, with more languages coming soon. Our SEO is optimized for regional keywords in multiple languages.",
-    icon: Brain,
-  },
-  {
-    question: "Can I process files without uploading to your servers?",
-    answer:
-      "Yes, we offer browser-based processing for many tools. This means your files never leave your computer, providing maximum privacy for sensitive documents.",
-    icon: Lock,
-  },
-  {
-    question: "How fast is the processing?",
-    answer:
-      "Most operations complete in under 2 seconds for average-sized files. We use parallel processing, Web Workers, and optimized algorithms for maximum speed.",
-    icon: Zap,
-  },
-  {
-    question: "What PDF tools do you offer?",
-    answer:
-      "We offer 14+ tools including merge, split, compress, convert (PDF to Word, Excel, PPT, JPG), rotate, protect, unlock, watermark, page numbering, organize, and AI-powered summarization.",
-    icon: Brain,
-  },
-  {
-    question: "Do you have an API for developers?",
-    answer:
-      "Yes, we offer a comprehensive REST API for developers. You can integrate our PDF processing capabilities directly into your applications with detailed documentation and SDKs.",
-    icon: Zap,
-  },
-];
-
 export function FAQ() {
+  const t = useTranslations();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  const faqs = [
+    {
+      question: t("faq.q1.question"),
+      answer: t("faq.q1.answer"),
+      icon: Zap,
+    },
+    {
+      question: t("faq.q2.question"),
+      answer: t("faq.q2.answer"),
+      icon: Shield,
+    },
+    {
+      question: t("faq.q3.question"),
+      answer: t("faq.q3.answer"),
+      icon: Zap,
+    },
+    {
+      question: t("faq.q4.question"),
+      answer: t("faq.q4.answer"),
+      icon: Brain,
+    },
+    {
+      question: t("faq.q5.question"),
+      answer: t("faq.q5.answer"),
+      icon: Lock,
+    },
+    {
+      question: "How fast is the processing?",
+      answer:
+        "Most operations complete in under 2 seconds for average-sized files. We use parallel processing, Web Workers, and optimized algorithms for maximum speed.",
+      icon: Zap,
+    },
+    {
+      question: "What PDF tools do you offer?",
+      answer:
+        "We offer 14+ tools including merge, split, compress, convert (PDF to Word, Excel, PPT, JPG), rotate, protect, unlock, watermark, page numbering, organize, and AI-powered summarization.",
+      icon: Brain,
+    },
+    {
+      question: "Do you have an API for developers?",
+      answer:
+        "Yes, we offer a comprehensive REST API for developers. You can integrate our PDF processing capabilities directly into your applications with detailed documentation and SDKs.",
+      icon: Zap,
+    },
+  ];
+
   return (
     <section className="px-4 py-20 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900/50">
       <div className="container mx-auto">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Frequently Asked Questions
+            {t("faq.title")}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
             Get answers to common questions about WeLovePDF.

@@ -51,10 +51,9 @@ def test_placeholder_endpoints():
     print("\nTesting placeholder endpoints...")
     endpoints = [
         "/pdf-to-word",
-        "/word-to-pdf", 
+        "/word-to-pdf",
         "/compress-pdf",
         "/protect-pdf",
-        "/unlock-pdf",
     ]
     
     for endpoint in endpoints:
@@ -90,7 +89,6 @@ def main():
     print("\nCore PDF Tools:")
     print("  POST /api/merge-pdf     - Merge multiple PDF files")
     print("  POST /api/split-pdf     - Split PDF into individual pages")
-    print("  POST /api/rotate-pdf    - Rotate PDF pages (90, 180, 270)")
     print("  POST /api/jpg-to-pdf    - Convert images to PDF")
     print("  POST /api/pdf-to-jpg    - Convert PDF page to image")
     print("  POST /api/add-watermark - Add text watermark to PDF")
@@ -100,7 +98,6 @@ def main():
     print("  POST /api/word-to-pdf   - Convert Word to PDF")
     print("  POST /api/compress-pdf  - Compress PDF")
     print("  POST /api/protect-pdf   - Protect PDF with password")
-    print("  POST /api/unlock-pdf    - Unlock PDF")
     
     print("\n" + "=" * 60)
     print("Usage Instructions:")

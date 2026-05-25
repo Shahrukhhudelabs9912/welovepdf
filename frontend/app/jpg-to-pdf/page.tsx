@@ -32,6 +32,7 @@ export default function JPGToPDFPage() {
       description="Convert JPG images to PDF files or combine multiple images into one PDF"
       toolName="JPG to PDF Converter"
       toolDescription="Convert JPG, PNG, and other image formats to PDF files with our fast and secure online tool."
+      toolKey="jpg_to_pdf"
       seoContent={{
         h1: "Convert JPG to PDF Online for Free",
         h2: "How to Convert Images to PDF",

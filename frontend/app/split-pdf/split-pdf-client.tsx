@@ -16,6 +16,8 @@ export function SplitPDFClient() {
   const [everyPages, setEveryPages] = useState(2);
   const [specificPages, setSpecificPages] = useState("1,3,5");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [outputFormat, setOutputFormat] = useState<'individual' | 'single'>('individual');
+  const [namingPattern, setNamingPattern] = useState("page_{n}.pdf");
 
   const handleFileUpload = useCallback((uploadedFiles: File[]) => {
     if (uploadedFiles.length > 0) {
@@ -41,11 +43,14 @@ export function SplitPDFClient() {
     try {
       // Prepare additional data based on split mode
       const additionalData: Record<string, string | number> = {};
+      additionalData.split_method = splitMode;
+      additionalData.output_format = outputFormat;
+      additionalData.naming_pattern = namingPattern;
       
       if (splitMode === 'range') {
         additionalData.page_range = pageRange;
       } else if (splitMode === 'every') {
-        additionalData.every_pages = everyPages;
+        additionalData.pages_per_split = everyPages;
       } else if (splitMode === 'pages') {
         additionalData.specific_pages = specificPages;
       }
@@ -266,19 +271,25 @@ export function SplitPDFClient() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Output Format</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800">
-                    <option>Individual PDF files</option>
-                    <option>ZIP archive</option>
-                    <option>Separate folders</option>
+                  <select
+                    value={outputFormat}
+                    onChange={(e) => setOutputFormat(e.target.value as 'individual' | 'single')}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"
+                  >
+                    <option value="individual">Individual PDF files (ZIP)</option>
+                    <option value="single">Single PDF file</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Naming Pattern</label>
                   <input
                     type="text"
-                    defaultValue="document_part_{part}.pdf"
+                    value={namingPattern}
+                    onChange={(e) => setNamingPattern(e.target.value)}
+                    placeholder="Use {n} for page number"
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"
                   />
+                  <p className="mt-1 text-xs text-gray-500">Use {'{n}'} for part number, e.g. "chapter_{'{n}'}.pdf"</p>
                 </div>
               </div>
             </div>

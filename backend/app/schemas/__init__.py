@@ -1,6 +1,4 @@
-"""
-Pydantic schemas for request/response validation.
-"""
+"""Pydantic schemas for request/response validation."""
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
@@ -18,10 +16,6 @@ class SuccessResponse(BaseModel):
     message: str
     filename: Optional[str] = None
 
-
-class RotatePDFRequest(BaseModel):
-    """Request schema for PDF rotation."""
-    angle: int = Field(..., ge=0, le=360, description="Rotation angle in degrees (90, 180, 270)")
 
 
 class WatermarkRequest(BaseModel):
@@ -45,7 +39,6 @@ class PlaceholderResponse(BaseModel):
 __all__ = [
     "ErrorResponse",
     "SuccessResponse",
-    "RotatePDFRequest",
     "WatermarkRequest",
     "PlaceholderResponse",
 ]

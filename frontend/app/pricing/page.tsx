@@ -1,99 +1,100 @@
+"use client";
+
 import { Check, Star, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageMeta } from "@/components/seo-provider";
+import { useTranslations } from "next-intl";
 
 export default function PricingPage() {
+  const t = useTranslations("pricing_page");
 
   const plans = [
     {
-      name: "Free",
-      description: "Perfect for occasional users",
-      price: "$0",
-      period: "forever",
+      name: t("free"),
+      description: t("free_description"),
+      price: t("free_price"),
+      period: t("free_period"),
       features: [
-        "Merge up to 3 PDFs",
-        "Compress PDFs up to 50MB",
-        "Convert 5 files per day",
-        "Basic watermarking",
-        "Standard processing speed",
-        "Files auto-delete after 1 hour",
+        t("free_feature_1"),
+        t("free_feature_2"),
+        t("free_feature_3"),
+        t("free_feature_4"),
+        t("free_feature_5"),
+        t("free_feature_6"),
       ],
-      cta: "Get Started Free",
+      cta: t("free_cta"),
       popular: false,
     },
     {
-      name: "Pro",
-      description: "For professionals and small teams",
-      price: "$9.99",
-      period: "per month",
+      name: t("pro"),
+      description: t("pro_description"),
+      price: t("pro_price"),
+      period: t("pro_period"),
       features: [
-        "Unlimited PDF merging",
-        "Compress PDFs up to 500MB",
-        "Unlimited conversions",
-        "Advanced watermarking",
-        "Priority processing",
-        "Files stored for 24 hours",
-        "Batch processing",
-        "No ads",
+        t("pro_feature_1"),
+        t("pro_feature_2"),
+        t("pro_feature_3"),
+        t("pro_feature_4"),
+        t("pro_feature_5"),
+        t("pro_feature_6"),
+        t("pro_feature_7"),
+        t("pro_feature_8"),
       ],
-      cta: "Start 14-Day Trial",
+      cta: t("pro_cta"),
       popular: true,
     },
     {
-      name: "Business",
-      description: "For organizations and enterprises",
-      price: "$29.99",
-      period: "per month",
+      name: t("enterprise"),
+      description: t("enterprise_description"),
+      price: t("enterprise_price"),
+      period: t("enterprise_period"),
       features: [
-        "Everything in Pro",
-        "Compress PDFs up to 2GB",
-        "API access",
-        "Custom branding",
-        "Dedicated support",
-        "Files stored for 7 days",
-        "Team management",
-        "SLA guarantee",
-        "Advanced analytics",
+        t("enterprise_feature_1"),
+        t("enterprise_feature_2"),
+        t("enterprise_feature_3"),
+        t("enterprise_feature_4"),
+        t("enterprise_feature_5"),
+        t("enterprise_feature_6"),
+        t("enterprise_feature_7"),
+        t("enterprise_feature_8"),
+        t("enterprise_feature_9"),
       ],
-      cta: "Contact Sales",
+      cta: t("enterprise_cta"),
       popular: false,
     },
   ];
 
   const faqs = [
-    {
-      question: "Can I cancel my subscription anytime?",
-      answer: "Yes, you can cancel your subscription at any time. Your Pro/Business features will remain active until the end of your billing period.",
-    },
-    {
-      question: "Is there a free trial for Pro plan?",
-      answer: "Yes, we offer a 14-day free trial for the Pro plan. No credit card required to start the trial.",
-    },
-    {
-      question: "What payment methods do you accept?",
-      answer: "We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and bank transfers for Business plans.",
-    },
-    {
-      question: "Do you offer discounts for non-profits?",
-      answer: "Yes, we offer a 50% discount for registered non-profit organizations. Contact our sales team with your documentation.",
-    },
-    {
-      question: "Can I upgrade or downgrade my plan?",
-      answer: "Yes, you can upgrade or downgrade your plan at any time. When upgrading, you'll be charged the prorated difference. When downgrading, changes take effect at the next billing cycle.",
-    },
-    {
-      question: "Is my data secure?",
-      answer: "Absolutely. All files are encrypted in transit and at rest. We automatically delete files after the retention period, and we never share your data with third parties.",
-    },
+    { question: t("faq_1_q"), answer: t("faq_1_a") },
+    { question: t("faq_2_q"), answer: t("faq_2_a") },
+    { question: t("faq_3_q"), answer: t("faq_3_a") },
+    { question: t("faq_4_q"), answer: t("faq_4_a") },
+    { question: t("faq_5_q"), answer: t("faq_5_a") },
+    { question: t("faq_6_q"), answer: t("faq_6_a") },
+  ];
+
+  const comparisonRows = [
+    [t("comparison_pdf_merging"), "3 files", "Unlimited", "Unlimited"],
+    [t("comparison_file_size"), "50MB", "500MB", "2GB"],
+    [t("comparison_conversions"), "5", "Unlimited", "Unlimited"],
+    [t("comparison_watermarking"), "Basic", "Advanced", "Advanced"],
+    [t("comparison_speed"), "Standard", "Priority", "Priority"],
+    [t("comparison_retention"), "1 hour", "24 hours", "7 days"],
+    [t("comparison_batch"), "❌", "✅", "✅"],
+    [t("comparison_api"), "❌", "❌", "✅"],
+    [t("comparison_branding"), "❌", "❌", "✅"],
+    [t("comparison_support"), "❌", "✅", "✅"],
+    [t("comparison_team"), "❌", "❌", "✅"],
+    [t("comparison_sla"), "❌", "❌", "✅"],
   ];
 
   return (
     <>
       <PageMeta
-        title="Pricing Plans - WeLovePDF"
-        description="Choose the perfect plan for your PDF needs. Free forever plan available, Pro plan for professionals, and Business plan for enterprises."
+        title={`${t("title")} - WeLovePDF`}
+        description={t("description")}
         keywords="PDF pricing, PDF tools cost, free PDF tools, Pro PDF tools, Business PDF tools"
       />
 
@@ -103,17 +104,16 @@ export default function PricingPage() {
           <div className="mx-auto max-w-7xl">
             <div className="text-center">
               <Badge className="mb-4" variant="outline">
-                Transparent Pricing
+                {t("badge")}
               </Badge>
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl">
-                Simple,{" "}
+                {t("hero_heading_part1")}{" "}
                 <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                  Fair Pricing
+                  {t("hero_heading_part2")}
                 </span>
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-                Choose the perfect plan for your PDF needs. No hidden fees, no surprises.
-                Start with our free plan or try Pro free for 14 days.
+                {t("hero_description")}
               </p>
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function PricingPage() {
         <section className="px-4 py-8 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <div className="grid gap-8 lg:grid-cols-3">
-              {plans.map((plan, index) => (
+              {plans.map((plan) => (
                 <Card
                   key={plan.name}
                   className={`relative flex flex-col ${
@@ -136,7 +136,7 @@ export default function PricingPage() {
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <Badge className="gap-1 bg-primary px-4 py-1">
                         <Star className="h-3 w-3" />
-                        Most Popular
+                        {t("most_popular")}
                       </Badge>
                     </div>
                   )}
@@ -181,10 +181,10 @@ export default function PricingPage() {
           <div className="mx-auto max-w-7xl">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Compare All Features
+                {t("comparison_title")}
               </h2>
               <p className="mt-4 text-gray-600 dark:text-gray-300">
-                See how our plans stack up against each other
+                {t("comparison_subtitle")}
               </p>
             </div>
 
@@ -192,27 +192,14 @@ export default function PricingPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
-                    <th className="px-6 py-4 text-left font-semibold">Feature</th>
-                    <th className="px-6 py-4 text-center font-semibold">Free</th>
-                    <th className="px-6 py-4 text-center font-semibold">Pro</th>
-                    <th className="px-6 py-4 text-center font-semibold">Business</th>
+                    <th className="px-6 py-4 text-left font-semibold">{t("comparison_feature")}</th>
+                    <th className="px-6 py-4 text-center font-semibold">{t("free")}</th>
+                    <th className="px-6 py-4 text-center font-semibold">{t("pro")}</th>
+                    <th className="px-6 py-4 text-center font-semibold">{t("enterprise")}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    ["PDF Merging", "3 files", "Unlimited", "Unlimited"],
-                    ["File Size Limit", "50MB", "500MB", "2GB"],
-                    ["Conversions/Day", "5", "Unlimited", "Unlimited"],
-                    ["Watermarking", "Basic", "Advanced", "Advanced"],
-                    ["Processing Speed", "Standard", "Priority", "Priority"],
-                    ["File Retention", "1 hour", "24 hours", "7 days"],
-                    ["Batch Processing", "❌", "✅", "✅"],
-                    ["API Access", "❌", "❌", "✅"],
-                    ["Custom Branding", "❌", "❌", "✅"],
-                    ["Dedicated Support", "❌", "✅", "✅"],
-                    ["Team Management", "❌", "❌", "✅"],
-                    ["SLA Guarantee", "❌", "❌", "✅"],
-                  ].map(([feature, free, pro, business], idx) => (
+                  {comparisonRows.map(([feature, free, pro, business], idx) => (
                     <tr
                       key={idx}
                       className={`border-b border-gray-100 dark:border-gray-800 ${
@@ -236,10 +223,10 @@ export default function PricingPage() {
           <div className="mx-auto max-w-4xl">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Frequently Asked Questions
+                {t("faq_title")}
               </h2>
               <p className="mt-4 text-gray-600 dark:text-gray-300">
-                Get answers to common questions about our pricing and plans
+                {t("faq_subtitle")}
               </p>
             </div>
 
@@ -261,21 +248,21 @@ export default function PricingPage() {
         {/* CTA Section */}
         <section className="px-4 py-20 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl rounded-2xl bg-gradient-to-r from-primary to-purple-600 p-8 text-center text-white">
-            <h2 className="text-3xl font-bold">Ready to Transform Your PDF Workflow?</h2>
+            <h2 className="text-3xl font-bold">{t("cta_heading")}</h2>
             <p className="mt-4 text-lg opacity-90">
-              Join thousands of professionals who trust WeLovePDF for their document needs.
+              {t("cta_description")}
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Button size="lg" variant="secondary" className="gap-2">
-                Start Free Trial
+                {t("cta_trial")}
                 <Zap className="h-4 w-4" />
               </Button>
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                Contact Sales
+                {t("contact_sales")}
               </Button>
             </div>
             <p className="mt-6 text-sm opacity-80">
-              No credit card required • 14-day free trial • Cancel anytime
+              {t("cta_footer")}
             </p>
           </div>
         </section>

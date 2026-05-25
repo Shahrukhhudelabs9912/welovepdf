@@ -86,17 +86,9 @@
       "title": "JPG से PDF",
       "description": "JPG इमेज को PDF डॉक्यूमेंट में कन्वर्ट करें"
     },
-    "rotate_pdf": {
-      "title": "PDF रोटेट करें",
-      "description": "PDF पेज को सही ओरिएंटेशन में रोटेट करें"
-    },
     "protect_pdf": {
       "title": "PDF प्रोटेक्ट करें",
       "description": "अपनी PDF फाइलों में पासवर्ड प्रोटेक्शन जोड़ें"
-    },
-    "unlock_pdf": {
-      "title": "PDF अनलॉक करें",
-      "description": "PDF फाइलों से पासवर्ड प्रोटेक्शन हटाएं"
     },
     "organize_pdf": {
       "title": "PDF ऑर्गनाइज़ करें",

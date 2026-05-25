@@ -1,13 +1,32 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { ToolLayout } from "@/components/tools/tool-layout";
 import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Sparkles, Loader2, Trash2, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useToolProcessing } from "@/hooks/use-tool-processing";
+import { triggerDownload } from "@/lib/download-utils";
+
+interface ConversionResult {
+  url: string;
+  filename: string;
+  blob: Blob;
+}
 
 export default function PDFToWordPage() {
+  const [lastResult, setLastResult] = useState<ConversionResult | null>(null);
+
+  const handleSuccess = useCallback((result: { url: string; filename: string; blob: Blob }) => {
+    setLastResult({
+      url: result.url,
+      filename: result.filename,
+      blob: result.blob,
+    });
+    toast.success("Conversion complete! Download should start automatically.");
+  }, []);
+
   const {
     files,
     isLoading,
@@ -20,29 +39,62 @@ export default function PDFToWordPage() {
     hasFiles,
   } = useToolProcessing({
     toolName: "pdf-to-word",
-    endpoint: "http://127.0.0.1:8000/api/pdf-to-word",
+    endpoint: `${process.env.NEXT_PUBLIC_PYTHON_API_BASE || 'http://localhost:8000/api'}/pdf-to-word`,
     autoClearFiles: true,
+    onSuccess: handleSuccess,
   });
 
   const handleFileUpload = (uploadedFiles: File[]) => {
     console.log(`[PDFToWord] Files uploaded: ${uploadedFiles.length} files`);
+    setLastResult(null); // Clear any previous result when new files are uploaded
     toast.success(`Uploaded ${uploadedFiles.length} file(s)`);
   };
 
   const handleConvert = async () => {
     console.log(`[PDFToWord] Starting conversion with ${files.length} files`);
+    setLastResult(null); // Clear previous result before new conversion
     await processFiles();
   };
 
   const handleClearFiles = () => {
     console.log(`[PDFToWord] Manually clearing files`);
     clearAllFiles();
+    setLastResult(null);
     toast.info("All files cleared");
+  };
+
+  const handleManualDownload = () => {
+    if (!lastResult) return;
+    console.log(`[PDFToWord] Manual download: filename="${lastResult.filename}", blob=${lastResult.blob.size} bytes, type=${lastResult.blob.type}`);
+
+    // Ensure .docx extension always
+    let downloadName = lastResult.filename;
+    if (!downloadName.toLowerCase().endsWith('.docx')) {
+      downloadName = downloadName.replace(/\.\w+$/, '') + '.docx';
+      console.log(`[PDFToWord] Fixed extension → "${downloadName}"`);
+    }
+
+    triggerDownload(lastResult.blob, downloadName);
+    toast.success(`Downloading ${downloadName}`);
   };
 
   const removeFile = (index: number) => {
     // Note: File removal is handled by the FileUpload component via useFileContext
     toast.info("File removed");
+  };
+
+  // Format user-friendly error message
+  const formatErrorMessage = (rawError: string | null): string => {
+    if (!rawError) return "";
+    // Strip any raw tracebacks or overly technical messages
+    if (rawError.includes("Traceback") || rawError.includes("File \"") || rawError.includes("line ")) {
+      return "An unexpected server error occurred. Please try again with a different PDF file.";
+    }
+    // Truncate very long messages
+    if (rawError.length > 300) {
+      return rawError.substring(0, 300) + "...";
+    }
+    return rawError;
   };
 
   return (
@@ -51,6 +103,7 @@ export default function PDFToWordPage() {
       description="Convert PDF files to editable Word documents while preserving formatting."
       toolName="PDF to Word"
       toolDescription="Transform your PDF files into fully editable Word documents. Our converter maintains original formatting, fonts, tables, and images for accurate conversion."
+      toolKey="pdf_to_word"
       seoContent={{
         h1: "Convert PDF to Word Online for Free",
         h2: "How to Convert PDF to Word",
@@ -95,7 +148,7 @@ export default function PDFToWordPage() {
         ]
       }}
     >
-      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-lg">
+      <div>
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Upload PDF File</h3>
           <p className="text-gray-600 dark:text-gray-400">
@@ -134,9 +187,35 @@ export default function PDFToWordPage() {
         {/* Error Display */}
         {error && (
           <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
-              <AlertCircle className="h-5 w-5" />
-              <span className="font-medium">Error: {error}</span>
+            <div className="flex items-start gap-2 text-red-700 dark:text-red-300">
+              <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
+              <div>
+                <span className="font-medium">Conversion Failed</span>
+                <p className="text-sm mt-1">{formatErrorMessage(error)}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Manual Download Button - shown when conversion completes but user may need a manual fallback */}
+        {lastResult && stage === 'completed' && (
+          <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                <CheckCircle className="h-5 w-5" />
+                <div>
+                  <span className="font-medium">Conversion Complete</span>
+                  <p className="text-sm">Your file is ready. Click Download if it didn't start automatically.</p>
+                </div>
+              </div>
+              <Button
+                onClick={handleManualDownload}
+                size="sm"
+                className="gap-2 shrink-0"
+              >
+                <Download className="h-4 w-4" />
+                Download {lastResult.filename}
+              </Button>
             </div>
           </div>
         )}

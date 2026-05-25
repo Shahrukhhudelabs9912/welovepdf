@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Sparkles, Loader2, Trash2, AlertCircle, CheckCircle, XCircle } from "lucide-react";
@@ -16,6 +17,7 @@ interface ToolComponentProps {
   multiple?: boolean;
   maxSize?: number;
   additionalContent?: ReactNode;
+  additionalData?: Record<string, any>;
   onFileUpload?: (files: File[]) => void;
   autoClearFiles?: boolean;
 }
@@ -29,9 +31,11 @@ export function ToolComponent({
   multiple = false,
   maxSize = 100 * 1024 * 1024, // 100MB default
   additionalContent,
+  additionalData,
   onFileUpload,
   autoClearFiles = true,
 }: ToolComponentProps) {
+  const t = useTranslations("tool_pages");
   const {
     files,
     isLoading,
@@ -50,7 +54,7 @@ export function ToolComponent({
 
   const handleFileUpload = (uploadedFiles: File[]) => {
     console.log(`[ToolComponent:${toolName}] Files uploaded: ${uploadedFiles.length} files`);
-    toast.success(`Uploaded ${uploadedFiles.length} file(s)`);
+    toast.success(`${uploadedFiles.length} file(s) ${t("uploaded_toast")}`);
     if (onFileUpload) {
       onFileUpload(uploadedFiles);
     }
@@ -58,22 +62,25 @@ export function ToolComponent({
 
   const handleProcess = async () => {
     console.log(`[ToolComponent:${toolName}] Starting processing with ${files.length} files`);
-    await processFiles();
+    if (additionalData) {
+      console.log(`[ToolComponent:${toolName}] Additional data:`, additionalData);
+    }
+    await processFiles(additionalData);
   };
 
   const handleClearFiles = () => {
     console.log(`[ToolComponent:${toolName}] Manually clearing files`);
     clearAllFiles();
-    toast.info("All files cleared");
+    toast.info(t("files_cleared"));
   };
 
   const removeFile = (index: number) => {
     // Note: File removal is handled by the FileUpload component via useFileContext
-    toast.info("File removed");
+    toast.info(t("file_removed"));
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-lg">
+    <div>
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">{title}</h3>
         <p className="text-gray-600 dark:text-gray-400">
@@ -114,7 +121,7 @@ export function ToolComponent({
         <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
             <AlertCircle className="h-5 w-5" />
-            <span className="font-medium">Error: {error}</span>
+            <span className="font-medium">{t("error_label")}: {error}</span>
           </div>
         </div>
       )}
@@ -123,8 +130,8 @@ export function ToolComponent({
       {hasFiles && (
         <div className="mt-6 space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="font-medium">Uploaded Files</h4>
-            <span className="text-sm text-gray-500">{files.length} file(s)</span>
+            <h4 className="font-medium">{t("uploaded_files")}</h4>
+            <span className="text-sm text-gray-500">{files.length} {t("file_s")}</span>
           </div>
           {files.map((file, index) => (
             <div key={index} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-800 rounded-lg">
@@ -164,12 +171,12 @@ export function ToolComponent({
           {isLoading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              Processing...
+              {t("processing_progress")}
             </>
           ) : (
             <>
               <Sparkles className="h-5 w-5" />
-              Process Files
+              {t("process_button")}
             </>
           )}
         </Button>
@@ -183,7 +190,7 @@ export function ToolComponent({
             className="flex-1 gap-2"
           >
             <Trash2 className="h-5 w-5" />
-            Clear All
+            {t("clear_button")}
           </Button>
         )}
       </div>
@@ -195,10 +202,9 @@ export function ToolComponent({
             <FileText className="h-3 w-3 text-blue-600 dark:text-blue-300" />
           </div>
           <div>
-            <h4 className="font-medium mb-1">Secure Processing</h4>
+            <h4 className="font-medium mb-1">{t("secure_processing_title")}</h4>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Your files are processed securely and automatically deleted after conversion. 
-              No files are stored on our servers permanently.
+              {t("secure_processing_desc")}
             </p>
           </div>
         </div>

@@ -23,25 +23,27 @@ def handle_pdf_error(error: Exception) -> JSONResponse:
         error: Exception that occurred
         
     Returns:
-        JSONResponse: Error response
+        JSONResponse: Error response with user-friendly message
     """
     if isinstance(error, PDFProcessingError):
+        # PDFProcessingError is a server-side processing failure, not a client error
         return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
-                "error": "PDF processing error",
+                "error": "PDF processing failed",
                 "message": error.message,
                 "details": error.details,
             }
         )
     elif isinstance(error, HTTPException):
-        raise error  # Re-raise HTTP exceptions
+        raise error  # Re-raise HTTP exceptions (they carry their own status codes)
     else:
+        # Hide raw exception messages from users in production
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
                 "error": "Internal server error",
-                "message": str(error),
+                "message": "An unexpected error occurred. Please try again with a different file.",
             }
         )
 

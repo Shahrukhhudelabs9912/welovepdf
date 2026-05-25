@@ -32,6 +32,7 @@ export default function CompressPDFPage() {
       description="Reduce PDF file size while maintaining quality"
       toolName="PDF Compressor"
       toolDescription="Compress PDF files to reduce size for email, web, or storage with our intelligent compression algorithm."
+      toolKey="compress_pdf"
       seoContent={{
         h1: "Compress PDF Files Online for Free",
         h2: "How to Compress PDF Files",

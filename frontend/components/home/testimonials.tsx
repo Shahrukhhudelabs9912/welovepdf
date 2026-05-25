@@ -1,72 +1,75 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
 
-const testimonials = [
-  {
-    name: "Priya Sharma",
-    role: "Marketing Manager",
-    company: "TechCorp India",
-    content:
-      "WeLovePDF has revolutionized how our team handles documents. The AI summarization feature saves us hours every week. The Hindi support is a game-changer for our regional teams.",
-    rating: 5,
-    avatar: "PS",
-  },
-  {
-    name: "Raj Patel",
-    role: "Freelance Designer",
-    company: "Self-Employed",
-    content:
-      "I use multiple PDF tools daily, and WeLovePDF is by far the fastest and most reliable. The browser processing feature gives me peace of mind about my clients' sensitive documents.",
-    rating: 5,
-    avatar: "RP",
-  },
-  {
-    name: "Ananya Singh",
-    role: "University Professor",
-    company: "Delhi University",
-    content:
-      "As an educator, I need to process hundreds of research papers. The merge and compress tools are incredibly efficient. The privacy-first approach is exactly what academia needs.",
-    rating: 5,
-    avatar: "AS",
-  },
-  {
-    name: "Michael Chen",
-    role: "CTO",
-    company: "StartupXYZ",
-    content:
-      "The parallel processing capabilities are impressive. We process large batches of legal documents in seconds instead of minutes. The API integration is also very developer-friendly.",
-    rating: 5,
-    avatar: "MC",
-  },
-  {
-    name: "Sofia Rodriguez",
-    role: "Legal Assistant",
-    company: "Law Partners LLC",
-    content:
-      "Password protection and watermark features are essential for our legal documents. WeLovePDF handles everything securely and reliably. The auto-delete feature is a major plus.",
-    rating: 5,
-    avatar: "SR",
-  },
-  {
-    name: "Arjun Mehta",
-    role: "SEO Specialist",
-    company: "Digital Boost",
-    content:
-      "The SEO optimization on tool pages is brilliant. I can see why they rank so well on Google. The Hindi keywords targeting is smart for the Indian market.",
-    rating: 5,
-    avatar: "AM",
-  },
-];
-
 export function Testimonials() {
+  const t = useTranslations();
+
+  const testimonials = [
+    {
+      name: "Priya Sharma",
+      role: "Marketing Manager",
+      company: "TechCorp India",
+      content:
+        "WeLovePDF has revolutionized how our team handles documents. The AI summarization feature saves us hours every week. The Hindi support is a game-changer for our regional teams.",
+      rating: 5,
+      avatar: "PS",
+    },
+    {
+      name: "Raj Patel",
+      role: "Freelance Designer",
+      company: "Self-Employed",
+      content:
+        "I use multiple PDF tools daily, and WeLovePDF is by far the fastest and most reliable. The browser processing feature gives me peace of mind about my clients' sensitive documents.",
+      rating: 5,
+      avatar: "RP",
+    },
+    {
+      name: "Ananya Singh",
+      role: "University Professor",
+      company: "Delhi University",
+      content:
+        "As an educator, I need to process hundreds of research papers. The merge and compress tools are incredibly efficient. The privacy-first approach is exactly what academia needs.",
+      rating: 5,
+      avatar: "AS",
+    },
+    {
+      name: "Michael Chen",
+      role: "CTO",
+      company: "StartupXYZ",
+      content:
+        "The parallel processing capabilities are impressive. We process large batches of legal documents in seconds instead of minutes. The API integration is also very developer-friendly.",
+      rating: 5,
+      avatar: "MC",
+    },
+    {
+      name: "Sofia Rodriguez",
+      role: "Legal Assistant",
+      company: "Law Partners LLC",
+      content:
+        "Password protection and watermark features are essential for our legal documents. WeLovePDF handles everything securely and reliably. The auto-delete feature is a major plus.",
+      rating: 5,
+      avatar: "SR",
+    },
+    {
+      name: "Arjun Mehta",
+      role: "SEO Specialist",
+      company: "Digital Boost",
+      content:
+        "The SEO optimization on tool pages is brilliant. I can see why they rank so well on Google. The Hindi keywords targeting is smart for the Indian market.",
+      rating: 5,
+      avatar: "AM",
+    },
+  ];
+
   return (
     <section className="px-4 py-20 sm:px-6 lg:px-8">
       <div className="container mx-auto">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Trusted by Professionals Worldwide
+            {t("testimonials.title")}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
             See what our users have to say about their experience with WeLovePDF.

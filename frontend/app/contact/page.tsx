@@ -1,93 +1,74 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Mail, Phone, MapPin, Clock, MessageSquare, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PageMeta } from "@/components/seo-provider";
-
-export const metadata: Metadata = {
-  title: "Contact Us | WeLovePDF Support & Help",
-  description: "Get in touch with the WeLovePDF team for support, feedback, or partnership inquiries. We're here to help you with all your PDF needs.",
-  keywords: "contact welovepdf, pdf support, help center, feedback, partnership, customer service",
-  openGraph: {
-    title: "Contact Us | WeLovePDF Support & Help",
-    description: "Get in touch with the WeLovePDF team for support, feedback, or partnership inquiries.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Contact Us | WeLovePDF Support & Help",
-    description: "Get in touch with the WeLovePDF team for support, feedback, or partnership inquiries.",
-  },
-  alternates: {
-    canonical: "https://welovepdf.com/contact",
-    languages: {
-      en: "https://welovepdf.com/contact",
-      hi: "https://welovepdf.com/hi/contact",
-    },
-  },
-};
-
-const contactMethods = [
-  {
-    icon: <Mail className="h-6 w-6" />,
-    title: "Email Support",
-    description: "For general inquiries and support",
-    details: "support@welovepdf.com",
-    action: "Send Email",
-    href: "mailto:support@welovepdf.com",
-  },
-  {
-    icon: <MessageSquare className="h-6 w-6" />,
-    title: "Live Chat",
-    description: "Available during business hours",
-    details: "Mon-Fri, 9AM-6PM (UTC)",
-    action: "Start Chat",
-    href: "#",
-  },
-  {
-    icon: <Phone className="h-6 w-6" />,
-    title: "Phone Support",
-    description: "For urgent matters",
-    details: "+1 (555) 123-4567",
-    action: "Call Now",
-    href: "tel:+15551234567",
-  },
-  {
-    icon: <MapPin className="h-6 w-6" />,
-    title: "Office Location",
-    description: "Our headquarters",
-    details: "123 PDF Street, San Francisco, CA 94107",
-    action: "View Map",
-    href: "https://maps.google.com",
-  },
-];
-
-const faqs = [
-  {
-    question: "How long does it take to get a response?",
-    answer: "We typically respond to all inquiries within 24 hours during business days. For urgent matters, please use our phone support.",
-  },
-  {
-    question: "Do you offer enterprise solutions?",
-    answer: "Yes! We provide custom enterprise solutions for businesses with high-volume PDF processing needs. Contact our sales team for a demo.",
-  },
-  {
-    question: "Can I suggest a new feature?",
-    answer: "Absolutely! We love hearing from our users. Please use the feedback form or email us directly with your suggestions.",
-  },
-  {
-    question: "Is there a limit to file size?",
-    answer: "Our free tier supports files up to 100MB. For larger files, consider our premium plans or contact us for enterprise solutions.",
-  },
-];
+import { useTranslations } from "next-intl";
 
 export default function ContactPage() {
+  const t = useTranslations("contact_page");
+
+  const contactMethods = [
+    {
+      icon: <Mail className="h-6 w-6" />,
+      title: t("email_support_title"),
+      description: t("email_support_desc"),
+      details: t("email_support_details"),
+      action: t("email_support_action"),
+      href: "mailto:support@welovepdf.com",
+    },
+    {
+      icon: <MessageSquare className="h-6 w-6" />,
+      title: t("live_chat_title"),
+      description: t("live_chat_desc"),
+      details: t("live_chat_details"),
+      action: t("live_chat_action"),
+      href: "#",
+    },
+    {
+      icon: <Phone className="h-6 w-6" />,
+      title: t("phone_support_title"),
+      description: t("phone_support_desc"),
+      details: t("phone_support_details"),
+      action: t("phone_support_action"),
+      href: "tel:+15551234567",
+    },
+    {
+      icon: <MapPin className="h-6 w-6" />,
+      title: t("office_title"),
+      description: t("office_desc"),
+      details: t("office_details"),
+      action: t("office_action"),
+      href: "https://maps.google.com",
+    },
+  ];
+
+  const faqs = [
+    {
+      question: t("faq_1_q"),
+      answer: t("faq_1_a"),
+    },
+    {
+      question: t("faq_2_q"),
+      answer: t("faq_2_a"),
+    },
+    {
+      question: t("faq_3_q"),
+      answer: t("faq_3_a"),
+    },
+    {
+      question: t("faq_4_q"),
+      answer: t("faq_4_a"),
+    },
+  ];
+
   return (
     <>
       <PageMeta
-        title="Contact Us | WeLovePDF Support & Help"
-        description="Get in touch with the WeLovePDF team for support, feedback, or partnership inquiries."
+        title={`${t("title")} | WeLovePDF`}
+        description={t("description")}
         keywords="contact welovepdf, pdf support, help center, feedback, partnership"
       />
       
@@ -96,11 +77,11 @@ export default function ContactPage() {
         <section className="px-4 py-16 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl text-center">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
-              Get in <span className="text-primary">Touch</span>
+              {t("hero_heading_part1")}{" "}
+              <span className="text-primary">{t("hero_heading_part2")}</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-              Have questions, feedback, or need support? We're here to help you with all your PDF needs.
-              Our team is ready to assist you.
+              {t("hero_description")}
             </p>
           </div>
         </section>
@@ -147,48 +128,48 @@ export default function ContactPage() {
               {/* Contact Form */}
               <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 shadow-lg">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Send us a message
+                  {t("form_title")}
                 </h2>
                 <p className="mt-2 text-gray-600 dark:text-gray-400">
-                  Fill out the form below and we'll get back to you as soon as possible.
+                  {t("form_subtitle")}
                 </p>
 
                 <form className="mt-8 space-y-6">
                   <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        First Name
+                        {t("first_name")}
                       </label>
-                      <Input placeholder="John" required />
+                      <Input placeholder={t("first_name_placeholder")} required />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Last Name
+                        {t("last_name")}
                       </label>
-                      <Input placeholder="Doe" required />
+                      <Input placeholder={t("last_name_placeholder")} required />
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Email Address
+                      {t("email_label")}
                     </label>
-                    <Input type="email" placeholder="john@example.com" required />
+                    <Input type="email" placeholder={t("email_placeholder")} required />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Subject
+                      {t("subject_label")}
                     </label>
-                    <Input placeholder="How can we help you?" required />
+                    <Input placeholder={t("subject_placeholder")} required />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Message
+                      {t("message_label")}
                     </label>
                     <Textarea
-                      placeholder="Please describe your inquiry in detail..."
+                      placeholder={t("message_placeholder")}
                       rows={6}
                       required
                     />
@@ -196,7 +177,7 @@ export default function ContactPage() {
 
                   <Button type="submit" className="w-full gap-2">
                     <Send className="h-4 w-4" />
-                    Send Message
+                    {t("send")}
                   </Button>
                 </form>
               </div>
@@ -206,29 +187,28 @@ export default function ContactPage() {
                 {/* Company Info */}
                 <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    About WeLovePDF
+                    {t("about_title")}
                   </h2>
                   <p className="mt-4 text-gray-600 dark:text-gray-400">
-                    WeLovePDF is a leading online PDF solution trusted by millions of users worldwide.
-                    Our mission is to make PDF processing simple, secure, and accessible to everyone.
+                    {t("about_text")}
                   </p>
                   
                   <div className="mt-8 space-y-4">
                     <div className="flex items-center gap-3">
                       <Clock className="h-5 w-5 text-primary" />
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">Business Hours</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{t("business_hours_label")}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Monday - Friday: 9:00 AM - 6:00 PM (UTC)
+                          {t("business_hours_value")}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <MessageSquare className="h-5 w-5 text-primary" />
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">Response Time</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{t("response_time_label")}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Typically within 24 hours during business days
+                          {t("response_time_value")}
                         </p>
                       </div>
                     </div>
@@ -238,7 +218,7 @@ export default function ContactPage() {
                 {/* FAQ */}
                 <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Frequently Asked Questions
+                    {t("faq_title")}
                   </h2>
                   <div className="mt-6 space-y-6">
                     {faqs.map((faq, index) => (
@@ -261,17 +241,17 @@ export default function ContactPage() {
         {/* CTA Section */}
         <section className="px-4 py-16 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-8 text-center text-white">
-            <h2 className="text-3xl font-bold">Need immediate assistance?</h2>
+            <h2 className="text-3xl font-bold">{t("cta_heading")}</h2>
             <p className="mt-4 text-lg opacity-90">
-              Our support team is available to help you with any urgent matters.
+              {t("cta_description")}
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Button size="lg" variant="secondary" className="gap-2">
                 <Phone className="h-4 w-4" />
-                Call Now: +1 (555) 123-4567
+                {t("cta_call_now")}
               </Button>
               <Button size="lg" variant="outline" className="bg-white/10 text-white hover:bg-white/20">
-                Schedule a Call
+                {t("cta_schedule")}
               </Button>
             </div>
           </div>

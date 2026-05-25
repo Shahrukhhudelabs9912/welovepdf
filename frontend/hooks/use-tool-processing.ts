@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useFileContext } from "@/lib/file-context";
 import { toast } from "sonner";
+import { resolveDownloadFilename, triggerDownload, MIME_TO_EXTENSION } from "@/lib/download-utils";
 
 interface UseToolProcessingOptions {
   toolName: string;
@@ -110,8 +111,9 @@ export function useToolProcessing({
       
       // Single file endpoints (based on api-client.ts logic)
       const singleFileEndpoints = [
-        'split-pdf', 'rotate-pdf', 'pdf-to-jpg', 'add-watermark',
-        'pdf-to-word', 'word-to-pdf', 'compress-pdf', 'protect-pdf', 'unlock-pdf',
+        'split-pdf', 'pdf-to-jpg', 'add-watermark',
+        'pdf-to-word', 'word-to-pdf', 'compress-pdf', 'protect-pdf',
+        'page-numbering', 'organize-pdf',
         'fix-scanned-pdf', 'optimize-pdf', 'prepare-print-pdf'
       ];
       
@@ -171,31 +173,48 @@ export function useToolProcessing({
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Processing failed: ${response.status} ${errorText}`);
+        let errorMessage = `Processing failed (${response.status})`;
+        const rawBody = await response.text();
+        
+        // Try to extract a user-friendly message from the backend JSON response
+        try {
+          const errorData = JSON.parse(rawBody);
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          } else if (errorData.detail) {
+            errorMessage = errorData.detail;
+          } else if (errorData.error && typeof errorData.error === 'string') {
+            errorMessage = errorData.error;
+          }
+          console.log(`[useToolProcessing] Parsed backend error:`, errorData);
+        } catch {
+          // Not JSON or unparseable — fall back to a clean generic message
+          if (rawBody && rawBody.length < 200) {
+            errorMessage = rawBody;
+          }
+        }
+        
+        console.log(`[useToolProcessing] Final error message: ${errorMessage}`);
+        throw new Error(errorMessage);
       }
 
       // Get the processed file
       const blob = await response.blob();
-      
+      console.log(`[useToolProcessing] Response blob: ${blob.size} bytes, type=${blob.type}`);
+
       updateState({
         stage: 'downloading',
         stageMessage: 'Preparing download...',
         progress: 85,
       });
 
-      // Create download link
+      // Resolve filename using the reusable download utility
+      const filename = await resolveDownloadFilename(response, toolName, blob);
+      console.log(`[useToolProcessing] Resolved filename: ${filename}`);
+
+      // Download the file
       const url = URL.createObjectURL(blob);
-      const filename = response.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] 
-        || `${toolName}_${Date.now()}.${blob.type.split('/')[1] || 'bin'}`;
-      
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      triggerDownload(blob, filename);
 
       updateState({
         stage: 'completed',

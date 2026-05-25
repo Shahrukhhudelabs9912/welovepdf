@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Shield, Zap, Brain, ArrowRight } from "lucide-react";
@@ -7,14 +8,13 @@ import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
   const router = useRouter();
+  const t = useTranslations();
 
   const handleStartProcessing = () => {
-    // Navigate to first tool page
     router.push("/merge-pdf");
   };
 
   const handleExploreTools = () => {
-    // Navigate to features page (tools listing)
     router.push("/features");
   };
 
@@ -30,7 +30,7 @@ export function HeroSection() {
           >
             <div className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
               <Brain className="mr-2 h-4 w-4" />
-              AI-Powered PDF Tools
+              {t("hero.badge")}
             </div>
             <h1 className="mt-6 text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl">
               Fast, Secure &{" "}
@@ -40,17 +40,16 @@ export function HeroSection() {
               PDF Tools
             </h1>
             <p className="mt-6 text-lg text-gray-600 dark:text-gray-300">
-              Process your PDF documents with military-grade security, AI-powered features, and
-              blazing fast performance. All tools are free to use with no registration required.
+              {t("hero.subtitle")}
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
               <Button size="lg" className="gap-2" onClick={handleStartProcessing}>
-                Start Processing
+                {t("hero.cta_primary")}
                 <ArrowRight className="h-4 w-4" />
               </Button>
               <Button size="lg" variant="outline" onClick={handleExploreTools}>
-                Explore All Tools
+                {t("hero.cta_secondary")}
               </Button>
             </div>
 
@@ -60,9 +59,9 @@ export function HeroSection() {
                   <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">100% Secure</div>
+                  <div className="text-2xl font-bold">{t("hero.trust_badges.secure")}</div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
-                    Auto-delete files
+                    {t("hero.trust_badges.secure_sub")}
                   </div>
                 </div>
               </div>
@@ -71,9 +70,9 @@ export function HeroSection() {
                   <Zap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">Fast</div>
+                  <div className="text-2xl font-bold">{t("hero.trust_badges.fast")}</div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
-                    Parallel processing
+                    {t("hero.trust_badges.fast_sub")}
                   </div>
                 </div>
               </div>
@@ -82,9 +81,9 @@ export function HeroSection() {
                   <Brain className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">AI Tools</div>
+                  <div className="text-2xl font-bold">{t("hero.trust_badges.ai")}</div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
-                    Smart features
+                    {t("hero.trust_badges.ai_sub")}
                   </div>
                 </div>
               </div>

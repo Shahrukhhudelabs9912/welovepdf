@@ -2,12 +2,15 @@
 PDF processing routes for WeLovePDF API.
 """
 import io
+import os
 import logging
+import traceback
 from typing import List, Optional
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status
 from fastapi.responses import StreamingResponse
 
 from app.services.pdf_service import PDFService, ImageToPDFService, PDFToImageService
+from app.services.organize_pdf_service import OrganizePDFService
 from app.utils import (
     validate_file_type,
     validate_file_size,
@@ -16,11 +19,14 @@ from app.utils import (
     create_zip_response,
     validate_uploaded_files,
     handle_pdf_error,
+    PDFProcessingError,
 )
 from app.config import settings
 from app.schemas import (
     PlaceholderResponse,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -29,11 +35,15 @@ router = APIRouter()
 async def merge_pdf(files: List[UploadFile] = File(...)):
     """
     Merge multiple PDF files into a single PDF.
+    Handles AES-encrypted PDFs gracefully; password-protected PDFs
+    return a clear user-facing error.
     
     - **files**: List of PDF files to merge (2-10 files)
     
     Returns merged PDF file for download.
     """
+    logger.info(f"Merge PDF request: {len(files)} file(s)")
+    
     try:
         # Validate files
         validate_uploaded_files(files, max_files=10)
@@ -57,9 +67,12 @@ async def merge_pdf(files: List[UploadFile] = File(...)):
             # Read file
             file_bytes = await read_upload_file(file)
             pdf_files.append(file_bytes)
+            logger.debug(f"Read file: {file.filename} ({len(file_bytes)} bytes)")
         
         # Merge PDFs
+        logger.info(f"Merging {len(pdf_files)} PDF(s)...")
         merged_pdf = PDFService.merge_pdfs(pdf_files)
+        logger.info(f"Merge successful: {len(merged_pdf)} bytes output")
         
         # Return merged PDF
         return create_file_response(
@@ -70,101 +83,96 @@ async def merge_pdf(files: List[UploadFile] = File(...)):
         
     except HTTPException:
         raise
+    except PDFProcessingError as e:
+        logger.warning(f"Merge PDF processing error: {e.message}")
+        return handle_pdf_error(e)
     except Exception as e:
+        logger.error(f"Unexpected merge PDF error: {str(e)}", exc_info=True)
         return handle_pdf_error(e)
 
 
-@router.post("/split-pdf", summary="Split PDF into individual pages")
-async def split_pdf(file: UploadFile = File(...)):
-    """
-    Split a PDF file into individual pages.
-    
-    - **file**: PDF file to split
-    
-    Returns ZIP file containing individual PDF pages.
-    """
-    try:
-        # Validate file
-        if not validate_file_type(file, settings.ALLOWED_PDF_TYPES):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File {file.filename} is not a valid PDF. Allowed types: {settings.ALLOWED_PDF_TYPES}"
-            )
-        
-        if not validate_file_size(file):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File {file.filename} exceeds maximum size of {settings.MAX_UPLOAD_SIZE} bytes"
-            )
-        
-        # Read file
-        pdf_bytes = await read_upload_file(file)
-        
-        # Split PDF
-        pages = PDFService.split_pdf(pdf_bytes)
-        
-        # Return as ZIP
-        return create_zip_response(
-            pages,
-            zip_filename=f"{file.filename.replace('.pdf', '')}_pages.zip"
-        )
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        return handle_pdf_error(e)
-
-
-@router.post("/rotate-pdf", summary="Rotate PDF pages")
-async def rotate_pdf(
+@router.post("/split-pdf", summary="Split PDF file")
+async def split_pdf(
     file: UploadFile = File(...),
-    angle: int = Form(..., ge=0, le=360, description="Rotation angle (90, 180, 270)")
+    split_method: str = Form("all", description="Split method: all, range, every, or pages"),
+    page_range: Optional[str] = Form(None, description="Page ranges e.g. '1-5,8-10' (range method)"),
+    pages_per_split: Optional[int] = Form(None, description="Pages per split file (every method)"),
+    specific_pages: Optional[str] = Form(None, description="Specific pages e.g. '1,3,5-7' (pages method)"),
+    output_format: str = Form("individual", description="Output format: individual or single"),
+    naming_pattern: str = Form("page_{n}.pdf", description="Naming pattern with {n} placeholder"),
 ):
     """
-    Rotate all pages of a PDF by specified angle.
-    
-    - **file**: PDF file to rotate
-    - **angle**: Rotation angle in degrees (90, 180, or 270)
-    
-    Returns rotated PDF file for download.
+    Split a PDF file using various methods.
+
+    - **split_method**: "all" (every page separate), "range" (page ranges), "every" (every N pages), "pages" (specific pages)
+    - **page_range**: Comma-separated ranges e.g. "1-5,8-10"
+    - **pages_per_split**: Number of pages per output file
+    - **specific_pages**: Comma-separated pages and ranges e.g. "1,3,5-7"
+    - **output_format**: "individual" (separate files as ZIP) or "single" (single PDF)
+    - **naming_pattern**: Filename template, use {n} for part number
     """
+    logger.info(
+        f"Split PDF request: file={file.filename}, method={split_method}, "
+        f"range={page_range}, every={pages_per_split}, pages={specific_pages}, "
+        f"format={output_format}, naming={naming_pattern}"
+    )
     try:
-        # Validate angle
-        if angle not in [90, 180, 270]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Angle must be 90, 180, or 270 degrees"
-            )
-        
         # Validate file
         if not validate_file_type(file, settings.ALLOWED_PDF_TYPES):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"File {file.filename} is not a valid PDF. Allowed types: {settings.ALLOWED_PDF_TYPES}"
             )
-        
+
         if not validate_file_size(file):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"File {file.filename} exceeds maximum size of {settings.MAX_UPLOAD_SIZE} bytes"
             )
-        
+
         # Read file
         pdf_bytes = await read_upload_file(file)
-        
-        # Rotate PDF
-        rotated_pdf = PDFService.rotate_pdf(pdf_bytes, angle)
-        
-        # Return rotated PDF
-        return create_file_response(
-            rotated_pdf,
-            filename=f"rotated_{angle}_{file.filename}",
-            media_type="application/pdf"
+
+        # Split PDF
+        pages = PDFService.split_pdf(
+            pdf_bytes,
+            split_method=split_method,
+            page_range=page_range,
+            pages_per_split=pages_per_split,
+            specific_pages=specific_pages,
+            output_format=output_format,
+            naming_pattern=naming_pattern,
         )
-        
+
+        if not pages:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No pages produced from split operation"
+            )
+
+        logger.info(f"Split PDF produced {len(pages)} output file(s)")
+
+        # Return single PDF or ZIP based on output format
+        if output_format == "single" and len(pages) == 1:
+            filename, file_bytes = pages[0]
+            return create_file_response(
+                file_bytes,
+                filename=filename,
+            )
+        else:
+            base_name = file.filename.replace(".pdf", "") if file.filename else "split"
+            return create_zip_response(
+                pages,
+                zip_filename=f"{base_name}_split.zip",
+            )
+
     except HTTPException:
         raise
+    except PDFProcessingError as e:
+        logger.error(f"Split PDF processing error: {str(e)}")
+        return handle_pdf_error(e)
     except Exception as e:
+        logger.error(f"Split PDF error: {str(e)}")
         return handle_pdf_error(e)
 
 
@@ -238,20 +246,22 @@ async def jpg_to_pdf(files: List[UploadFile] = File(...)):
         return handle_pdf_error(e)
 
 
-@router.post("/pdf-to-jpg", summary="Convert PDF to image")
+@router.post("/pdf-to-jpg", summary="Convert PDF to image(s)")
 async def pdf_to_jpg(
     file: UploadFile = File(...),
-    page_number: int = Form(0, ge=0, description="Page number to convert (0-indexed)"),
+    page_number: int = Form(0, ge=0, description="Page number to convert (0 = all pages, 1+ = specific page)"),
     quality: int = Form(85, ge=1, le=100, description="Image quality (1-100%)"),
     dpi: int = Form(150, ge=72, le=300, description="Image resolution in DPI")
 ):
     """
-    Convert first page of PDF to JPEG image.
+    Convert PDF pages to JPEG image(s).
     
     - **file**: PDF file to convert
-    - **page_number**: Page number to convert (default: 0, first page)
+    - **page_number**: 0 = convert all pages (returns ZIP), 1+ = convert specific page (returns single JPG)
+    - **quality**: JPEG quality 1-100 (default 85)
+    - **dpi**: Resolution in DPI (default 150)
     
-    Returns JPEG image file for download.
+    Returns single JPEG or ZIP containing all page images.
     """
     try:
         # Log incoming request details for debugging
@@ -278,33 +288,71 @@ async def pdf_to_jpg(
         pdf_bytes = await read_upload_file(file)
         print(f"[DEBUG] Read PDF file: {len(pdf_bytes)} bytes")
         
-        # Convert PDF to image
-        print(f"[DEBUG] Calling PDFToImageService.convert_pdf_to_image with quality={quality}, dpi={dpi}")
-        image_bytes = PDFToImageService.convert_pdf_to_image(pdf_bytes, page_number, quality, dpi)
-        print(f"[DEBUG] Conversion successful: {len(image_bytes)} bytes")
+        # Clean base filename (remove .pdf extension)
+        base_name = file.filename.replace(".pdf", "").replace(".PDF", "")
         
-        # Return image
-        return StreamingResponse(
-            io.BytesIO(image_bytes),
-            media_type="image/jpeg",
-            headers={
-                "Content-Disposition": f'attachment; filename="{file.filename.replace(".pdf", "")}_page_{page_number + 1}.jpg"',
-                "Content-Length": str(len(image_bytes)),
-            }
-        )
+        if page_number == 0:
+            # Convert ALL pages → ZIP
+            print(f"[DEBUG] All pages mode: converting all pages to ZIP")
+            try:
+                zip_bytes, zip_filename = PDFToImageService.convert_pages_to_zip(
+                    pdf_bytes, base_name, quality, dpi
+                )
+                print(f"[DEBUG] ZIP created: {zip_filename} ({len(zip_bytes)} bytes)")
+                return StreamingResponse(
+                    io.BytesIO(zip_bytes),
+                    media_type="application/zip",
+                    headers={
+                        "Content-Disposition": f'attachment; filename="{zip_filename}"',
+                        "Content-Length": str(len(zip_bytes)),
+                    }
+                )
+            except Exception as zip_err:
+                print(f"[DEBUG] ZIP conversion failed: {zip_err}, falling back to single page")
+                # Fallback: convert only first page
+                image_bytes = PDFToImageService.convert_pdf_to_image(pdf_bytes, 0, quality, dpi)
+                return StreamingResponse(
+                    io.BytesIO(image_bytes),
+                    media_type="image/jpeg",
+                    headers={
+                        "Content-Disposition": f'attachment; filename="{base_name}_page_1.jpg"',
+                        "Content-Length": str(len(image_bytes)),
+                    }
+                )
+        else:
+            # Convert single page
+            page_idx = page_number - 1  # Convert from 1-indexed (user-facing) to 0-indexed
+            print(f"[DEBUG] Single page mode: converting page {page_number} (index {page_idx})")
+            
+            # Validate page number
+            total_pages = PDFToImageService._get_page_count(pdf_bytes)
+            if total_pages > 0 and page_idx >= total_pages:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Page number {page_number} out of range. PDF has {total_pages} pages."
+                )
+            
+            image_bytes = PDFToImageService.convert_pdf_to_image(pdf_bytes, page_idx, quality, dpi)
+            print(f"[DEBUG] Conversion successful: {len(image_bytes)} bytes")
+            
+            return StreamingResponse(
+                io.BytesIO(image_bytes),
+                media_type="image/jpeg",
+                headers={
+                    "Content-Disposition": f'attachment; filename="{base_name}_page_{page_number}.jpg"',
+                    "Content-Length": str(len(image_bytes)),
+                }
+            )
         
     except HTTPException:
         raise
     except Exception as e:
         print(f"[DEBUG] Exception in pdf_to_jpg: {type(e).__name__}: {str(e)}")
-        # Check if this is a poppler error
-        error_str = str(e).lower()
-        if "poppler" in error_str or "page count" in error_str or "pdf2image" in error_str:
-            print(f"[DEBUG] Poppler error detected, returning placeholder JPEG")
-            # Create a simple placeholder JPEG
+        # Fallback: return a visible placeholder JPEG so the user knows something happened
+        try:
             import PIL.Image as PILImage
             img_stream = io.BytesIO()
-            img = PILImage.new('RGB', (800, 600), color='white')
+            img = PILImage.new('RGB', (1240, 1754), color='white')
             img.save(img_stream, format="JPEG", quality=quality)
             placeholder_jpeg = img_stream.getvalue()
             
@@ -312,11 +360,12 @@ async def pdf_to_jpg(
                 io.BytesIO(placeholder_jpeg),
                 media_type="image/jpeg",
                 headers={
-                    "Content-Disposition": f'attachment; filename="{file.filename.replace(".pdf", "")}_page_{page_number + 1}_placeholder.jpg"',
+                    "Content-Disposition": f'attachment; filename="{file.filename.replace(".pdf", "")}_fallback.jpg"',
                     "Content-Length": str(len(placeholder_jpeg)),
                 }
             )
-        return handle_pdf_error(e)
+        except Exception:
+            return handle_pdf_error(e)
 
 
 @router.post("/add-watermark", summary="Add watermark to PDF")
@@ -501,160 +550,415 @@ async def pdf_to_word(file: UploadFile = File(...)):
     - Text layout
     - Multi-page content
     
+    Falls back to OCR for scanned/image-based PDFs.
+    
     - **file**: PDF file to convert
     
     Returns converted Word document for download.
     """
     import os
+    import uuid
     import tempfile
     import traceback
     from pathlib import Path
-    import logging
     
-    logger = logging.getLogger(__name__)
+    conversion_logger = logging.getLogger("pdf_to_word")
+    conversion_logger.setLevel(logging.DEBUG)
     
     try:
-        # Log start of conversion
-        logger.info(f"Starting PDF to Word conversion for file: {file.filename}")
+        conversion_logger.info("=" * 60)
+        conversion_logger.info(f"PDF-to-Word conversion STARTED: {file.filename}")
+        conversion_logger.info(f"Content-Type: {file.content_type}")
         
-        # Validate file
+        # --- STEP 1: Validate file type ---
+        if not file.filename:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No filename provided. Please upload a valid PDF file."
+            )
+        
         if not validate_file_type(file, settings.ALLOWED_PDF_TYPES):
+            conversion_logger.warning(f"File type rejected: {file.content_type} for {file.filename}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File {file.filename} is not a valid PDF. Allowed types: {settings.ALLOWED_PDF_TYPES}"
+                detail=f"Invalid file type. Please upload a PDF file (received: {file.content_type or 'unknown'})."
             )
         
+        # --- STEP 2: Validate file size ---
         if not validate_file_size(file):
+            max_mb = settings.MAX_UPLOAD_SIZE // (1024 * 1024)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File {file.filename} exceeds maximum size of {settings.MAX_UPLOAD_SIZE} bytes"
+                detail=f"File is too large. Maximum allowed size is {max_mb} MB."
             )
         
-        # Read file
+        # --- STEP 3: Read file ---
         pdf_bytes = await read_upload_file(file)
-        logger.info(f"PDF file read successfully: {len(pdf_bytes)} bytes")
+        conversion_logger.info(f"File read successfully: {len(pdf_bytes):,} bytes ({len(pdf_bytes) / 1024:.1f} KB)")
         
-        # Create temporary directory for processing
-        with tempfile.TemporaryDirectory() as temp_dir:
+        if len(pdf_bytes) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The uploaded file is empty. Please upload a valid PDF file."
+            )
+        
+        # --- STEP 4: Validate PDF integrity ---
+        integrity_ok, integrity_msg = _validate_pdf_integrity(pdf_bytes, file.filename or "unknown")
+        if not integrity_ok:
+            conversion_logger.warning(f"PDF integrity check FAILED: {integrity_msg}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"The PDF file appears to be corrupted or invalid: {integrity_msg}"
+            )
+        conversion_logger.info(f"PDF integrity check PASSED: {integrity_msg}")
+        
+        # --- STEP 5: Detect if PDF is scanned/image-based ---
+        is_scanned, scan_info = _detect_scanned_pdf(pdf_bytes)
+        conversion_logger.info(f"Scanned PDF detection: is_scanned={is_scanned}, info={scan_info}")
+        
+        # --- STEP 6: Convert in temp directory with UUID-based filenames ---
+        with tempfile.TemporaryDirectory(prefix="pdf2word_") as temp_dir:
             temp_dir_path = Path(temp_dir)
             
-            # Save uploaded PDF to temp file
-            pdf_path = temp_dir_path / "input.pdf"
+            # Use UUID-based filenames to avoid collisions and stale files
+            unique_id = uuid.uuid4().hex[:12]
+            pdf_filename = f"input_{unique_id}.pdf"
+            docx_filename = f"output_{unique_id}.docx"
+            
+            pdf_path = temp_dir_path / pdf_filename
+            docx_path = temp_dir_path / docx_filename
+            
+            conversion_logger.info(f"Temp dir: {temp_dir_path}")
+            conversion_logger.info(f"PDF path: {pdf_path}")
+            conversion_logger.info(f"DOCX path: {docx_path}")
+            
+            # Write PDF to temp file
             with open(pdf_path, "wb") as f:
                 f.write(pdf_bytes)
+            conversion_logger.info(f"PDF written to temp file: {pdf_path} ({pdf_path.stat().st_size:,} bytes)")
             
-            # Define output DOCX path
-            docx_path = temp_dir_path / "output.docx"
+            # --- STEP 6a: If scanned PDF, try OCR first ---
+            if is_scanned:
+                conversion_logger.info(f"PDF appears to be scanned/image-based. Attempting OCR conversion...")
+                try:
+                    ocr_docx = _convert_with_ocr(pdf_bytes, file.filename, pdf_path, docx_path)
+                    if ocr_docx and len(ocr_docx) > 1000:
+                        conversion_logger.info(f"OCR conversion succeeded: {len(ocr_docx):,} bytes")
+                        output_filename = f"{Path(file.filename).stem}_converted.docx"
+                        return create_file_response(
+                            ocr_docx,
+                            filename=output_filename,
+                            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        )
+                    else:
+                        conversion_logger.warning(f"OCR produced insufficient output ({len(ocr_docx) if ocr_docx else 0} bytes). Falling through to normal conversion.")
+                except Exception as ocr_error:
+                    conversion_logger.warning(f"OCR conversion failed, falling through to normal methods: {ocr_error}")
             
-            # Try pdf2docx on ALL platforms with multi_processing=False
-            # This works on Windows when multiprocessing is disabled
+            # --- STEP 6b: Primary - pdf2docx (works on all platforms with multi_processing=False) ---
             try:
                 from pdf2docx import Converter
                 
-                print(f"[DEBUG] Attempting pdf2docx conversion for {file.filename}")
-                logger.info("Starting pdf2docx conversion (all platforms with multi_processing=False)...")
+                conversion_logger.info("Attempting pdf2docx conversion (multi_processing=False)...")
                 
-                # Convert PDF to DOCX using pdf2docx
                 cv = Converter(str(pdf_path))
-                
-                # Convert with multi-processing disabled for stability (works on Windows)
-                print(f"[DEBUG] Converting PDF to DOCX with multi_processing=False")
                 cv.convert(
                     str(docx_path),
-                    start=0,  # Start from first page
-                    end=None,  # Convert all pages
-                    multi_processing=False,  # Disable multi-processing (essential for Windows)
+                    start=0,
+                    end=None,
+                    multi_processing=False,
                     debug=False
                 )
                 cv.close()
                 
-                print(f"[DEBUG] pdf2docx conversion completed. Checking output file...")
-                logger.info(f"pdf2docx conversion completed successfully. Output file: {docx_path}")
+                conversion_logger.info("pdf2docx Converter finished.")
                 
-                # Check if output file was created
                 if not docx_path.exists():
-                    print(f"[DEBUG] ERROR: No output file generated by pdf2docx")
-                    raise Exception("No output file generated by pdf2docx")
+                    conversion_logger.error("pdf2docx did NOT produce an output file")
+                    raise PDFProcessingError("No output file generated by pdf2docx")
                 
-                # Read the converted Word document
+                docx_size = docx_path.stat().st_size
+                conversion_logger.info(f"pdf2docx output file size: {docx_size:,} bytes")
+                
+                if docx_size == 0:
+                    conversion_logger.error("pdf2docx produced an empty output file")
+                    raise PDFProcessingError("Empty output file from pdf2docx")
+                
+                # Read the DOCX
                 with open(docx_path, "rb") as f:
                     docx_bytes = f.read()
                 
-                if len(docx_bytes) == 0:
-                    print(f"[DEBUG] ERROR: Empty output file from pdf2docx")
-                    raise Exception("Empty output file from pdf2docx")
-                
-                print(f"[DEBUG] pdf2docx created DOCX: {len(docx_bytes)} bytes")
-                logger.info(f"Word document created by pdf2docx: {len(docx_bytes)} bytes")
-                
-                # Check if DOCX contains images
+                # Verify the DOCX is a valid ZIP (DOCX files are ZIP archives)
                 import zipfile
                 try:
                     with zipfile.ZipFile(docx_path, 'r') as zipf:
-                        image_files = [f for f in zipf.namelist() if 'media' in f and f.endswith(('.png', '.jpg', '.jpeg', '.gif'))]
-                        print(f"[DEBUG] pdf2docx extracted {len(image_files)} images")
-                        for img_file in image_files:
-                            print(f"[DEBUG]   - {img_file}")
-                except Exception as e:
-                    print(f"[DEBUG] Error checking DOCX for images: {e}")
+                        image_files = [f for f in zipf.namelist() if 'media' in f and f.endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'))]
+                        conversion_logger.info(f"DOCX integrity OK. Contains {len(image_files)} embedded images.")
+                        for img in image_files:
+                            conversion_logger.debug(f"  Image: {img}")
+                except zipfile.BadZipFile:
+                    conversion_logger.error("pdf2docx produced an invalid DOCX (not a valid ZIP)")
+                    raise PDFProcessingError("pdf2docx produced a corrupt DOCX file")
                 
-                # Generate output filename
-                original_stem = Path(file.filename).stem
-                output_filename = f"{original_stem}_converted.docx"
+                output_filename = f"{Path(file.filename).stem}_converted.docx"
+                conversion_logger.info(f"pdf2docx conversion SUCCESS: {output_filename} ({len(docx_bytes):,} bytes)")
+                conversion_logger.info(f"Response MIME type: application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                conversion_logger.info(f"Response filename: {output_filename}")
+                conversion_logger.info(f"Content-Disposition: attachment; filename=\"{output_filename}\"")
                 
-                print(f"[DEBUG] Returning pdf2docx result: {output_filename}")
-                # Return the Word document
                 return create_file_response(
                     docx_bytes,
                     filename=output_filename,
                     media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 )
                 
-            except Exception as pdf2docx_error:
-                print(f"[DEBUG] pdf2docx conversion failed: {pdf2docx_error}")
-                logger.warning(f"pdf2docx conversion failed, falling back to pdfplumber: {pdf2docx_error}")
-                # Continue to pdfplumber fallback
+            except Exception as pdf2docx_err:
+                conversion_logger.warning(f"pdf2docx failed: {type(pdf2docx_err).__name__}: {pdf2docx_err}")
+                conversion_logger.debug(f"pdf2docx traceback: {traceback.format_exc()}")
             
-            # Use pdfplumber + python-docx (works on all platforms including Windows)
+            # --- STEP 6c: Fallback - pdfplumber + python-docx ---
             try:
-                logger.info("Using pdfplumber + python-docx for conversion...")
+                conversion_logger.info("Attempting pdfplumber + python-docx conversion...")
                 alt_docx = convert_with_pdfplumber(pdf_bytes, file.filename)
                 
-                if alt_docx and len(alt_docx) > 0:
-                    logger.info(f"pdfplumber conversion successful: {len(alt_docx)} bytes")
+                if alt_docx and len(alt_docx) > 500:
+                    conversion_logger.info(f"pdfplumber conversion SUCCESS: {len(alt_docx):,} bytes")
                     return create_file_response(
                         alt_docx,
                         filename=f"{Path(file.filename).stem}_converted.docx",
                         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
                 else:
-                    raise Exception("pdfplumber conversion produced empty output")
+                    conversion_logger.warning(f"pdfplumber produced insufficient output ({len(alt_docx) if alt_docx else 0} bytes)")
+                    raise PDFProcessingError("pdfplumber produced insufficient output")
                     
-            except Exception as pdfplumber_error:
-                logger.error(f"pdfplumber conversion failed: {pdfplumber_error}")
+            except Exception as pdfplumber_err:
+                conversion_logger.warning(f"pdfplumber failed: {type(pdfplumber_err).__name__}: {pdfplumber_err}")
+            
+            # --- STEP 6d: Final fallback - basic text extraction ---
+            try:
+                conversion_logger.info("Attempting basic text extraction (final fallback)...")
+                basic_docx = create_basic_word_document(pdf_bytes, file.filename)
                 
-                # Final fallback to basic text extraction
-                try:
-                    logger.info("Trying basic text extraction as final fallback...")
-                    basic_docx = create_basic_word_document(pdf_bytes, file.filename)
+                if basic_docx and len(basic_docx) > 200:
+                    conversion_logger.info(f"Basic extraction SUCCESS: {len(basic_docx):,} bytes")
                     return create_file_response(
                         basic_docx,
                         filename=f"{Path(file.filename).stem}_converted.docx",
                         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
-                except Exception as basic_error:
-                    logger.error(f"All conversion methods failed: {basic_error}")
-                    raise HTTPException(
-                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail=f"PDF to Word conversion failed: {str(basic_error)}"
-                    )
+                else:
+                    raise PDFProcessingError("All conversion methods produced insufficient output")
+                    
+            except Exception as basic_err:
+                conversion_logger.error(f"ALL conversion methods FAILED: {basic_err}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Could not convert this PDF to Word. The file may be heavily corrupted or use an unsupported format. Please try a different PDF."
+                )
         
     except HTTPException:
         raise
+    except PDFProcessingError as e:
+        conversion_logger.error(f"PDFProcessingError: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"PDF conversion failed: {str(e)}. Please try a different PDF file."
+        )
     except Exception as e:
-        logger.error(f"Unexpected error in PDF to Word conversion: {e}")
-        logger.error(traceback.format_exc())
-        return handle_pdf_error(e)
+        conversion_logger.error(f"Unexpected error: {type(e).__name__}: {e}")
+        conversion_logger.error(traceback.format_exc())
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred during PDF conversion. Please try again later."
+        )
+
+
+def _validate_pdf_integrity(pdf_bytes: bytes, filename: str) -> tuple:
+    """
+    Validate PDF file integrity by checking the PDF header and structure.
+    Returns (is_valid: bool, message: str).
+    """
+    import re
+    
+    if len(pdf_bytes) < 10:
+        return False, "File is too small to be a valid PDF"
+    
+    # Check PDF header (must start with %PDF-)
+    header = pdf_bytes[:8]
+    if not header.startswith(b'%PDF-'):
+        # Check for UTF-8 BOM
+        if header.startswith(b'\xef\xbb\xbf%PDF-'):
+            pass  # Valid with BOM
+        else:
+            return False, f"Missing PDF header. File starts with: {header[:20]!r}"
+    
+    # Check for PDF version
+    try:
+        header_str = pdf_bytes[:1024].decode('latin-1', errors='ignore')
+        version_match = re.search(r'%PDF-(\d+\.\d+)', header_str)
+        if version_match:
+            pdf_version = version_match.group(1)
+        else:
+            return False, "Could not determine PDF version"
+    except Exception:
+        pdf_version = "unknown"
+    
+    # Check for %%EOF marker near the end
+    trailer = pdf_bytes[-1024:]
+    if b'%%EOF' not in trailer:
+        # File might be truncated but could still be partially readable
+        pass
+    
+    # Try basic PyPDF2 read to check if parseable
+    try:
+        import PyPDF2
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_bytes))
+        num_pages = len(pdf_reader.pages)
+        return True, f"PDF v{pdf_version}, {num_pages} page(s), {len(pdf_bytes):,} bytes"
+    except Exception as e:
+        # PyPDF2 failed - might still be partially recoverable
+        return True, f"PDF v{pdf_version}, {len(pdf_bytes):,} bytes (warning: {str(e)[:100]})"
+
+
+def _detect_scanned_pdf(pdf_bytes: bytes) -> tuple:
+    """
+    Detect if a PDF is scanned (image-based) by checking for extractable text.
+    Returns (is_scanned: bool, info: str).
+    """
+    try:
+        import PyPDF2
+        
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_bytes))
+        num_pages = len(pdf_reader.pages)
+        
+        if num_pages == 0:
+            return False, "0 pages"
+        
+        # Sample up to first 3 pages
+        pages_to_check = min(3, num_pages)
+        total_text = ""
+        
+        for i in range(pages_to_check):
+            try:
+                page_text = pdf_reader.pages[i].extract_text()
+                if page_text:
+                    total_text += page_text
+            except Exception:
+                continue
+        
+        # Heuristic: if total extracted text across sampled pages is very small,
+        # the PDF is likely scanned/image-based
+        avg_text_per_page = len(total_text.strip()) / pages_to_check if pages_to_check > 0 else 0
+        
+        if avg_text_per_page < 20:
+            return True, f"Scanned/image-based PDF detected ({num_pages} pages, avg {avg_text_per_page:.0f} chars/page)"
+        else:
+            return False, f"Text-based PDF ({num_pages} pages, avg {avg_text_per_page:.0f} chars/page)"
+            
+    except Exception as e:
+        return False, f"Detection skipped: {type(e).__name__}"
+
+
+def _convert_with_ocr(pdf_bytes: bytes, original_filename: str, pdf_path, docx_path) -> bytes:
+    """
+    Convert a scanned/image-based PDF to Word using OCR (pytesseract).
+    Returns the DOCX bytes or raises an exception.
+    """
+    import logging
+    ocr_logger = logging.getLogger("pdf_to_word.ocr")
+    
+    ocr_logger.info("Starting OCR-based PDF conversion...")
+    
+    try:
+        from pdf2image import convert_from_bytes
+        from docx import Document
+        from docx.shared import Inches, Pt
+        import pytesseract
+        
+        ocr_logger.info("pdf2image + pytesseract imported successfully")
+        
+        # Convert PDF pages to images
+        ocr_logger.info("Converting PDF pages to images...")
+        try:
+            images = convert_from_bytes(pdf_bytes, dpi=300)
+        except Exception as img_err:
+            ocr_logger.warning(f"pdf2image at 300 DPI failed: {img_err}. Trying 150 DPI...")
+            try:
+                images = convert_from_bytes(pdf_bytes, dpi=150)
+            except Exception:
+                raise PDFProcessingError(f"Could not render PDF pages for OCR: {img_err}")
+        
+        ocr_logger.info(f"Converted {len(images)} page(s) to images at {images[0].size if images else 'unknown'} resolution")
+        
+        if not images:
+            raise PDFProcessingError("No pages could be extracted from the PDF for OCR")
+        
+        # Create Word document
+        doc = Document()
+        
+        # Add title
+        title = doc.add_heading(f'OCR Conversion: {original_filename}', 0)
+        
+        # Add metadata note
+        meta = doc.add_paragraph()
+        meta.add_run('This document was converted from a scanned PDF using OCR (Optical Character Recognition). ').italic = True
+        meta.add_run('Some formatting may differ from the original.').italic = True
+        doc.add_paragraph()
+        
+        # OCR each page
+        for page_num, image in enumerate(images, 1):
+            ocr_logger.debug(f"OCR processing page {page_num}/{len(images)}...")
+            
+            # Add page header
+            doc.add_heading(f'Page {page_num}', level=1)
+            
+            # Perform OCR
+            try:
+                page_text = pytesseract.image_to_string(image, lang='eng')
+            except Exception as tesseract_err:
+                ocr_logger.warning(f"pytesseract failed for page {page_num}: {tesseract_err}")
+                page_text = f"[OCR failed for page {page_num}: {tesseract_err}]"
+            
+            if page_text and page_text.strip():
+                # Split into paragraphs on double newlines
+                paragraphs = page_text.split('\n\n')
+                for para_text in paragraphs:
+                    para_text = para_text.strip()
+                    if para_text:
+                        p = doc.add_paragraph(para_text)
+                        p.style.font.size = Pt(11)
+            else:
+                doc.add_paragraph('[No text detected on this page. The image may be blank or the quality too low for OCR.]')
+            
+            # Page break between pages
+            if page_num < len(images):
+                doc.add_page_break()
+        
+        # Add footer note
+        doc.add_paragraph()
+        footer = doc.add_paragraph()
+        footer.add_run('Generated using OCR technology. ').italic = True
+        footer.add_run('For best results, ensure the original PDF has clear, high-quality text.').italic = True
+        
+        # Save to bytes
+        buffer = io.BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        result = buffer.getvalue()
+        
+        ocr_logger.info(f"OCR conversion completed: {len(result):,} bytes")
+        return result
+        
+    except ImportError as ie:
+        ocr_logger.warning(f"OCR dependencies not available: {ie}")
+        raise PDFProcessingError(f"OCR is not available (missing dependencies: {ie}). Please install pytesseract and pdf2image.")
+    except PDFProcessingError:
+        raise
+    except Exception as e:
+        ocr_logger.error(f"OCR conversion failed: {type(e).__name__}: {e}")
+        ocr_logger.debug(traceback.format_exc())
+        raise PDFProcessingError(f"OCR conversion failed: {str(e)[:200]}")
 
 
 def create_simulated_word_document(pdf_bytes: bytes, original_filename: str) -> bytes:
@@ -1172,11 +1476,11 @@ async def compress_pdf(
 ):
     """
     Compress PDF file to reduce file size.
-    
+
     Parameters:
     - file: PDF file to compress
     - compressionLevel: Compression level (low, medium, high)
-    
+
     Returns compressed PDF file.
     """
     try:
@@ -1186,81 +1490,60 @@ async def compress_pdf(
                 status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
                 detail="File must be a PDF"
             )
-        
+
         # Validate compression level
         if compressionLevel not in ["low", "medium", "high"]:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="compressionLevel must be 'low', 'medium', or 'high'"
             )
-        
+
         # Read file content
         file_bytes = await read_upload_file(file)
-        
-        # Create temporary file paths
-        import tempfile
-        import os
-        from pathlib import Path
-        
-        # Compress PDF using pikepdf with bytes
-        import pikepdf
-        import io
-        
-        # Open PDF from bytes
-        pdf = pikepdf.open(io.BytesIO(file_bytes))
-        
-        # Save to bytes buffer with compression settings
-        output_buffer = io.BytesIO()
-        
-        # Apply compression based on level
-        if compressionLevel == "high":
-            # Maximum compression
-            pdf.save(
-                output_buffer,
-                compress_streams=True,
-                stream_decode_level=pikepdf.StreamDecodeLevel.specialized,
-                object_stream_mode=pikepdf.ObjectStreamMode.generate,
-                preserve_pdfa=False
-            )
-        elif compressionLevel == "medium":
-            # Balanced compression
-            pdf.save(
-                output_buffer,
-                compress_streams=True,
-                stream_decode_level=pikepdf.StreamDecodeLevel.generalized,
-                object_stream_mode=pikepdf.ObjectStreamMode.preserve,
-                preserve_pdfa=True
-            )
-        else:  # low
-            # Light compression
-            pdf.save(
-                output_buffer,
-                compress_streams=True,
-                stream_decode_level=pikepdf.StreamDecodeLevel.none,
-                object_stream_mode=pikepdf.ObjectStreamMode.preserve,
-                preserve_pdfa=True
-            )
-        
-        # Get compressed bytes
-        compressed_bytes = output_buffer.getvalue()
-        
-        # Generate output filename
         original_filename = file.filename or "document.pdf"
-        name_without_ext = original_filename.rsplit('.', 1)[0]
-        output_filename = f"{name_without_ext}_compressed.pdf"
-        
+        original_size = len(file_bytes)
+
+        logger.info(
+            "Compressing '%s' (%d bytes) with %s compression",
+            original_filename, original_size, compressionLevel
+        )
+
+        # Delegate to the service layer (uses temp files, handles latin-1 fallback)
+        compressed_bytes = PDFService.compress_pdf(file_bytes, compressionLevel)
+
+        compressed_size = len(compressed_bytes)
+        reduction_pct = (1 - compressed_size / max(original_size, 1)) * 100
+        logger.info(
+            "Compression complete: %d → %d bytes (%.1f%% reduction)",
+            original_size, compressed_size, reduction_pct
+        )
+
+        # Generate output filename
+        output_filename = "welovepdf-compressfile.pdf"
+
         # Return compressed file
         return create_file_response(
             compressed_bytes,
             output_filename,
             media_type="application/pdf"
         )
-            
+
+    except PDFProcessingError as e:
+        logger.error("PDF compression service error: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+    except ValueError as e:
+        logger.error("PDF compression validation error: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e)
+        )
     except HTTPException:
         raise
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f"PDF compression failed: {e}")
+        logger.error("Unexpected PDF compression error: %s", e, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to compress PDF: {str(e)}"
@@ -1408,29 +1691,379 @@ async def prepare_print_pdf(file: UploadFile = File(...)):
         )
 
 
-@router.post("/protect-pdf", response_model=PlaceholderResponse, summary="Protect PDF with password (Placeholder)")
-async def protect_pdf(file: UploadFile = File(...)):
+@router.post("/protect-pdf", summary="Protect PDF with password and encryption")
+async def protect_pdf(
+    file: UploadFile = File(...),
+    password: str = Form(..., min_length=4, description="Password to protect the PDF"),
+    allow_printing: bool = Form(True, description="Allow printing"),
+    allow_copying: bool = Form(True, description="Allow copying text/images"),
+    allow_editing: bool = Form(True, description="Allow modifying content"),
+    allow_annotating: bool = Form(True, description="Allow adding annotations"),
+):
     """
-    Placeholder endpoint for PDF protection.
-    
-    This feature requires external API and will be added in future.
+    Protect a PDF with password encryption using AES-256.
+    Returns the encrypted PDF file for download.
     """
-    return PlaceholderResponse(
-        message="This feature requires external API and will be added in future.",
-        status="pending",
-        estimated_availability="Q2 2024"
-    )
+    try:
+        # Read the uploaded PDF
+        pdf_bytes = await file.read()
+
+        # Validate the file is a PDF
+        if not file.filename or not file.filename.lower().endswith(".pdf"):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid file type. Please upload a PDF file.",
+            )
+
+        if len(pdf_bytes) == 0:
+            raise HTTPException(
+                status_code=400,
+                detail="The uploaded PDF file is empty.",
+            )
+
+        # Validate password
+        if len(password) < 4:
+            raise HTTPException(
+                status_code=400,
+                detail="Password must be at least 4 characters long.",
+            )
+
+        print(f"[protect_pdf] Encrypting PDF: {file.filename} "
+              f"(printing={allow_printing}, copying={allow_copying}, "
+              f"editing={allow_editing}, annotating={allow_annotating})")
+
+        # Encrypt the PDF
+        encrypted_pdf = PDFService.protect_pdf(
+            pdf_bytes=pdf_bytes,
+            password=password,
+            allow_printing=allow_printing,
+            allow_copying=allow_copying,
+            allow_editing=allow_editing,
+            allow_annotating=allow_annotating,
+        )
+
+        # Generate output filename
+        base_name = os.path.splitext(file.filename)[0]
+        output_filename = f"{base_name}_protected.pdf"
+
+        print(f"[protect_pdf] Successfully encrypted PDF, returning "
+              f"{len(encrypted_pdf)} bytes as '{output_filename}'")
+
+        return StreamingResponse(
+            io.BytesIO(encrypted_pdf),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{output_filename}"',
+                "Content-Length": str(len(encrypted_pdf)),
+                "X-Protected-PDF": "true",
+            },
+        )
+
+    except HTTPException:
+        raise
+    except PDFProcessingError as e:
+        print(f"[protect_pdf] PDFProcessingError: {e.message}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"PDF protection failed: {e.message}",
+        )
+    except Exception as e:
+        print(f"[protect_pdf] Unexpected error: {type(e).__name__}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"An unexpected error occurred while protecting the PDF.",
+        )
 
 
-@router.post("/unlock-pdf", response_model=PlaceholderResponse, summary="Unlock PDF (Placeholder)")
-async def unlock_pdf(file: UploadFile = File(...)):
+@router.post("/page-numbering", summary="Add page numbers to PDF")
+async def page_numbering(
+    file: UploadFile = File(...),
+    number_format: str = Form("1,2,3", description="Number format: 1,2,3 | I,II,III | i,ii,iii | A,B,C | Page 1 | 1 of 10 | PAGE-001"),
+    starting_number: int = Form(1, ge=1, description="Starting page number"),
+    format_template: str = Form("{n}", description="Format template with {n} and {total} placeholders"),
+    position: str = Form("bottom-center", description="Position: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right"),
+    alignment: str = Form("center", description="Alignment: left, center, right"),
+    page_range: str = Form("all", description="Page range: all, odd, even, first, 1-5, 2,4,6"),
+    font_size: int = Form(12, ge=6, le=72, description="Font size (6-72)"),
+    font_color: str = Form("#000000", description="Font color in hex format"),
+    font_family: str = Form("Helvetica", description="Font family: Helvetica, Courier, Times-Roman"),
+    prefix: str = Form("", description="Text to add before page number"),
+    suffix: str = Form("", description="Text to add after page number"),
+):
     """
-    Placeholder endpoint for PDF unlocking.
-    
-    This feature requires external API and will be added in future.
+    Add page numbers to a PDF with full customization.
+    Supports multiple number formats, positions, and page range filtering.
     """
-    return PlaceholderResponse(
-        message="This feature requires external API and will be added in future.",
-        status="pending",
-        estimated_availability="Q2 2024"
-    )
+    import os
+    try:
+        # Read the uploaded PDF
+        pdf_bytes = await file.read()
+
+        # Validate the file is a PDF
+        if not file.filename or not file.filename.lower().endswith(".pdf"):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid file type. Please upload a PDF file.",
+            )
+
+        if len(pdf_bytes) == 0:
+            raise HTTPException(
+                status_code=400,
+                detail="The uploaded PDF file is empty.",
+            )
+
+        # Validate font_color hex format
+        if not font_color.startswith("#") or len(font_color) != 7:
+            font_color = "#000000"
+
+        print(f"[page_numbering] Processing PDF: {file.filename} "
+              f"(format={number_format}, position={position}, range={page_range}, "
+              f"font_size={font_size}, color={font_color})")
+
+        # Apply page numbering
+        numbered_pdf = PDFService.page_numbering(
+            pdf_bytes=pdf_bytes,
+            number_format=number_format,
+            starting_number=starting_number,
+            format_template=format_template,
+            position=position,
+            alignment=alignment,
+            page_range=page_range,
+            font_size=font_size,
+            font_color=font_color,
+            font_family=font_family,
+            prefix=prefix,
+            suffix=suffix,
+        )
+
+        # Generate output filename
+        base_name = os.path.splitext(file.filename)[0]
+        output_filename = f"{base_name}_numbered.pdf"
+
+        print(f"[page_numbering] Successfully added page numbers, returning "
+              f"{len(numbered_pdf)} bytes as '{output_filename}'")
+
+        return StreamingResponse(
+            io.BytesIO(numbered_pdf),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{output_filename}"',
+                "Content-Length": str(len(numbered_pdf)),
+            },
+        )
+
+    except HTTPException:
+        raise
+    except PDFProcessingError as e:
+        print(f"[page_numbering] PDFProcessingError: {e.message}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Page numbering failed: {e.message}",
+        )
+    except Exception as e:
+        print(f"[page_numbering] Unexpected error: {type(e).__name__}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred while adding page numbers.",
+        )
+
+
+@router.post("/organize-pdf", summary="Organize/rearrange PDF pages")
+async def organize_pdf(
+    file: UploadFile = File(...),
+    page_order: Optional[str] = Form(None, description="JSON array of 1-based page numbers in desired order"),
+    deleted_pages: Optional[str] = Form(None, description="JSON array of 1-based page numbers to delete"),
+):
+    """
+    Reorganize PDF pages — reorder, delete, or both.
+
+    Accepts a PDF file plus optional page_order and deleted_pages as JSON strings.
+    Returns the reorganized PDF as a download.
+    """
+    try:
+        print(f"[organize_pdf] Processing: {file.filename}, page_order={page_order}, deleted_pages={deleted_pages}")
+
+        # Validate file
+        if not file.filename:
+            raise HTTPException(status_code=400, detail="No file provided.")
+        if not file.content_type or file.content_type != "application/pdf":
+            raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+
+        content = await file.read()
+        if len(content) == 0:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+        if len(content) > 100 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="File too large. Maximum size is 100MB.")
+
+        # Parse page_order JSON
+        parsed_page_order: Optional[List[int]] = None
+        if page_order:
+            import json
+            try:
+                parsed_page_order = json.loads(page_order)
+                if not isinstance(parsed_page_order, list) or not all(isinstance(p, int) for p in parsed_page_order):
+                    raise ValueError("page_order must be a JSON array of integers")
+                print(f"[organize_pdf] Parsed page_order: {parsed_page_order}")
+            except (json.JSONDecodeError, ValueError) as e:
+                raise HTTPException(status_code=400, detail=f"Invalid page_order: {str(e)}")
+
+        # Parse deleted_pages JSON
+        parsed_deleted_pages: Optional[List[int]] = None
+        if deleted_pages:
+            import json
+            try:
+                parsed_deleted_pages = json.loads(deleted_pages)
+                if not isinstance(parsed_deleted_pages, list) or not all(isinstance(p, int) for p in parsed_deleted_pages):
+                    raise ValueError("deleted_pages must be a JSON array of integers")
+                print(f"[organize_pdf] Parsed deleted_pages: {parsed_deleted_pages}")
+            except (json.JSONDecodeError, ValueError) as e:
+                raise HTTPException(status_code=400, detail=f"Invalid deleted_pages: {str(e)}")
+
+        # Process via service
+        output_bytes = OrganizePDFService.organize_pdf(
+            pdf_bytes=content,
+            page_order=parsed_page_order,
+            deleted_pages=parsed_deleted_pages,
+        )
+
+        output_filename = f"{file.filename.rsplit('.', 1)[0]}_organized.pdf"
+        print(f"[organize_pdf] Successfully organized, returning {len(output_bytes)} bytes as '{output_filename}'")
+
+        return StreamingResponse(
+            io.BytesIO(output_bytes),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{output_filename}"',
+                "Content-Length": str(len(output_bytes)),
+            },
+        )
+
+    except ValueError as ve:
+        print(f"[organize_pdf] Validation error: {ve}")
+        raise HTTPException(status_code=400, detail=str(ve))
+    except PDFProcessingError as e:
+        print(f"[organize_pdf] Processing error: {e.message}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"PDF organization failed: {e.message}",
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[organize_pdf] Unexpected error: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred while organizing the PDF.",
+        )
+
+
+# ══════════════════════════════════════════════════════════════════════
+# AI Tools Endpoints
+# ══════════════════════════════════════════════════════════════════════
+
+@router.post("/ai-tools", summary="Analyze PDF with AI")
+async def ai_tools_analyze(file: UploadFile = File(...)):
+    """
+    Analyze a PDF using AI — extract text, generate summary, key points,
+    title, and sentiment analysis.
+
+    Returns JSON with full analysis results.
+    """
+    print("[ai-tools] Endpoint called")
+    try:
+        # Validate file
+        if not file.filename:
+            raise HTTPException(status_code=400, detail="No file provided")
+        if not file.filename.lower().endswith('.pdf'):
+            raise HTTPException(status_code=400, detail="Only PDF files are supported for AI analysis")
+
+        if not validate_file_size(file, max_size=50 * 1024 * 1024):
+            raise HTTPException(status_code=413, detail="File exceeds maximum size of 50MB")
+
+        # Read file content
+        pdf_bytes = await file.read()
+        if not pdf_bytes:
+            raise HTTPException(status_code=400, detail="Empty file uploaded")
+
+        print(f"[ai-tools] Processing: {file.filename} ({len(pdf_bytes)} bytes)")
+
+        # Run AI analysis
+        from app.services.ai_tools_service import analyze_pdf
+        result = analyze_pdf(pdf_bytes)
+
+        print(f"[ai-tools] Analysis complete: summary={len(result['summary'])} chars, "
+              f"keyPoints={len(result['keyPoints'])}, sentiment={result['sentiment']}")
+
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ai-tools] Error: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"AI analysis failed: {str(e)}",
+        )
+
+
+@router.post("/ai-tools/report", summary="Generate AI analysis report (DOCX)")
+async def ai_tools_report(file: UploadFile = File(...)):
+    """
+    Analyze a PDF with AI AND generate a downloadable DOCX report.
+
+    Returns a .docx file with the complete AI analysis report.
+    """
+    print("[ai-tools/report] Endpoint called")
+    try:
+        # Validate file
+        if not file.filename:
+            raise HTTPException(status_code=400, detail="No file provided")
+        if not file.filename.lower().endswith('.pdf'):
+            raise HTTPException(status_code=400, detail="Only PDF files are supported for AI analysis")
+
+        if not validate_file_size(file, max_size=50 * 1024 * 1024):
+            raise HTTPException(status_code=413, detail="File exceeds maximum size of 50MB")
+
+        # Read file content
+        pdf_bytes = await file.read()
+        if not pdf_bytes:
+            raise HTTPException(status_code=400, detail="Empty file uploaded")
+
+        print(f"[ai-tools/report] Processing: {file.filename} ({len(pdf_bytes)} bytes)")
+
+        # Run AI analysis
+        from app.services.ai_tools_service import analyze_pdf, generate_report
+        result = analyze_pdf(pdf_bytes)
+
+        # Generate DOCX report
+        report_bytes = generate_report(result, original_filename=file.filename)
+
+        # Determine output filename
+        base_name = file.filename.rsplit('.', 1)[0] if '.' in file.filename else file.filename
+        download_filename = f"{base_name}_ai_report.docx"
+
+        print(f"[ai-tools/report] Report generated: {download_filename} ({len(report_bytes)} bytes)")
+
+        return StreamingResponse(
+            io.BytesIO(report_bytes),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f'attachment; filename="{download_filename}"',
+                "Content-Length": str(len(report_bytes)),
+            },
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ai-tools/report] Error: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"AI report generation failed: {str(e)}",
+        )

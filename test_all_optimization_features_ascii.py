@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
 Comprehensive test for all PDF optimization features:
-1. Rotate PDF (with angle parameter)
-2. Fix Scanned PDF
-3. Optimize PDF for Web Viewing
-4. Prepare PDF for Printing
+1. Fix Scanned PDF
+2. Optimize PDF for Web Viewing
+3. Prepare PDF for Printing
 """
 
 import requests
@@ -39,46 +38,6 @@ def create_test_pdf():
     
     buffer.seek(0)
     return buffer.getvalue()
-
-def test_rotate_pdf():
-    """Test the rotate-pdf endpoint."""
-    print("\n=== Testing Rotate PDF Endpoint ===")
-    
-    # Create test PDF
-    pdf_bytes = create_test_pdf()
-    
-    # Prepare request
-    files = {'file': ('test_rotate.pdf', pdf_bytes, 'application/pdf')}
-    data = {'angle': '90'}
-    
-    try:
-        response = requests.post(
-            f"{BASE_URL}/rotate-pdf",
-            files=files,
-            data=data,
-            timeout=30
-        )
-        
-        print(f"Status Code: {response.status_code}")
-        print(f"Content-Type: {response.headers.get('Content-Type')}")
-        print(f"Content-Length: {response.headers.get('Content-Length')}")
-        
-        if response.status_code == 200:
-            content_type = response.headers.get('Content-Type', '')
-            if 'application/pdf' in content_type:
-                print("[OK] Rotate PDF endpoint working correctly")
-                return True
-            else:
-                print(f"[ERROR] Unexpected content type: {content_type}")
-                return False
-        else:
-            print(f"[ERROR] Request failed with status: {response.status_code}")
-            print(f"Response: {response.text[:200]}")
-            return False
-            
-    except Exception as e:
-        print(f"[ERROR] Exception during rotate-pdf test: {e}")
-        return False
 
 def test_fix_scanned_pdf():
     """Test the fix-scanned-pdf endpoint."""
@@ -194,38 +153,6 @@ def test_prepare_print_pdf():
         print(f"[ERROR] Exception during prepare-print-pdf test: {e}")
         return False
 
-def test_invalid_angle():
-    """Test rotate-pdf with invalid angle parameter."""
-    print("\n=== Testing Invalid Angle Validation ===")
-    
-    # Create test PDF
-    pdf_bytes = create_test_pdf()
-    
-    # Prepare request with invalid angle
-    files = {'file': ('test_invalid.pdf', pdf_bytes, 'application/pdf')}
-    data = {'angle': '45'}  # Invalid angle (should be 90, 180, or 270)
-    
-    try:
-        response = requests.post(
-            f"{BASE_URL}/rotate-pdf",
-            files=files,
-            data=data,
-            timeout=30
-        )
-        
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 400:
-            print("[OK] Invalid angle correctly rejected with 400 Bad Request")
-            return True
-        else:
-            print(f"[ERROR] Expected 400 for invalid angle, got {response.status_code}")
-            return False
-            
-    except Exception as e:
-        print(f"[ERROR] Exception during invalid angle test: {e}")
-        return False
-
 def main():
     """Run all tests."""
     print("Starting comprehensive PDF optimization features test...")
@@ -234,11 +161,9 @@ def main():
     results = []
     
     # Test each endpoint
-    results.append(("Rotate PDF", test_rotate_pdf()))
     results.append(("Fix Scanned PDF", test_fix_scanned_pdf()))
     results.append(("Optimize PDF", test_optimize_pdf()))
     results.append(("Prepare Print PDF", test_prepare_print_pdf()))
-    results.append(("Invalid Angle Validation", test_invalid_angle()))
     
     # Summary
     print("\n" + "="*60)

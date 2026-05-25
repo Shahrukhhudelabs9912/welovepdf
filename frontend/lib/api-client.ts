@@ -25,7 +25,6 @@ function getApiBase(endpoint: string): string {
 const API_ENDPOINTS = {
   'merge-pdf': '/merge-pdf',
   'split-pdf': '/split-pdf',
-  'rotate-pdf': '/rotate-pdf',
   'jpg-to-pdf': '/jpg-to-pdf',
   'pdf-to-jpg': '/pdf-to-jpg',
   'add-watermark': '/add-watermark',
@@ -33,7 +32,8 @@ const API_ENDPOINTS = {
   'word-to-pdf': '/word-to-pdf',
   'compress-pdf': '/compress-pdf',
   'protect-pdf': '/protect-pdf',
-  'unlock-pdf': '/unlock-pdf',
+  'page-numbering': '/page-numbering',
+  'organize-pdf': '/organize-pdf',
   'fix-scanned-pdf': '/fix-scanned-pdf',
   'optimize-pdf': '/optimize-pdf',
   'prepare-print-pdf': '/prepare-print-pdf',
@@ -73,8 +73,9 @@ export async function uploadFile(
     // Add files - Python backend expects 'files' for multiple, 'file' for single
     // Single file endpoints (based on validateFilesForEndpoint logic)
     const singleFileEndpoints = [
-      'split-pdf', 'rotate-pdf', 'pdf-to-jpg', 'add-watermark',
-      'pdf-to-word', 'word-to-pdf', 'compress-pdf', 'protect-pdf', 'unlock-pdf',
+      'split-pdf', 'pdf-to-jpg', 'add-watermark',
+      'pdf-to-word', 'word-to-pdf', 'compress-pdf', 'protect-pdf',
+      'page-numbering',
       'fix-scanned-pdf', 'optimize-pdf', 'prepare-print-pdf'
     ];
     
@@ -253,14 +254,14 @@ function validateFilesForEndpoint(endpoint: ApiEndpoint, files: File[]): string 
       }
       break;
     case 'split-pdf':
-    case 'rotate-pdf':
     case 'pdf-to-jpg':
     case 'add-watermark':
     case 'pdf-to-word':
     case 'word-to-pdf':
     case 'compress-pdf':
     case 'protect-pdf':
-    case 'unlock-pdf':
+    case 'page-numbering':
+    case 'organize-pdf':
       if (files.length !== 1) {
         return 'This tool requires exactly 1 file.';
       }
@@ -275,12 +276,12 @@ function validateFilesForEndpoint(endpoint: ApiEndpoint, files: File[]): string 
     switch (endpoint) {
       case 'merge-pdf':
       case 'split-pdf':
-      case 'rotate-pdf':
       case 'add-watermark':
       case 'pdf-to-word':
       case 'compress-pdf':
       case 'protect-pdf':
-      case 'unlock-pdf':
+      case 'page-numbering':
+      case 'organize-pdf':
         if (!fileType.includes('pdf')) {
           return `File "${file.name}" is not a PDF. This tool requires PDF files.`;
         }
@@ -316,7 +317,6 @@ function getFileExtension(contentType: string, endpoint: ApiEndpoint): string {
   // Fallback based on endpoint
   switch (endpoint) {
     case 'merge-pdf':
-    case 'rotate-pdf':
     case 'jpg-to-pdf':
     case 'add-watermark':
     case 'word-to-pdf':
@@ -374,10 +374,12 @@ export function downloadBlob(blob: Blob, filename: string): boolean {
       }
     }
     
-    // Clean up
+    // Clean up — remove the anchor element but do NOT revoke the blob URL.
+    // The browser needs the blob URL to read data for the download.
+    // Revoking before the download starts silently cancels it.
+    // Blob URLs are automatically freed when the page is unloaded.
     setTimeout(() => {
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
     }, 100);
     
     return clickSuccessful;

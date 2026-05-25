@@ -129,15 +129,6 @@ export async function splitPdfDocument(pdfDoc: PDFDocument, pageRanges?: number[
   return results;
 }
 
-export async function rotatePdfDocument(pdfDoc: PDFDocument, rotationDegrees: number) {
-  const pages = pdfDoc.getPages();
-  pages.forEach((page) => {
-    page.setRotation(degrees(rotationDegrees));
-  });
-  const pdfBytes = await pdfDoc.save();
-  return Buffer.from(pdfBytes);
-}
-
 export async function addWatermarkToPdf(pdfDoc: PDFDocument, watermarkText: string) {
   const pages = pdfDoc.getPages();
   

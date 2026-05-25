@@ -20,9 +20,8 @@ def check_openapi_spec():
             
             optimization_endpoints = [
                 '/api/fix-scanned-pdf',
-                '/api/optimize-pdf', 
-                '/api/prepare-print-pdf',
-                '/api/rotate-pdf'
+                '/api/optimize-pdf',
+                '/api/prepare-print-pdf'
             ]
             
             for endpoint in optimization_endpoints:
@@ -69,7 +68,6 @@ def main():
         '/api/fix-scanned-pdf',
         '/api/optimize-pdf',
         '/api/prepare-print-pdf',
-        '/api/rotate-pdf',
         '/api/compress-pdf',
         '/api/merge-pdf'
     ]

@@ -1,13 +1,30 @@
+const createNextIntlPlugin = require('next-intl/plugin');
+const withNextIntl = createNextIntlPlugin();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
-  turbopack: {
-    // Set the root directory for Turbopack
-    // The root should be the directory containing node_modules/next
-    // Since Turbopack is looking from frontend/app, and node_modules/next is in frontend/node_modules/next
-    // The relative path is ..
-    root: '..'
-  }
+  // Transpile ESM-only packages (pdfjs-dist@5.x) so Next.js webpack handles them correctly
+  transpilePackages: ["pdfjs-dist", "react-pdf"],
+
+  webpack: (config, { isServer }) => {
+    // pdfjs-dist and react-pdf need these Node-specific modules stubbed out in browser
+    if (!isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        canvas: false,
+        encoding: false,
+      };
+    }
+
+    // Let webpack handle .mjs files as standard JavaScript modules
+    config.module.rules.push({
+      test: /\.mjs$/,
+      include: /node_modules/,
+      type: "javascript/auto",
+    });
+
+    return config;
+  },
 };
 
-module.exports = nextConfig;
+module.exports = withNextIntl(nextConfig);

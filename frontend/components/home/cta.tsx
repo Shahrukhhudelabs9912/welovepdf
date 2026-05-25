@@ -1,11 +1,14 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { ArrowRight, Shield, Zap, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export function CTASection() {
+  const t = useTranslations();
+
   return (
     <section className="px-4 py-20 sm:px-6 lg:px-8">
       <div className="container mx-auto">
@@ -19,11 +22,10 @@ export function CTASection() {
                   transition={{ duration: 0.5 }}
                 >
                   <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-                    Ready to Transform Your PDF Workflow?
+                    {t("cta.title")}
                   </h2>
                   <p className="mt-6 text-lg text-blue-100">
-                    Join millions of users who trust WeLovePDF for fast, secure, and AI-powered PDF
-                    processing. No registration required — start now!
+                    {t("cta.subtitle")}
                   </p>
 
                   <div className="mt-8 flex flex-wrap gap-4">
@@ -31,14 +33,14 @@ export function CTASection() {
                       href="/merge-pdf"
                       className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-white text-blue-700 hover:bg-gray-100 gap-2 h-11 rounded-md px-8"
                     >
-                      Get Started Free
+                      {t("cta.button1")}
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                     <Link
                       href="/pricing"
                       className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground border-white text-white hover:bg-white/10 h-11 rounded-md px-8"
                     >
-                      View Premium Features
+                      {t("cta.button2")}
                     </Link>
                   </div>
 
@@ -48,8 +50,8 @@ export function CTASection() {
                         <Shield className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <div className="text-xl font-bold text-white">Secure</div>
-                        <div className="text-sm text-blue-200">Auto-delete files</div>
+                        <div className="text-xl font-bold text-white">{t("hero.trust_badges.secure")}</div>
+                        <div className="text-sm text-blue-200">{t("hero.trust_badges.secure_sub")}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -57,8 +59,8 @@ export function CTASection() {
                         <Zap className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <div className="text-xl font-bold text-white">Fast</div>
-                        <div className="text-sm text-blue-200">Parallel processing</div>
+                        <div className="text-xl font-bold text-white">{t("hero.trust_badges.fast")}</div>
+                        <div className="text-sm text-blue-200">{t("hero.trust_badges.fast_sub")}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -66,8 +68,8 @@ export function CTASection() {
                         <Globe className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <div className="text-xl font-bold text-white">Global</div>
-                        <div className="text-sm text-blue-200">Multi-language</div>
+                        <div className="text-xl font-bold text-white">{t("hero.trust_badges.ai")}</div>
+                        <div className="text-sm text-blue-200">{t("hero.trust_badges.ai_sub")}</div>
                       </div>
                     </div>
                   </div>
@@ -81,7 +83,7 @@ export function CTASection() {
                   transition={{ duration: 0.5, delay: 0.2 }}
                   className="relative rounded-2xl bg-white/10 backdrop-blur-sm p-8 border border-white/20"
                 >
-                  <h3 className="text-2xl font-bold text-white">Start Processing Now</h3>
+                  <h3 className="text-2xl font-bold text-white">{t("cta.button1")}</h3>
                   <p className="mt-2 text-blue-100">
                     Drag & drop your first PDF to experience the power of WeLovePDF.
                   </p>

@@ -1,12 +1,11 @@
-"""
-Main FastAPI application for WeLovePDF backend.
-"""
+"""Main FastAPI application for WeLovePDF backend."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from app.routes import pdf_routes
+from app.routes import pdf_routes, auth_routes
 from app.config import settings
+from app.utils.db_utils import connect_to_mongo, close_mongo_connection
 
 # Create FastAPI app
 app = FastAPI(
@@ -24,10 +23,13 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition", "Content-Type", "Content-Length"],
 )
 
 # Include routers
 app.include_router(pdf_routes.router, prefix="/api", tags=["PDF Tools"])
+app.include_router(auth_routes.router, prefix="/api", tags=["Authentication"])
+
 
 @app.get("/")
 async def root():
@@ -38,15 +40,33 @@ async def root():
         "docs": "/api/docs",
     }
 
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy"}
+
+
+# ---------------------------------------------------------------------------
+# MongoDB lifecycle events
+# ---------------------------------------------------------------------------
+
+@app.on_event("startup")
+async def startup_db_client():
+    """Connect to MongoDB on application startup."""
+    await connect_to_mongo()
+
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    """Close MongoDB connection on application shutdown."""
+    await close_mongo_connection()
+
 
 if __name__ == "__main__":
     uvicorn.run(
         "app.main:app",
         host=settings.HOST,
         port=settings.PORT,
-        reload=settings.DEBUG,
-    )
+        reload=settings.APP_DEBUG,
+    )  

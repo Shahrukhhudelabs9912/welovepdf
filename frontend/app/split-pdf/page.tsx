@@ -32,6 +32,7 @@ export default function SplitPDFPage() {
       description="Divide a PDF file into multiple documents or extract specific pages"
       toolName="PDF Splitter"
       toolDescription="Split PDF files by page ranges, extract specific pages, or divide into equal parts with our fast and secure online tool."
+      toolKey="split_pdf"
       seoContent={{
         h1: "Split PDF Files Online for Free",
         h2: "How to Split PDF Files",

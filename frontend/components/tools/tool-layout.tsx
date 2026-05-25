@@ -1,4 +1,7 @@
+"use client";
+
 import { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { FileText, Shield, Zap, Globe, Check } from "lucide-react";
 
 interface ToolLayoutProps {
@@ -7,6 +10,8 @@ interface ToolLayoutProps {
   toolName: string;
   toolDescription: string;
   children: ReactNode;
+  /** Translation namespace key, e.g. "merge_pdf", "compress_pdf". When provided, title/description fall back to translated values from that namespace. */
+  toolKey?: string;
   seoContent?: {
     h1: string;
     h2: string;
@@ -21,17 +26,45 @@ export function ToolLayout({
   toolName,
   toolDescription,
   children,
+  toolKey,
   seoContent,
 }: ToolLayoutProps) {
+  const t = useTranslations("tool_pages");
+  // Read tool-specific translations when toolKey is provided
+  const tt = toolKey ? useTranslations(toolKey as any) : null;
+  const displayTitle = tt?.("title" as any) || title;
+  const displayDescription = tt?.("description" as any) || description;
+
+  const howToSteps: string[] = [
+    t("how_to_step1"),
+    t("how_to_step2"),
+    t("how_to_step3"),
+    t("how_to_step4"),
+  ];
+
+  const keyFeatures: { icon: typeof Shield; text: string }[] = [
+    { icon: Shield, text: t("feature_secure") },
+    { icon: Zap, text: t("feature_fast") },
+    { icon: Globe, text: t("feature_multilingual") },
+    { icon: FileText, text: t("feature_quality") },
+  ];
+
+  const popularTools: { name: string; href: string }[] = [
+    { name: t("popular_split_pdf"), href: "/split-pdf" },
+    { name: t("popular_compress_pdf"), href: "/compress-pdf" },
+    { name: t("popular_pdf_to_word"), href: "/pdf-to-word" },
+    { name: t("popular_protect_pdf"), href: "/protect-pdf" },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-            {seoContent?.h1 || `${title} Tool`}
+            {seoContent?.h1 || `${displayTitle} ${t("tool_suffix")}`}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-xl text-gray-600 dark:text-gray-300">
-            {description}
+            {displayDescription}
           </p>
         </div>
 
@@ -46,7 +79,7 @@ export function ToolLayout({
                   </div>
                   <div className="hidden rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300 sm:flex items-center gap-2">
                     <Shield className="h-4 w-4" />
-                    <span>Secure & Private</span>
+                    <span>{t("secure_private")}</span>
                   </div>
                 </div>
               </div>
@@ -62,7 +95,7 @@ export function ToolLayout({
 
                   {seoContent.faq && seoContent.faq.length > 0 && (
                     <div className="mt-8">
-                      <h3>Frequently Asked Questions</h3>
+                      <h3>{t("faq_title")}</h3>
                       <div className="space-y-4">
                         {seoContent.faq.map((item, index) => (
                           <div key={index} className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
@@ -80,14 +113,9 @@ export function ToolLayout({
 
           <div className="space-y-6">
             <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-              <h3 className="text-lg font-semibold">How to Use</h3>
+              <h3 className="text-lg font-semibold">{t("how_to_use")}</h3>
               <ol className="mt-4 space-y-3">
-                {[
-                  "Drag & drop your PDF files",
-                  "Arrange them in desired order",
-                  "Click 'Merge PDF' button",
-                  "Download your merged PDF",
-                ].map((step, index) => (
+                {howToSteps.map((step, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-sm font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                       {index + 1}
@@ -99,14 +127,9 @@ export function ToolLayout({
             </div>
 
             <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-              <h3 className="text-lg font-semibold">Key Features</h3>
+              <h3 className="text-lg font-semibold">{t("key_features")}</h3>
               <div className="mt-4 space-y-3">
-                {[
-                  { icon: Shield, text: "100% secure processing" },
-                  { icon: Zap, text: "Fast parallel processing" },
-                  { icon: Globe, text: "Multi-language support" },
-                  { icon: FileText, text: "Preserves original quality" },
-                ].map((feature, index) => (
+                {keyFeatures.map((feature, index) => (
                   <div key={index} className="flex items-center gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
                       <feature.icon className="h-4 w-4" />
@@ -118,14 +141,9 @@ export function ToolLayout({
             </div>
 
             <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 p-6 dark:from-gray-800 dark:to-gray-900">
-              <h3 className="text-lg font-semibold">Popular Tools</h3>
+              <h3 className="text-lg font-semibold">{t("popular_tools")}</h3>
               <div className="mt-4 space-y-2">
-                {[
-                  { name: "Split PDF", href: "/split-pdf" },
-                  { name: "Compress PDF", href: "/compress-pdf" },
-                  { name: "PDF to Word", href: "/pdf-to-word" },
-                  { name: "Protect PDF", href: "/protect-pdf" },
-                ].map((tool) => (
+                {popularTools.map((tool) => (
                   <a
                     key={tool.name}
                     href={tool.href}

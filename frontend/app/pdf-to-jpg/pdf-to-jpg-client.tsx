@@ -68,13 +68,14 @@ export function PDFToJPGClient() {
     <>
       <ToolComponent
         toolName="pdf-to-jpg"
-        endpoint="http://127.0.0.1:8000/api/pdf-to-jpg"
+        endpoint={`${process.env.NEXT_PUBLIC_PYTHON_API_BASE || 'http://localhost:8000/api'}/pdf-to-jpg`}
         title="Convert PDF to JPG"
         description="Upload your PDF file to convert it to high-quality JPG images."
         accept="application/pdf"
         multiple={false}
         maxSize={100 * 1024 * 1024} // 100MB
         additionalContent={additionalContent}
+        additionalData={{ quality, dpi, page_number: pageNumber }}
         autoClearFiles={true}
       />
 

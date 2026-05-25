@@ -1,51 +1,56 @@
+"use client";
+
 import { Users, Target, Globe, Shield, Zap, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageMeta } from "@/components/seo-provider";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 export default function AboutPage() {
+  const t = useTranslations("about");
+
   const team = [
     {
-      name: "Alex Chen",
-      role: "Founder & CEO",
-      bio: "Former Google engineer with 10+ years in document processing",
+      name: t("team_member_1_name"),
+      role: t("team_member_1_role"),
+      bio: t("team_member_1_bio"),
       avatar: "AC",
     },
     {
-      name: "Maria Rodriguez",
-      role: "Head of Product",
-      bio: "Product leader from Adobe with expertise in PDF technologies",
+      name: t("team_member_2_name"),
+      role: t("team_member_2_role"),
+      bio: t("team_member_2_bio"),
       avatar: "MR",
     },
     {
-      name: "David Kim",
-      role: "Lead Developer",
-      bio: "Full-stack developer specializing in browser-based processing",
+      name: t("team_member_3_name"),
+      role: t("team_member_3_role"),
+      bio: t("team_member_3_bio"),
       avatar: "DK",
     },
     {
-      name: "Sarah Johnson",
-      role: "Security Lead",
-      bio: "Cybersecurity expert focused on data privacy and encryption",
+      name: t("team_member_4_name"),
+      role: t("team_member_4_role"),
+      bio: t("team_member_4_bio"),
       avatar: "SJ",
     },
   ];
 
   const milestones = [
-    { year: "2020", event: "Founded with a vision to simplify PDF processing" },
-    { year: "2021", event: "Launched first 5 PDF tools with browser-based processing" },
-    { year: "2022", event: "Reached 1 million users and added AI features" },
-    { year: "2023", event: "Expanded to 14+ tools with multi-language support" },
-    { year: "2024", event: "Achieved 5 million users with enterprise features" },
+    { year: "2020", event: t("milestone_2020") },
+    { year: "2021", event: t("milestone_2021") },
+    { year: "2022", event: t("milestone_2022") },
+    { year: "2023", event: t("milestone_2023") },
+    { year: "2024", event: t("milestone_2024") },
   ];
 
   return (
     <>
       <PageMeta
-        title="About WeLovePDF - Our Story & Mission"
-        description="Learn about WeLovePDF's mission to make PDF processing simple, secure, and accessible for everyone. Meet our team and discover our values."
+        title={`${t("title")} - ${t("badge")}`}
+        description={t("description")}
         keywords="about welovepdf, pdf tools company, our mission, our team, pdf processing"
       />
 
@@ -55,18 +60,16 @@ export default function AboutPage() {
           <div className="mx-auto max-w-7xl">
             <div className="text-center">
               <Badge className="mb-4" variant="outline">
-                Our Story
+                {t("badge")}
               </Badge>
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl">
-                We Believe in{" "}
+                {t("hero_heading_part1")}{" "}
                 <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                  Simplicity & Security
+                  {t("hero_heading_part2")}
                 </span>
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-                WeLovePDF was founded with a simple mission: to make PDF processing accessible,
-                secure, and effortless for everyone. No complicated software, no privacy concerns,
-                just powerful tools that work right in your browser.
+                {t("hero_description")}
               </p>
             </div>
           </div>
@@ -81,16 +84,14 @@ export default function AboutPage() {
                   <div className="mb-4 rounded-full bg-blue-100 p-3 dark:bg-blue-900/30 w-fit">
                     <Target className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <CardTitle>Our Mission</CardTitle>
+                  <CardTitle>{t("mission_title")}</CardTitle>
                   <CardDescription>
-                    What drives us every day
+                    {t("mission_subtitle")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 dark:text-gray-300">
-                    To democratize PDF processing by providing free, high-quality tools that
-                    anyone can use regardless of technical expertise. We believe everyone
-                    deserves access to professional-grade document tools without cost barriers.
+                    {t("mission_text")}
                   </p>
                 </CardContent>
               </Card>
@@ -100,24 +101,24 @@ export default function AboutPage() {
                   <div className="mb-4 rounded-full bg-green-100 p-3 dark:bg-green-900/30 w-fit">
                     <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
                   </div>
-                  <CardTitle>Our Values</CardTitle>
+                  <CardTitle>{t("values_title")}</CardTitle>
                   <CardDescription>
-                    Principles we stand by
+                    {t("values_subtitle")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-3 text-gray-600 dark:text-gray-300">
                     <li className="flex items-start gap-2">
                       <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-primary" />
-                      <span><strong>Privacy First:</strong> Your documents never leave your browser</span>
+                      <span><strong>{t("values_privacy")}</strong> {t("values_privacy_text")}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-primary" />
-                      <span><strong>Accessibility:</strong> Free tools for everyone, forever</span>
+                      <span><strong>{t("values_accessibility")}</strong> {t("values_accessibility_text")}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-primary" />
-                      <span><strong>Innovation:</strong> Constantly improving with AI and new features</span>
+                      <span><strong>{t("values_innovation")}</strong> {t("values_innovation_text")}</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -128,28 +129,28 @@ export default function AboutPage() {
                   <div className="mb-4 rounded-full bg-purple-100 p-3 dark:bg-purple-900/30 w-fit">
                     <Globe className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                   </div>
-                  <CardTitle>Our Impact</CardTitle>
+                  <CardTitle>{t("impact_title")}</CardTitle>
                   <CardDescription>
-                    Making a difference
+                    {t("impact_subtitle")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
                       <div className="text-3xl font-bold text-primary">5M+</div>
-                      <div className="text-sm text-gray-500">Users Worldwide</div>
+                      <div className="text-sm text-gray-500">{t("impact_users")}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-3xl font-bold text-primary">14+</div>
-                      <div className="text-sm text-gray-500">PDF Tools</div>
+                      <div className="text-sm text-gray-500">{t("impact_tools")}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-3xl font-bold text-primary">50+</div>
-                      <div className="text-sm text-gray-500">Countries</div>
+                      <div className="text-sm text-gray-500">{t("impact_countries")}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-3xl font-bold text-primary">99.9%</div>
-                      <div className="text-sm text-gray-500">Uptime</div>
+                      <div className="text-sm text-gray-500">{t("impact_uptime")}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -163,10 +164,10 @@ export default function AboutPage() {
           <div className="mx-auto max-w-7xl">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Meet Our Team
+                {t("team_title")}
               </h2>
               <p className="mt-4 text-gray-600 dark:text-gray-300">
-                Passionate experts dedicated to improving your PDF experience
+                {t("team_subtitle")}
               </p>
             </div>
 
@@ -194,10 +195,10 @@ export default function AboutPage() {
           <div className="mx-auto max-w-4xl">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Our Journey
+                {t("journey_title")}
               </h2>
               <p className="mt-4 text-gray-600 dark:text-gray-300">
-                From a simple idea to serving millions worldwide
+                {t("journey_subtitle")}
               </p>
             </div>
 
@@ -222,27 +223,27 @@ export default function AboutPage() {
         {/* CTA Section */}
         <section className="px-4 py-20 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl rounded-2xl bg-gradient-to-r from-primary to-purple-600 p-8 text-center text-white">
-            <h2 className="text-3xl font-bold">Join Our Mission</h2>
+            <h2 className="text-3xl font-bold">{t("cta_heading")}</h2>
             <p className="mt-4 text-lg opacity-90">
-              Help us make PDF processing better for everyone
+              {t("cta_description")}
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Button size="lg" variant="secondary" className="gap-2">
                 <Heart className="h-4 w-4" />
-                Try Our Tools
+                {t("cta_try_tools")}
               </Button>
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
                 <Users className="h-4 w-4" />
-                Join Our Team
+                {t("cta_join_team")}
               </Button>
             </div>
             <p className="mt-6 text-sm opacity-80">
               <Link href="/careers" className="underline hover:no-underline">
-                View open positions
+                {t("cta_view_positions")}
               </Link>{" "}
               •{" "}
               <Link href="/contact" className="underline hover:no-underline">
-                Contact us
+                {t("cta_contact_us")}
               </Link>
             </p>
           </div>

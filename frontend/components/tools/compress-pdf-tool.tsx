@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { Upload, Download, Zap, File, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FileUpload } from "@/components/file-upload";
 import { toast } from "sonner";
 import { formatFileSize } from "@/lib/utils";
-import { processFiles, handleApiError } from "@/lib/api-client";
+import { uploadFile, downloadBlob, handleApiError } from "@/lib/api-client";
 import { useFileContext } from "@/lib/file-context";
 
 interface PDFFile {
@@ -23,6 +23,11 @@ export function CompressPDFTool() {
   const [progress, setProgress] = useState(0);
   const [compressedReady, setCompressedReady] = useState(false);
   const [compressionLevel, setCompressionLevel] = useState<"low" | "medium" | "high">("medium");
+  const [processingTime, setProcessingTime] = useState<number>(0);
+
+  // Store the compressed blob and filename for manual download fallback
+  const compressedBlobRef = useRef<Blob | null>(null);
+  const compressedFilenameRef = useRef<string>("");
 
   // Get the first file from global context (single file tool)
   const file: PDFFile | null = useMemo(() => {
@@ -54,7 +59,24 @@ export function CompressPDFTool() {
   const handleRemoveFile = () => {
     clearFiles();
     setCompressedReady(false);
+    compressedBlobRef.current = null;
+    compressedFilenameRef.current = "";
     toast.info("File removed");
+  };
+
+  const handleManualDownload = () => {
+    const blob = compressedBlobRef.current;
+    const filename = compressedFilenameRef.current;
+    if (!blob) {
+      toast.error("No compressed file available. Please compress again.");
+      return;
+    }
+    const success = downloadBlob(blob, filename);
+    if (success) {
+      toast.success(`Downloading ${filename}`);
+    } else {
+      toast.error("Download failed. Please try again or check your browser settings.");
+    }
   };
 
   const processCompress = async () => {
@@ -66,32 +88,49 @@ export function CompressPDFTool() {
     setIsProcessing(true);
     setProgress(0);
     setCompressedReady(false);
+    setProcessingTime(0);
+    compressedBlobRef.current = null;
+    compressedFilenameRef.current = "";
 
     try {
-      // Call the API with compression level using processFiles with progress callbacks
-      const success = await processFiles(
-        'compress-pdf',
-        globalFiles,
-        { compressionLevel },
-        (filename) => {
-          // Success callback
-          setProgress(100);
-          setIsProcessing(false);
-          setCompressedReady(true);
+      setProgress(10);
+      const startTime = Date.now();
+      const result = await uploadFile('compress-pdf', globalFiles, {
+        additionalData: { compressionLevel },
+        onProgress: (uploadProgress) => {
+          setProgress(10 + uploadProgress * 0.7); // 10-80 range for upload
         },
-        (error) => {
-          // Error callback
-          setIsProcessing(false);
-        },
-        (progress) => {
-          // Progress callback
-          setProgress(progress);
-        }
-      );
-      
-      if (!success) {
+      });
+
+      if (!result.success) {
         setIsProcessing(false);
+        handleApiError(result.error || "Failed to compress PDF");
+        return;
       }
+
+      setProgress(95);
+
+      // Calculate actual processing time
+      const elapsedMs = Date.now() - startTime;
+      setProcessingTime(elapsedMs);
+
+      if (result.blob && result.filename) {
+        // Store blob reference for manual download
+        compressedBlobRef.current = result.blob;
+        compressedFilenameRef.current = result.filename;
+
+        // Auto-download
+        try {
+          downloadBlob(result.blob, result.filename);
+        } catch (downloadErr) {
+          console.warn("Auto-download failed, manual button available:", downloadErr);
+        }
+      }
+
+      setProgress(100);
+      setIsProcessing(false);
+      setCompressedReady(true);
+      toast.success("PDF compressed successfully!");
     } catch (error) {
       console.error("Error compressing PDF:", error);
       handleApiError("Failed to compress PDF");
@@ -269,7 +308,7 @@ export function CompressPDFTool() {
           <div className="mt-4 grid grid-cols-2 gap-4 rounded-lg bg-white p-4 dark:bg-gray-800">
             <div>
               <div className="text-sm text-gray-500 dark:text-gray-400">File Name</div>
-              <div className="font-medium">compressed-document.pdf</div>
+              <div className="font-medium">welovepdf-compressfile.pdf</div>
             </div>
             <div>
               <div className="text-sm text-gray-500 dark:text-gray-400">Original Size</div>
@@ -281,10 +320,14 @@ export function CompressPDFTool() {
             </div>
             <div>
               <div className="text-sm text-gray-500 dark:text-gray-400">Processing Time</div>
-              <div className="font-medium">0.8 seconds</div>
+              <div className="font-medium">
+                {processingTime >= 1000
+                  ? `${(processingTime / 1000).toFixed(1)} seconds`
+                  : `${processingTime} ms`}
+              </div>
             </div>
           </div>
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-end gap-3">
             <Button
               variant="outline"
               onClick={() => {
@@ -295,6 +338,13 @@ export function CompressPDFTool() {
             >
               <Upload className="h-4 w-4" />
               Compress Another File
+            </Button>
+            <Button
+              onClick={handleManualDownload}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Download
             </Button>
           </div>
         </motion.div>

@@ -20,7 +20,7 @@ export default function WordToPDFPage() {
     hasFiles,
   } = useToolProcessing({
     toolName: "word-to-pdf",
-    endpoint: "http://127.0.0.1:8000/api/word-to-pdf",
+    endpoint: `${process.env.NEXT_PUBLIC_PYTHON_API_BASE || 'http://localhost:8000/api'}/word-to-pdf`,
     autoClearFiles: true,
   });
 
@@ -71,6 +71,7 @@ export default function WordToPDFPage() {
       description="Convert Word documents to PDF format while preserving all formatting."
       toolName="Word to PDF"
       toolDescription="Transform your Word documents into professional PDF files. Our converter maintains original formatting, fonts, and layout for perfect conversion every time."
+      toolKey="word_to_pdf"
       seoContent={{
         h1: "Convert Word to PDF Online for Free",
         h2: "How to Convert Word to PDF",

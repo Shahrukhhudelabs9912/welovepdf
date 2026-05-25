@@ -3,16 +3,24 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { FileText, Menu, X, Moon, Sun, Globe, Shield } from "lucide-react";
+import {
+  FileText, Menu, X, Moon, Sun, Globe, Shield,
+  User, LogOut, Settings, Combine, Scissors,
+  ArrowRightLeft, Shrink, Lock, Pencil,
+  Paintbrush, Hash
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useLanguage } from "@/components/language-provider";
+import { useTranslations, useLocale } from "next-intl";
+import { useAuth } from "@/lib/auth-context";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 
 const navigation = [
   { name: "Tools", href: "#tools" },
@@ -25,36 +33,45 @@ const navigation = [
 const toolCategories = [
   {
     name: "Merge & Split",
+    icon: Combine,
+    color: "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400",
+    borderColor: "border-blue-200 dark:border-blue-800",
     tools: [
-      { name: "Merge PDF", href: "/merge-pdf", description: "Combine multiple PDFs into one" },
-      { name: "Split PDF", href: "/split-pdf", description: "Split PDF into multiple files" },
-      { name: "Organize PDF", href: "/organize-pdf", description: "Reorder, delete pages" },
+      { name: "Merge PDF", href: "/merge-pdf", description: "Combine multiple PDFs into one", icon: Combine },
+      { name: "Split PDF", href: "/split-pdf", description: "Split PDF into multiple files", icon: Scissors },
+      { name: "Organize PDF", href: "/organize-pdf", description: "Reorder, delete pages", icon: ArrowRightLeft },
     ],
   },
   {
     name: "Convert",
+    icon: ArrowRightLeft,
+    color: "bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400",
+    borderColor: "border-purple-200 dark:border-purple-800",
     tools: [
-      { name: "PDF to Word", href: "/pdf-to-word", description: "Convert PDF to editable Word" },
-      { name: "Word to PDF", href: "/word-to-pdf", description: "Convert Word to PDF" },
-      { name: "PDF to JPG", href: "/pdf-to-jpg", description: "Extract images from PDF" },
-      { name: "JPG to PDF", href: "/jpg-to-pdf", description: "Convert images to PDF" },
+      { name: "PDF to Word", href: "/pdf-to-word", description: "Convert PDF to editable Word", icon: FileText },
+      { name: "Word to PDF", href: "/word-to-pdf", description: "Convert Word to PDF", icon: FileText },
+      { name: "PDF to JPG", href: "/pdf-to-jpg", description: "Extract images from PDF", icon: FileText },
+      { name: "JPG to PDF", href: "/jpg-to-pdf", description: "Convert images to PDF", icon: FileText },
     ],
   },
   {
     name: "Optimize",
+    icon: Shrink,
+    color: "bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400",
+    borderColor: "border-green-200 dark:border-green-800",
     tools: [
-      { name: "Compress PDF", href: "/compress-pdf", description: "Reduce PDF file size" },
-      { name: "Rotate PDF", href: "/rotate-pdf", description: "Rotate PDF pages" },
-      { name: "Protect PDF", href: "/protect-pdf", description: "Add password protection" },
-      { name: "Unlock PDF", href: "/unlock-pdf", description: "Remove password protection" },
+      { name: "Compress PDF", href: "/compress-pdf", description: "Reduce PDF file size", icon: Shrink },
+      { name: "Protect PDF", href: "/protect-pdf", description: "Add password protection", icon: Lock },
     ],
   },
   {
     name: "Edit & Enhance",
+    icon: Pencil,
+    color: "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400",
+    borderColor: "border-amber-200 dark:border-amber-800",
     tools: [
-      { name: "Add Watermark", href: "/add-watermark", description: "Add text/image watermarks" },
-      { name: "Page Numbering", href: "/page-numbering", description: "Add page numbers" },
-      { name: "Rotate PDF", href: "/rotate-pdf", description: "Rotate PDF pages" },
+      { name: "Add Watermark", href: "/add-watermark", description: "Add text/image watermarks", icon: Paintbrush },
+      { name: "Page Numbering", href: "/page-numbering", description: "Add page numbers", icon: Hash },
     ],
   },
 ];
@@ -62,10 +79,19 @@ const toolCategories = [
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { language, setLanguage, t } = useLanguage();
+  const t = useTranslations();
+  const locale = useLocale();
+  const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
 
-  const handleLanguageChange = (lang: "en" | "hi") => {
-    setLanguage(lang);
+  // Helper to get user initials for avatar fallback
+  const getUserInitials = (): string => {
+    if (!user?.full_name) return "?";
+    return user.full_name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   return (
@@ -97,27 +123,35 @@ export function Header() {
                     </svg>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-96 p-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    {toolCategories.map((category) => (
-                      <div key={category.name} className="space-y-2">
-                        <h3 className="text-sm font-semibold text-foreground">{category.name}</h3>
-                        <div className="space-y-1">
-                          {category.tools.map((tool) => (
+                <DropdownMenuContent align="start" className="w-80 max-h-[80vh] overflow-y-auto p-3" sideOffset={8}>
+                  {toolCategories.map((category) => (
+                    <div key={category.name} className="mb-1">
+                      {/* Category header with icon */}
+                      <div className={`flex items-center gap-2 px-2 py-2 rounded-md ${category.color}`}>
+                        <category.icon className="h-4 w-4" />
+                        <span className="text-sm font-bold">{category.name}</span>
+                      </div>
+                      {/* Tool items */}
+                      <div className="ml-1 border-l-2 border-muted pl-3 py-0.5 space-y-0">
+                        {category.tools.map((tool) => {
+                          const ToolIcon = tool.icon;
+                          return (
                             <DropdownMenuItem key={tool.name} asChild>
                               <Link
                                 href={tool.href}
-                                className="flex flex-col items-start p-2 hover:bg-accent rounded"
+                                className="flex items-center gap-2.5 px-2 py-2 hover:bg-accent rounded-md transition-colors group"
                               >
-                                <span className="text-sm font-medium">{tool.name}</span>
-                                <span className="text-xs text-muted-foreground">{tool.description}</span>
+                                <ToolIcon className="h-4 w-4 text-muted-foreground group-hover:text-foreground shrink-0" />
+                                <span className="text-sm font-medium group-hover:text-primary transition-colors">
+                                  {tool.name}
+                                </span>
                               </Link>
                             </DropdownMenuItem>
-                          ))}
-                        </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -150,42 +184,59 @@ export function Header() {
                 <span className="sr-only">{t("common.theme")}</span>
               </Button>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Globe className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem 
-                    onClick={() => handleLanguageChange("en")}
-                    className={language === "en" ? "bg-accent" : ""}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="text-sm">🇺🇸</span>
-                      {t("common.english")}
-                      {language === "en" && <span className="ml-2 text-xs text-blue-600">✓</span>}
-                    </span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => handleLanguageChange("hi")}
-                    className={language === "hi" ? "bg-accent" : ""}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="text-sm">🇮🇳</span>
-                      {t("common.hindi")}
-                      {language === "hi" && <span className="ml-2 text-xs text-blue-600">✓</span>}
-                    </span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <LocaleSwitcher />
 
-              <Button variant="outline" size="sm" className="hidden sm:inline-flex">
-                {t("common.login")}
-              </Button>
-              <Button size="sm" className="hidden sm:inline-flex">
-                {t("common.signup")}
-              </Button>
+              {isAuthenticated ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+                      <span className="text-xs font-bold">{getUserInitials()}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <div className="flex items-center gap-3 px-3 py-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+                        <span className="text-sm font-bold">{getUserInitials()}</span>
+                      </div>
+                      <div className="flex flex-col space-y-0.5">
+                        <p className="text-sm font-medium">{user?.full_name || "User"}</p>
+                        <p className="text-xs text-muted-foreground">{user?.email || ""}</p>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings" className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="cursor-pointer text-red-600 focus:text-red-600"
+                      onClick={() => {
+                        logout();
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button variant="outline" size="sm" className="hidden sm:inline-flex">
+                      {t("common.login")}
+                    </Button>
+                  </Link>
+                  <Link href="/signup">
+                    <Button size="sm" className="hidden sm:inline-flex">
+                      {t("common.signup")}
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
             <Button
@@ -256,22 +307,7 @@ export function Header() {
             <div className="pt-4 border-t space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">{t("common.language")}</span>
-                <div className="flex gap-2">
-                  <Button
-                    variant={language === "en" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleLanguageChange("en")}
-                  >
-                    {t("common.english")}
-                  </Button>
-                  <Button
-                    variant={language === "hi" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleLanguageChange("hi")}
-                  >
-                    {t("common.hindi")}
-                  </Button>
-                </div>
+                <LocaleSwitcher />
               </div>
 
               <div className="flex items-center justify-between">
@@ -286,12 +322,44 @@ export function Header() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <Button variant="outline" className="flex-1">
-                  {t("common.login")}
-                </Button>
-                <Button className="flex-1">
-                  {t("common.signup")}
-                </Button>
+                {isAuthenticated ? (
+                  <>
+                    <div className="flex items-center gap-3 w-full px-2 py-1">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+                        <span className="text-xs font-bold">{getUserInitials()}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="text-sm font-medium">{user?.full_name || "User"}</p>
+                        <p className="text-xs text-muted-foreground">{user?.email || ""}</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        logout();
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="flex-1">
+                        {t("common.login")}
+                      </Button>
+                    </Link>
+                    <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
+                      <Button className="flex-1">
+                        {t("common.signup")}
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

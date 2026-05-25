@@ -32,6 +32,7 @@ export default function PDFToJPGPage() {
       description="Convert PDF pages to high-quality JPG images with customizable settings."
       toolName="PDF to JPG"
       toolDescription="Transform your PDF documents into JPG images quickly and easily. Convert individual pages or entire documents, adjust image quality and resolution, and download your images ready for sharing, printing, or editing in image software."
+      toolKey="pdf_to_jpg"
       seoContent={{
         h1: "Convert PDF to JPG Online for Free",
         h2: "How to Convert PDF to JPG",
