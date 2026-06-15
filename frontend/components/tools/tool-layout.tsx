@@ -35,6 +35,20 @@ export function ToolLayout({
   const displayTitle = tt?.("title" as any) || title;
   const displayDescription = tt?.("description" as any) || description;
 
+  // Prefer translated SEO content when toolKey is available
+  const seoH1 = (toolKey && tt?.("seo_h1" as any)) ? tt!("seo_h1" as any) : seoContent?.h1;
+  const seoH2 = (toolKey && tt?.("seo_h2" as any)) ? tt!("seo_h2" as any) : seoContent?.h2;
+  const seoFaq: Array<{ question: string; answer: string }> | undefined =
+    toolKey
+      ? (() => {
+          try {
+            return tt?.raw("seo_faq" as any) as any;
+          } catch {
+            return seoContent?.faq;
+          }
+        })()
+      : seoContent?.faq;
+
   const howToSteps: string[] = [
     t("how_to_step1"),
     t("how_to_step2"),
@@ -61,7 +75,7 @@ export function ToolLayout({
       <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-            {seoContent?.h1 || `${displayTitle} ${t("tool_suffix")}`}
+            {seoH1 || `${displayTitle} ${t("tool_suffix")}`}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-xl text-gray-600 dark:text-gray-300">
             {displayDescription}
@@ -74,8 +88,8 @@ export function ToolLayout({
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold">{toolName}</h2>
-                    <p className="text-gray-600 dark:text-gray-300">{toolDescription}</p>
+                    <h2 className="text-2xl font-bold">{displayTitle}</h2>
+                    <p className="text-gray-600 dark:text-gray-300">{displayDescription}</p>
                   </div>
                   <div className="hidden rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300 sm:flex items-center gap-2">
                     <Shield className="h-4 w-4" />
@@ -90,14 +104,14 @@ export function ToolLayout({
             {seoContent && (
               <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
                 <div className="prose prose-lg dark:prose-invert max-w-none">
-                  <h2>{seoContent.h2}</h2>
-                  <div dangerouslySetInnerHTML={{ __html: seoContent.content }} />
+                  <h2>{seoH2 || seoContent.h2}</h2>
+                  {!toolKey && <div dangerouslySetInnerHTML={{ __html: seoContent.content }} />}
 
-                  {seoContent.faq && seoContent.faq.length > 0 && (
+                  {(seoFaq && seoFaq.length > 0) && (
                     <div className="mt-8">
                       <h3>{t("faq_title")}</h3>
                       <div className="space-y-4">
-                        {seoContent.faq.map((item, index) => (
+                        {seoFaq.map((item, index) => (
                           <div key={index} className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                             <h4 className="font-semibold">{item.question}</h4>
                             <p className="mt-2 text-gray-600 dark:text-gray-300">{item.answer}</p>
@@ -130,7 +144,7 @@ export function ToolLayout({
               <h3 className="text-lg font-semibold">{t("key_features")}</h3>
               <div className="mt-4 space-y-3">
                 {keyFeatures.map((feature, index) => (
-                  <div key={index} className="flex items-center gap-3">
+                  <div key={index} className="flex items-start gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
                       <feature.icon className="h-4 w-4" />
                     </div>

@@ -1,45 +1,88 @@
 import { NextRequest } from 'next/server';
-import { 
-  handleFileUpload, 
-  createPdfDocument, 
-  createApiResponse, 
-  createErrorResponse 
-} from '@/lib/api-handler';
-import { PDFDocument } from 'pdf-lib';
+
+const PYTHON_API_BASE = process.env.NEXT_PUBLIC_PYTHON_API_BASE || 'http://localhost:8000/api';
 
 export async function POST(request: NextRequest) {
   try {
-    const uploadResult = await handleFileUpload(request, { 
-      maxFiles: 1,
-      allowedTypes: ['application/pdf']
-    });
-    
-    if ('error' in uploadResult) {
-      return createErrorResponse(uploadResult.error || 'Upload error', uploadResult.status || 400);
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+
+    if (!file) {
+      return new Response(JSON.stringify({ error: 'No file provided' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
-    
-    const { files } = uploadResult;
-    const pdfDoc = await createPdfDocument(files[0]);
-    
-    // Simple compression: re-save with default settings
-    // In a real implementation, you would use ghostscript or other compression libraries
-    const compressedBytes = await pdfDoc.save({
-      useObjectStreams: true,
-      addDefaultPage: false,
+
+    // Get compression level from form data
+    const compressionLevel = formData.get('compression_level') as string || 'medium';
+
+    // Forward to Python backend
+    const backendFormData = new FormData();
+    const fileBuffer = await file.arrayBuffer();
+    const blob = new Blob([fileBuffer], { type: file.type || 'application/pdf' });
+    backendFormData.append('file', blob, file.name);
+    backendFormData.append('compression_level', compressionLevel);
+
+    console.log(`[compress-pdf API] Forwarding to backend: ${file.name} (${fileBuffer.byteLength} bytes, ${compressionLevel})`);
+
+    const backendResponse = await fetch(`${PYTHON_API_BASE}/compress-pdf`, {
+      method: 'POST',
+      body: backendFormData,
     });
-    
-    const compressedBuffer = Buffer.from(compressedBytes);
-    
-    // Return the compressed PDF
-    return createApiResponse(
-      compressedBuffer,
-      `compressed-${Date.now()}.pdf`,
-      'application/pdf'
-    );
-    
+
+    if (!backendResponse.ok) {
+      const errorText = await backendResponse.text();
+      console.error('[compress-pdf API] Backend error:', backendResponse.status, errorText);
+
+      let errorMessage = `Compression failed: ${backendResponse.status}`;
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.detail || errorData.message || errorData.error || errorMessage;
+      } catch {
+        if (errorText && errorText.length < 200) {
+          errorMessage = errorText;
+        }
+      }
+
+      return new Response(JSON.stringify({ error: errorMessage }), {
+        status: backendResponse.status,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const backendData = await backendResponse.arrayBuffer();
+
+    let filename = file.name.replace(/\.pdf$/i, '_compressed.pdf');
+    const contentDisposition = backendResponse.headers.get('content-disposition');
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="([^"]+)"/);
+      if (match) {
+        filename = match[1];
+      }
+    }
+
+    console.log(`[compress-pdf API] Returning: ${filename} (${backendData.byteLength} bytes)`);
+
+    return new Response(backendData, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Length': String(backendData.byteLength),
+        'Cache-Control': 'no-cache'
+      }
+    });
+
   } catch (error) {
-    console.error('Error compressing PDF:', error);
-    return createErrorResponse('Failed to compress PDF file', 500);
+    console.error('[compress-pdf API] Error:', error);
+    return new Response(JSON.stringify({
+      error: 'Failed to compress PDF',
+      details: error instanceof Error ? error.message : String(error)
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }
 

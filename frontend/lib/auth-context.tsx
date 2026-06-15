@@ -272,7 +272,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [scheduleRefresh]
   );
 
-  // Signup
+  // Signup — creates account only; does NOT auto-login
   const signup = useCallback(
     async (email: string, password: string, fullName: string) => {
       const response = await fetch(getApiUrl("/auth/signup"), {
@@ -286,21 +286,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(error.detail || "Signup failed. Please try again.");
       }
 
-      const data = await response.json();
-      const newTokens: AuthTokens = {
-        access_token: data.access_token,
-        refresh_token: data.refresh_token || null,
-        expires_in: data.expires_in || 1800,
-      };
-
-      setUser(data.user);
-      setTokens(newTokens);
-      saveTokens(newTokens);
-      saveUser(data.user);
-      scheduleRefresh(newTokens.expires_in);
-      toast.success(`Welcome, ${data.user.full_name}! Your account has been created.`);
+      // Account created — do NOT save tokens or auto-login
+      toast.success("Account created successfully! Please log in.");
     },
-    [scheduleRefresh]
+    []
   );
 
   // Logout

@@ -147,15 +147,15 @@ export default function SettingsPage() {
     const errors: typeof securityErrors = {};
 
     if (!currentPassword) {
-      errors.currentPassword = "Current password is required";
+      errors.currentPassword = t("settings_page.current_password_required");
     }
     if (!newPassword) {
-      errors.newPassword = "New password is required";
+      errors.newPassword = t("settings_page.new_password_required");
     } else if (newPassword.length < 8) {
-      errors.newPassword = "Password must be at least 8 characters";
+      errors.newPassword = t("settings_page.password_min_length_error");
     }
     if (!confirmNewPassword) {
-      errors.confirmNewPassword = "Please confirm your new password";
+      errors.confirmNewPassword = t("settings_page.confirm_new_password_required");
     } else if (newPassword !== confirmNewPassword) {
       errors.confirmNewPassword = t("settings_page.passwords_dont_match");
     }

@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { ToolLayout } from "@/components/tools/tool-layout";
-import { PDFToJPGClient } from "./pdf-to-jpg-client";
+import { ToolContentSkeleton } from "@/components/skeleton-loader";
+
+const PDFToJPGClient = dynamic(
+  () => import("./pdf-to-jpg-client").then((mod) => ({ default: mod.PDFToJPGClient })),
+  { loading: () => <ToolContentSkeleton />, ssr: false }
+);
 
 export const metadata: Metadata = {
   title: "Convert PDF to JPG Online Free | WeLovePDF",

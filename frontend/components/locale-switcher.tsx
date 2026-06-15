@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, usePathname } from '@/routing';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,7 @@ import {
 import { Globe } from 'lucide-react';
 
 export function LocaleSwitcher() {
+  const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -36,8 +37,9 @@ export function LocaleSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Globe className="h-5 w-5" />
+        <Button variant="ghost" size="sm" className="gap-1.5">
+          <Globe className="h-4 w-4" />
+          <span className="text-xs">{t("common.language")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

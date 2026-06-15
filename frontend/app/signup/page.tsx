@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -20,7 +21,7 @@ interface StrengthResult {
   textColor: string;   // Tailwind text class
 }
 
-function evaluatePasswordStrength(password: string): StrengthResult {
+function evaluatePasswordStrength(password: string, strengthLabels: Record<string, string>): StrengthResult {
   let score = 0;
 
   if (password.length >= 8) score++;
@@ -34,11 +35,11 @@ function evaluatePasswordStrength(password: string): StrengthResult {
   const normalized = Math.min(4, Math.floor(score / 1.5));
 
   const levels: StrengthResult[] = [
-    { score: 0, label: "Very Weak", color: "bg-red-500", textColor: "text-red-500" },
-    { score: 1, label: "Weak", color: "bg-orange-500", textColor: "text-orange-500" },
-    { score: 2, label: "Fair", color: "bg-yellow-500", textColor: "text-yellow-500" },
-    { score: 3, label: "Good", color: "bg-blue-500", textColor: "text-blue-500" },
-    { score: 4, label: "Strong", color: "bg-green-500", textColor: "text-green-500" },
+    { score: 0, label: strengthLabels.very_weak || "Very Weak", color: "bg-red-500", textColor: "text-red-500" },
+    { score: 1, label: strengthLabels.weak || "Weak", color: "bg-orange-500", textColor: "text-orange-500" },
+    { score: 2, label: strengthLabels.fair || "Fair", color: "bg-yellow-500", textColor: "text-yellow-500" },
+    { score: 3, label: strengthLabels.good || "Good", color: "bg-blue-500", textColor: "text-blue-500" },
+    { score: 4, label: strengthLabels.strong || "Strong", color: "bg-green-500", textColor: "text-green-500" },
   ];
 
   return levels[normalized];
@@ -51,6 +52,7 @@ function evaluatePasswordStrength(password: string): StrengthResult {
 export default function SignupPage() {
   const router = useRouter();
   const { signup } = useAuth();
+  const t = useTranslations("auth");
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -68,43 +70,51 @@ export default function SignupPage() {
     terms?: string;
   }>({});
 
-  const strength = password ? evaluatePasswordStrength(password) : null;
+  const strengthLabels = {
+    very_weak: t("password_strength.very_weak"),
+    weak: t("password_strength.weak"),
+    fair: t("password_strength.fair"),
+    good: t("password_strength.good"),
+    strong: t("password_strength.strong"),
+  };
+
+  const strength = password ? evaluatePasswordStrength(password, strengthLabels) : null;
 
   const validate = (): boolean => {
     const newErrors: typeof errors = {};
 
     if (!fullName.trim()) {
-      newErrors.fullName = "Full name is required.";
+      newErrors.fullName = t("validation.name_required");
     } else if (fullName.trim().length < 2) {
-      newErrors.fullName = "Name must be at least 2 characters.";
+      newErrors.fullName = t("validation.name_min_length");
     }
 
     if (!email.trim()) {
-      newErrors.email = "Email is required.";
+      newErrors.email = t("validation.email_required");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email address.";
+      newErrors.email = t("validation.email_invalid");
     }
 
     if (!password) {
-      newErrors.password = "Password is required.";
+      newErrors.password = t("validation.password_required");
     } else if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters.";
+      newErrors.password = t("validation.password_min_length");
     } else if (!/[A-Z]/.test(password)) {
-      newErrors.password = "Password must include at least one uppercase letter.";
+      newErrors.password = t("validation.password_uppercase");
     } else if (!/[a-z]/.test(password)) {
-      newErrors.password = "Password must include at least one lowercase letter.";
+      newErrors.password = t("validation.password_lowercase");
     } else if (!/[0-9]/.test(password)) {
-      newErrors.password = "Password must include at least one number.";
+      newErrors.password = t("validation.password_number");
     }
 
     if (!confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password.";
+      newErrors.confirmPassword = t("validation.confirm_required");
     } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match.";
+      newErrors.confirmPassword = t("validation.passwords_match");
     }
 
     if (!agreeToTerms) {
-      newErrors.terms = "You must agree to the terms and conditions.";
+      newErrors.terms = t("validation.terms_required");
     }
 
     setErrors(newErrors);
@@ -118,9 +128,9 @@ export default function SignupPage() {
     setIsSubmitting(true);
     try {
       await signup(email.trim(), password, fullName.trim());
-      router.push("/");
+      router.push("/login");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Signup failed. Please try again.";
+      const message = err instanceof Error ? err.message : t("signup_failed");
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -146,9 +156,9 @@ export default function SignupPage() {
               />
             </svg>
           </div>
-          <CardTitle className="text-2xl">Create an account</CardTitle>
+          <CardTitle className="text-2xl">{t("signup_title")}</CardTitle>
           <CardDescription>
-            Start using WeLovePDF tools for free
+            {t("signup_subtitle")}
           </CardDescription>
         </CardHeader>
 
@@ -157,12 +167,12 @@ export default function SignupPage() {
             {/* Full Name */}
             <div className="space-y-2">
               <label htmlFor="fullName" className="text-sm font-medium leading-none">
-                Full Name
+                {t("full_name")}
               </label>
               <Input
                 id="fullName"
                 type="text"
-                placeholder="John Doe"
+                placeholder={t("full_name_placeholder")}
                 value={fullName}
                 onChange={(e) => {
                   setFullName(e.target.value);
@@ -183,12 +193,12 @@ export default function SignupPage() {
             {/* Email */}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium leading-none">
-                Email
+                {t("email")}
               </label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t("email_placeholder")}
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
@@ -209,13 +219,13 @@ export default function SignupPage() {
             {/* Password */}
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium leading-none">
-                Password
+                {t("password")}
               </label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder={t("password_placeholder")}
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
@@ -232,7 +242,7 @@ export default function SignupPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   tabIndex={-1}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? t("hide_password") : t("show_password")}
                 >
                   {showPassword ? (
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -274,20 +284,20 @@ export default function SignupPage() {
               )}
 
               <p className="text-xs text-muted-foreground">
-                Must be at least 8 characters with uppercase, lowercase, and a number.
+                {t("password_hint")}
               </p>
             </div>
 
             {/* Confirm Password */}
             <div className="space-y-2">
               <label htmlFor="confirmPassword" className="text-sm font-medium leading-none">
-                Confirm Password
+                {t("confirm_password")}
               </label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder={t("confirm_password_placeholder")}
                   value={confirmPassword}
                   onChange={(e) => {
                     setConfirmPassword(e.target.value);
@@ -304,7 +314,7 @@ export default function SignupPage() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   tabIndex={-1}
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  aria-label={showConfirmPassword ? t("hide_password") : t("show_password")}
                 >
                   {showConfirmPassword ? (
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -341,13 +351,13 @@ export default function SignupPage() {
                   className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
                 <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer select-none">
-                  I agree to the{" "}
+                  {t("terms_text")}{" "}
                   <Link href="/terms" className="text-primary hover:underline">
-                    Terms of Service
+                    {t("terms_link")}
                   </Link>{" "}
-                  and{" "}
+                  {t("and")}{" "}
                   <Link href="/privacy" className="text-primary hover:underline">
-                    Privacy Policy
+                    {t("privacy_link")}
                   </Link>
                 </label>
               </div>
@@ -382,17 +392,17 @@ export default function SignupPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                     />
                   </svg>
-                  Creating account...
+                  {t("creating_account")}
                 </span>
               ) : (
-                "Create Account"
+                t("sign_up")
               )}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
+              {t("have_account")}{" "}
               <Link href="/login" className="text-primary hover:underline font-medium">
-                Sign in
+                {t("sign_in_link")}
               </Link>
             </p>
           </CardFooter>

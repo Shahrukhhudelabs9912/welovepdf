@@ -161,7 +161,7 @@ export function AIToolsSection() {
       setProgress(100);
       setResult(analysisResult);
       setStatus("completed");
-      toast.success("AI analysis completed successfully!");
+      toast.success(t("analysis_completed"));
     } catch (error: unknown) {
       stopProgressSimulation();
 
@@ -171,7 +171,7 @@ export function AIToolsSection() {
       }
 
       const message =
-        error instanceof Error ? error.message : "An unexpected error occurred during analysis.";
+        error instanceof Error ? error.message : t("analysis_error");
       setErrorMessage(message);
       setStatus("error");
       toast.error(message);
@@ -182,14 +182,14 @@ export function AIToolsSection() {
 
   const handleCopy = useCallback((text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard!");
+    toast.success(t("copied_to_clipboard"));
   }, []);
 
   // ── Download Report ──────────────────────────────────────────────────
 
   const handleDownload = useCallback(async () => {
     if (!analysisFile) {
-      toast.error("No file to generate report from. Please upload a PDF first.");
+      toast.error(t("no_file_for_report"));
       return;
     }
 
@@ -228,17 +228,17 @@ export function AIToolsSection() {
 
       // Attempt auto-download
       triggerDownload(blob, filename);
-      toast.success("Report downloaded successfully!");
+      toast.success(t("report_downloaded"));
     } catch (error: unknown) {
       const message =
-        error instanceof Error ? error.message : "Failed to generate report.";
+        error instanceof Error ? error.message : t("report_generation_failed");
       setErrorMessage(message);
 
       // If we got a blob but auto-download failed, still allow manual download
       if (!downloadBlob) {
         toast.error(message);
       } else {
-        toast.warning("Auto-download failed. You can use the manual download button below.");
+        toast.warning(t("auto_download_failed"));
       }
     } finally {
       setIsDownloading(false);
@@ -705,11 +705,11 @@ export function AIToolsSection() {
                         className="gap-2"
                         onClick={() => {
                           triggerDownload(downloadBlob, downloadFilename);
-                          toast.success("Report downloaded!");
+                          toast.success(t("report_downloaded"));
                         }}
                       >
                         <Download className="h-3 w-3" />
-                        {t("download_report_btn").replace("{filename}", downloadFilename)}
+                        {t("download_report_btn", { filename: downloadFilename })}
                       </Button>
                     </div>
                   )}

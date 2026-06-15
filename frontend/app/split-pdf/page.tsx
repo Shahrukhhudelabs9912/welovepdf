@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { ToolLayout } from "@/components/tools/tool-layout";
-import { SplitPDFClient } from "./split-pdf-client";
+import { ToolContentSkeleton } from "@/components/skeleton-loader";
+
+const SplitPDFClient = dynamic(
+  () => import("./split-pdf-client").then((mod) => ({ default: mod.SplitPDFClient })),
+  { loading: () => <ToolContentSkeleton />, ssr: false }
+);
 
 export const metadata: Metadata = {
   title: "Split PDF Online Free - Divide PDF into Multiple Files | WeLovePDF",

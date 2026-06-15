@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { ToolLayout } from "@/components/tools/tool-layout";
-import { ToolComponent } from "@/components/tools/tool-component";
+import { ToolContentSkeleton } from "@/components/skeleton-loader";
+
+const ToolComponent = dynamic(
+  () => import("@/components/tools/tool-component").then((mod) => ({ default: mod.ToolComponent })),
+  { loading: () => <ToolContentSkeleton />, ssr: false }
+);
 
 export const metadata: Metadata = {
   title: "Merge PDF Online Free - Combine Multiple PDF Files | WeLovePDF",
@@ -78,36 +84,14 @@ export default function MergePDFPage() {
     >
       <ToolComponent
         toolName="merge-pdf"
-        endpoint={`${process.env.NEXT_PUBLIC_PYTHON_API_BASE || 'http://localhost:8000/api'}/merge-pdf`}
+        endpoint="/api/merge-pdf"
         title="Merge PDF Files"
         description="Upload multiple PDF files to merge them into a single document."
         accept="application/pdf"
         multiple={true}
-        maxSize={100 * 1024 * 1024} // 100MB
+        maxSize={100 * 1024 * 1024}
         autoClearFiles={true}
       />
-
-      {/* Additional Info */}
-      <div className="mt-8 p-6 bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-2xl">
-        <h3 className="text-lg font-semibold mb-4">How to Merge PDFs</h3>
-        <ol className="space-y-3 list-decimal list-inside">
-          <li className="text-gray-700 dark:text-gray-300">
-            <span className="font-medium">Upload PDFs:</span> Click "Select Files" or drag and drop your PDF files
-          </li>
-          <li className="text-gray-700 dark:text-gray-300">
-            <span className="font-medium">Arrange Order:</span> Files are merged in the order they appear (upload order)
-          </li>
-          <li className="text-gray-700 dark:text-gray-300">
-            <span className="font-medium">Merge:</span> Click "Merge PDFs" to combine all files into one document
-          </li>
-          <li className="text-gray-700 dark:text-gray-300">
-            <span className="font-medium">Download:</span> Your merged PDF will download automatically
-          </li>
-        </ol>
-        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-          Tip: For best results, ensure all PDFs are in the correct order before merging. You can remove and re-upload files if needed.
-        </p>
-      </div>
     </ToolLayout>
   );
 }

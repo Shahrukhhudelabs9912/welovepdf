@@ -21,6 +21,10 @@ from docx import Document as DocxDocument
 from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
+# Cloud LLM (Groq) — primary AI engine when configured. All public functions
+# return Optional and we fall back to local HuggingFace pipelines on None.
+from app.services import cloud_ai_service
+
 logger = logging.getLogger("ai_tools")
 
 # HuggingFace pipelines will be lazily loaded per-call to avoid blocking
@@ -120,7 +124,15 @@ def _chunk_text(text: str, max_chars: int = CHUNK_MAX_CHARS) -> List[str]:
 # ── AI Analysis ──────────────────────────────────────────────────────
 
 def _generate_summary(text: str, max_length: int = 150, min_length: int = 40) -> str:
-    """Generate a concise summary using HuggingFace BART."""
+    """Generate a concise summary using cloud LLM (Groq) with HuggingFace fallback."""
+    # Try cloud LLM first — higher quality, faster
+    cloud_result = cloud_ai_service.summarize(text, max_words=max_length // 2)
+    if cloud_result:
+        logger.info("Summary: cloud LLM (Groq)")
+        return cloud_result
+
+    # Fallback: HuggingFace BART (slower, lower quality)
+    logger.info("Summary: HuggingFace fallback")
     # Truncate if text is too long
     input_text = text[:4000] if len(text) > 4000 else text
     if len(input_text.strip()) < 50:
@@ -139,16 +151,24 @@ def _generate_summary(text: str, max_length: int = 150, min_length: int = 40) ->
     except Exception as e:
         logger.warning("Summarization failed: %s", e)
 
-    # Fallback: return first few sentences
+    # Last-resort fallback: return first few sentences
     sentences = re.split(r'(?<=[.!?])\s+', input_text)
     return " ".join(sentences[:3])
 
 
 def _extract_key_points(text: str, num_points: int = 5) -> List[str]:
-    """Extract key points by summarizing each chunk and yielding distinct insights."""
+    """Extract key points using cloud LLM with HuggingFace + heuristic fallback."""
     if len(text.strip()) < 50:
         return ["Text too short for key point extraction."]
 
+    # Try cloud LLM first — gives genuinely distinct insights, not duplicates
+    cloud_points = cloud_ai_service.extract_key_points(text, num_points=num_points)
+    if cloud_points:
+        logger.info("KeyPoints: cloud LLM (Groq), %d points", len(cloud_points))
+        return cloud_points
+
+    # Fallback: HuggingFace per-chunk summarization
+    logger.info("KeyPoints: HuggingFace fallback")
     chunks = _chunk_text(text, max_chars=1200)
     all_points: List[str] = []
 
@@ -164,7 +184,7 @@ def _extract_key_points(text: str, num_points: int = 5) -> List[str]:
             pass
 
     if len(all_points) < num_points:
-        # Fallback: extract longest sentences as points
+        # Last-resort: extract longest sentences as points
         sentences = re.split(r'(?<=[.!?])\s+', text)
         long_sentences = sorted(
             [s.strip() for s in sentences if len(s.strip()) > 30],
@@ -178,10 +198,18 @@ def _extract_key_points(text: str, num_points: int = 5) -> List[str]:
 
 
 def _generate_title(text: str) -> str:
-    """Generate a smart title from document content."""
+    """Generate a smart title using cloud LLM with HuggingFace fallback."""
     if len(text.strip()) < 30:
         return "Untitled Document"
 
+    # Try cloud LLM first — produces clean, properly-formatted titles
+    cloud_title = cloud_ai_service.generate_title(text)
+    if cloud_title:
+        logger.info("Title: cloud LLM (Groq)")
+        return cloud_title
+
+    # Fallback: HuggingFace BART
+    logger.info("Title: HuggingFace fallback")
     try:
         summarizer = _get_summarizer()
         # Use a very short summary as title
@@ -202,7 +230,7 @@ def _generate_title(text: str) -> str:
     except Exception as e:
         logger.warning("Title generation failed: %s", e)
 
-    # Fallback: use first sentence
+    # Last-resort: use first sentence
     sentences = re.split(r'(?<=[.!?])\s+', text)
     first = sentences[0].strip().rstrip(".")
     if len(first) > 60:
@@ -211,20 +239,25 @@ def _generate_title(text: str) -> str:
 
 
 def _analyze_sentiment(text: str) -> Tuple[str, float]:
-    """Analyze sentiment of the document text."""
-    # Use first 1000 chars for efficiency — sentiment is usually consistent
-    sample = text[:1000] if len(text) > 1000 else text
-
-    if len(sample.strip()) < 20:
+    """Analyze sentiment using cloud LLM with HuggingFace fallback."""
+    if len(text.strip()) < 20:
         return "neutral", 50.0
 
+    # Try cloud LLM first — better nuance than binary distilbert
+    cloud_result = cloud_ai_service.analyze_sentiment(text)
+    if cloud_result:
+        logger.info("Sentiment: cloud LLM (Groq)")
+        return cloud_result
+
+    # Fallback: HuggingFace distilbert (positive/negative only, no neutral)
+    logger.info("Sentiment: HuggingFace fallback")
+    sample = text[:1000] if len(text) > 1000 else text
     try:
         pipeline = _get_sentiment_pipeline()
         result = pipeline(sample)
         if result and len(result) > 0:
             label = result[0]["label"].lower()
             score = round(result[0]["score"] * 100, 1)
-            # Map HuggingFace labels
             if label in ("positive", "pos", "5 stars", "4 stars"):
                 return "positive", score
             elif label in ("negative", "neg", "1 star", "2 stars"):

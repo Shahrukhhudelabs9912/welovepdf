@@ -2,11 +2,14 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Upload, File, X, Check } from "lucide-react";
 import { cn, formatFileSize } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useFileContext } from "@/lib/file-context";
+import { useUploadLimit } from "@/hooks/use-upload-limit";
+import { toast } from "sonner";
 
 interface FileUploadProps {
   onUpload?: (files: File[]) => void;
@@ -14,6 +17,12 @@ interface FileUploadProps {
   onAddMore?: () => void;
   accept?: string;
   multiple?: boolean;
+  /**
+   * Per-file max size in bytes. If omitted the limit is fetched from the
+   * backend tier API (free=25MB, pro=100MB). An explicit value always wins,
+   * so existing callers that pass a tighter cap (e.g. 50MB for images)
+   * continue to work unchanged.
+   */
   maxSize?: number;
   className?: string;
   showProcessButton?: boolean;
@@ -26,11 +35,16 @@ export function FileUpload({
   onAddMore,
   accept = "application/pdf",
   multiple = true,
-  maxSize = 100 * 1024 * 1024, // 100MB default
+  maxSize,
   className,
   showProcessButton,
   showAddMoreButton,
 }: FileUploadProps) {
+  const t = useTranslations("file_upload");
+  const tierLimit = useUploadLimit();
+  // Explicit prop wins; otherwise use the backend-resolved tier limit; final
+  // fallback is the hook's own client-side default (25MB).
+  const effectiveMaxSize = maxSize ?? tierLimit.maxBytes;
   // Smart defaults: show buttons only if their callbacks are provided
   const shouldShowProcessButton = showProcessButton ?? (onProcess !== undefined);
   const shouldShowAddMoreButton = showAddMoreButton ?? (onAddMore !== undefined || multiple);
@@ -39,20 +53,35 @@ export function FileUpload({
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
+      // Pre-validate against the effective limit so we surface a clear
+      // toast (with upgrade hint for free users) instead of silently
+      // sending a request the backend will reject with 413.
+      const oversize = acceptedFiles.find((f) => f.size > effectiveMaxSize);
+      if (oversize) {
+        const limitMb = (effectiveMaxSize / (1024 * 1024)).toFixed(0);
+        const upgradeHint =
+          tierLimit.tier === "pro"
+            ? ""
+            : ` Upgrade to Pro for ${tierLimit.proTierMb} MB uploads.`;
+        toast.error(
+          `"${oversize.name}" exceeds your ${limitMb} MB limit.${upgradeHint}`
+        );
+        return;
+      }
       addFiles(acceptedFiles);
       setIsDragging(false);
       if (onUpload) {
         onUpload(acceptedFiles);
       }
     },
-    [onUpload, addFiles]
+    [onUpload, addFiles, effectiveMaxSize, tierLimit.tier, tierLimit.proTierMb]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: accept ? { [accept]: [] } : undefined,
     multiple,
-    maxSize,
+    maxSize: effectiveMaxSize,
     onDragEnter: () => setIsDragging(true),
     onDragLeave: () => setIsDragging(false),
   });
@@ -83,17 +112,17 @@ export function FileUpload({
           </div>
           <div>
             <h3 className="text-xl font-semibold">
-              {isDragActive ? "Drop files here" : "Drag & drop files"}
+              {isDragActive ? t("drop_here") : t("drag_drop")}
             </h3>
             <p className="mt-2 text-gray-500 dark:text-gray-400">
-              or click to browse. Max file size: {formatFileSize(maxSize)}
+              {t("click_to_browse")} {formatFileSize(effectiveMaxSize)}
             </p>
             <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">
-              Supported: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, JPG, PNG
+              {t("supported_formats")}: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, JPG, PNG
             </p>
           </div>
           <Button variant="outline" className="mt-4">
-            Select Files
+            {t("select_files")}
           </Button>
         </div>
       </div>
@@ -105,32 +134,32 @@ export function FileUpload({
           className="space-y-3"
         >
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold">Selected Files ({files.length})</h4>
+            <h4 className="font-semibold">{t("selected_files", { count: files.length })}</h4>
             <Button variant="ghost" size="sm" onClick={clearAll}>
-              Clear All
+              {t("clear_all")}
             </Button>
           </div>
           <div className="space-y-2">
             {files.map((file, index) => (
               <div
                 key={`${file.name}-${index}`}
-                className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+                className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 overflow-hidden"
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
                     <File className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <div>
-                    <div className="font-medium">{file.name}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium truncate" title={file.name}>{file.name}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                       {formatFileSize(file.size)}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <div className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
                     <Check className="h-3 w-3" />
-                    Ready
+                    {t("ready")}
                   </div>
                   <Button
                     variant="ghost"
@@ -152,7 +181,7 @@ export function FileUpload({
                 disabled={files.length === 0}
               >
                 <Upload className="h-4 w-4" />
-                Process Files
+                {t("process_files")}
               </Button>
             )}
             {shouldShowAddMoreButton && (
@@ -171,7 +200,7 @@ export function FileUpload({
                   }
                 }}
               >
-                Add More Files
+                {t("add_more_files")}
               </Button>
             )}
           </div>

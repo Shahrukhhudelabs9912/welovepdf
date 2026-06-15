@@ -5,6 +5,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Trash2, GripVertical, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 
 type ViewMode = "grid" | "list";
 
@@ -28,6 +29,7 @@ export const SortablePageThumbnail = memo(function SortablePageThumbnail({
   onDelete,
   isProcessing,
 }: SortablePageThumbnailProps) {
+  const t = useTranslations("organize_pdf");
   const {
     attributes,
     listeners,
@@ -60,7 +62,7 @@ export const SortablePageThumbnail = memo(function SortablePageThumbnail({
           className={`absolute top-2 left-2 z-10 p-1 rounded bg-white/80 dark:bg-gray-900/80 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity ${
             viewMode === "list" ? "relative top-auto left-auto shrink-0" : ""
           }`}
-          title="Drag to reorder"
+          title={t("drag_to_reorder")}
         >
           <GripVertical className="h-4 w-4 text-gray-500" />
         </button>
@@ -76,7 +78,7 @@ export const SortablePageThumbnail = memo(function SortablePageThumbnail({
             e.stopPropagation();
             onDelete(pageItem.pageNumber);
           }}
-          title="Delete page"
+          title={t("delete_page")}
         >
           <Trash2 className="h-3.5 w-3.5" />
         </Button>

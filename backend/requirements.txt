@@ -15,9 +15,31 @@ pdfplumber>=0.10.3
 pikepdf>=10.0.0
 pycryptodome>=3.23.0
 pytesseract>=0.3.10
+# Excel <-> PDF tools
+pandas>=2.0.0
+openpyxl>=3.1.0
+# AI tools (PDF text extraction)
+pymupdf>=1.24.0
+# AI tools (summarization, sentiment, title generation).
+# IMPORTANT for production VPS: install torch with the CPU-only wheel —
+# the default pulls a 2GB+ CUDA wheel that we don't need:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+# Then `pip install -r requirements.txt` to fetch transformers.
+# First request after deploy will download bart-large-cnn (~1.6GB) into
+# the HF cache; pre-warm by calling the /api/ai-tools endpoint once.
+transformers>=4.40,<5
+torch>=2.0
+# Cloud LLM (Groq) — primary AI engine; HF above is the offline fallback.
+# Free tier: 14,400 req/day. Get key at https://console.groq.com (no card).
+groq>=0.11.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 pydantic[email]==2.10.0
 email-validator==2.1.0
 motor==3.7.0
+# Rate limiting (slowapi). Defaults to in-memory storage; for multi-worker
+# deployments set RATELIMIT_STORAGE_URI=redis://... and add a Redis service.
+slowapi>=0.1.9
+# Sentry error tracking. No-op until SENTRY_DSN is set in .env.
+sentry-sdk[fastapi]>=2.0.0

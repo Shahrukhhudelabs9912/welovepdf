@@ -1,11 +1,18 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { Link } from "@/routing";
 import { FileText, Shield, Zap, Globe, Heart, Share2 } from "lucide-react";
 
 export function Footer() {
   const t = useTranslations();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const year = new Date().getFullYear();
 
   const footerLinks = {
@@ -35,8 +42,8 @@ export function Footer() {
       { name: t("footer.privacy"), href: "/privacy-policy" },
       { name: t("footer.terms"), href: "/terms" },
       { name: t("footer.cookies"), href: "/cookies" },
-      { name: "GDPR", href: "/gdpr" },
-      { name: "DMCA", href: "/dmca" },
+      { name: t("footer.footer_links.gdpr"), href: "/gdpr" },
+      { name: t("footer.footer_links.dmca"), href: "/dmca" },
     ],
   };
 
@@ -96,9 +103,9 @@ export function Footer() {
 
         <div className="mt-12 border-t pt-8">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <div className="text-center text-sm text-muted-foreground md:text-left">
+            <div className="text-center text-sm text-muted-foreground md:text-left" suppressHydrationWarning>
               <p>
-                {t("footer.copyright", { year })}
+                {mounted ? t("footer.copyright", { year }) : t("footer.copyright", { year: "" })}
               </p>
               <p className="mt-1">
                 {t("footer.auto_delete")}
@@ -112,7 +119,7 @@ export function Footer() {
                 className="text-muted-foreground hover:text-foreground"
               >
                 <Heart className="h-5 w-5" />
-                <span className="sr-only">GitHub</span>
+                <span className="sr-only">{t("footer.footer_links.github")}</span>
               </a>
               <a
                 href="https://twitter.com"
@@ -121,7 +128,7 @@ export function Footer() {
                 className="text-muted-foreground hover:text-foreground"
               >
                 <Share2 className="h-5 w-5" />
-                <span className="sr-only">Twitter</span>
+                <span className="sr-only">{t("footer.footer_links.twitter")}</span>
               </a>
             </div>
           </div>

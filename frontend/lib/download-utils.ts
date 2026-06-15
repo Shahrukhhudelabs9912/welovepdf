@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Reusable download utilities for all file converters.
  *
@@ -13,6 +15,8 @@ export const MIME_TO_EXTENSION: Record<string, string> = {
   'application/pdf': 'pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
   'application/msword': 'doc',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+  'application/vnd.ms-excel': 'xls',
   'application/zip': 'zip',
   'image/jpeg': 'jpg',
   'image/png': 'png',

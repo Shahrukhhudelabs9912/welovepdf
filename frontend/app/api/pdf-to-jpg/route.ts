@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
 
+const PYTHON_API_BASE = process.env.NEXT_PUBLIC_PYTHON_API_BASE || 'http://localhost:8000/api';
+
 export async function POST(request: NextRequest) {
   try {
     // Get the form data from the request
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest) {
     console.log(`[pdf-to-jpg API] Forwarding to backend: ${file.name} (${fileBuffer.byteLength} bytes)`);
 
     // Call the backend API
-    const backendResponse = await fetch('http://localhost:8000/api/pdf-to-jpg', {
+    const backendResponse = await fetch(`${PYTHON_API_BASE}/pdf-to-jpg`, {
       method: 'POST',
       body: backendFormData,
       // Don't set Content-Type header - let browser set it with boundary

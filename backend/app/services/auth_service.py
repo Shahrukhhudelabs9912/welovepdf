@@ -141,6 +141,13 @@ def _sanitize_user(user: Dict[str, Any]) -> Dict[str, Any]:
         "is_active": user.get("is_active", True),
         "is_verified": user.get("is_verified", False),
         "created_at": user.get("created_at"),
+        # Subscription / usage fields
+        "subscription_plan": user.get("subscription_plan", "free"),
+        "subscription_status": user.get("subscription_status", "inactive"),
+        "daily_usage": user.get("daily_usage", {}),
+        "max_free_daily_analyses": user.get("max_free_daily_analyses", 3),
+        "max_free_reports": user.get("max_free_reports", 1),
+        "trial_ends_at": user.get("trial_ends_at"),
     }
 
 
@@ -215,6 +222,17 @@ async def create_user(email: str, password: str, full_name: str) -> Dict[str, An
         "updated_at": now,
         "reset_token": None,
         "reset_token_expires": None,
+        # Subscription / usage tracking fields
+        "subscription_plan": "free",
+        "subscription_status": "active",
+        "daily_usage": {
+            "ai_analyses": 0,
+            "reports": 0,
+            "date": now.strftime("%Y-%m-%d"),
+        },
+        "max_free_daily_analyses": 3,
+        "max_free_reports": 1,
+        "trial_ends_at": None,
     }
 
     result = await _users_collection().insert_one(doc)
@@ -328,6 +346,144 @@ async def update_user_profile(user_id: str, full_name: str) -> Dict[str, Any]:
             detail="User not found.",
         )
     return _user_from_db(result)
+
+
+# ---------------------------------------------------------------------------
+# Subscription / Daily Usage Helpers
+# ---------------------------------------------------------------------------
+
+
+async def get_daily_usage(user_id: str) -> dict:
+    """Get the current daily usage counters for a user.
+
+    Resets counters automatically if the stored date doesn't match today.
+    """
+    from bson import ObjectId
+    try:
+        oid = ObjectId(user_id)
+    except Exception:
+        return {"ai_analyses": 0, "reports": 0}
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    user = await _users_collection().find_one({"_id": oid})
+
+    if user is None:
+        return {"ai_analyses": 0, "reports": 0}
+
+    daily_usage = user.get("daily_usage", {})
+    stored_date = daily_usage.get("date")
+
+    if stored_date != today:
+        # Reset counters for the new day
+        daily_usage = {"ai_analyses": 0, "reports": 0, "date": today}
+        await _users_collection().update_one(
+            {"_id": oid},
+            {"$set": {"daily_usage": daily_usage}},
+        )
+
+    return daily_usage
+
+
+async def increment_daily_usage(
+    user_id: str,
+    usage_type: str = "ai_analyses",
+) -> dict:
+    """Increment a daily usage counter for a user.
+
+    Args:
+        user_id: The user's MongoDB ObjectId string.
+        usage_type: One of ``"ai_analyses"`` or ``"reports"``.
+
+    Returns:
+        The updated ``daily_usage`` dict.
+    """
+    from bson import ObjectId
+    try:
+        oid = ObjectId(user_id)
+    except Exception:
+        return {"ai_analyses": 0, "reports": 0}
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    user = await _users_collection().find_one({"_id": oid})
+
+    if user is None:
+        return {"ai_analyses": 0, "reports": 0}
+
+    daily_usage = user.get("daily_usage", {})
+    stored_date = daily_usage.get("date")
+
+    if stored_date != today:
+        # Reset and set to 1
+        daily_usage = {"ai_analyses": 0, "reports": 0, "date": today}
+        daily_usage[usage_type] = 1
+    else:
+        daily_usage[usage_type] = daily_usage.get(usage_type, 0) + 1
+
+    await _users_collection().update_one(
+        {"_id": oid},
+        {"$set": {"daily_usage": daily_usage}},
+    )
+
+    return daily_usage
+
+
+async def check_usage_limit(
+    user_id: str,
+    usage_type: str = "ai_analyses",
+) -> bool:
+    """Check if a user has remaining daily usage for the given type.
+
+    Returns ``True`` if the user can proceed (within limit),
+    ``False`` if the limit is exceeded.
+    """
+    from bson import ObjectId
+    try:
+        oid = ObjectId(user_id)
+    except Exception:
+        return False
+
+    user = await _users_collection().find_one({"_id": oid})
+    if user is None:
+        return False
+
+    subscription_plan = user.get("subscription_plan", "free")
+
+    # Pro plans have no daily limit
+    if subscription_plan in ("pro", "pro_yearly", "enterprise"):
+        return True
+
+    daily_usage = await get_daily_usage(user_id)
+    max_free = user.get("max_free_daily_analyses", 3) if usage_type == "ai_analyses" else user.get("max_free_reports", 1)
+
+    current = daily_usage.get(usage_type, 0)
+    return current < max_free
+
+
+async def get_usage_remaining(user_id: str) -> dict:
+    """Return remaining usage for each type for the current user."""
+    from bson import ObjectId
+    try:
+        oid = ObjectId(user_id)
+    except Exception:
+        return {"ai_analyses": 0, "reports": 0, "plan": "free"}
+
+    user = await _users_collection().find_one({"_id": oid})
+    if user is None:
+        return {"ai_analyses": 0, "reports": 0, "plan": "free"}
+
+    subscription_plan = user.get("subscription_plan", "free")
+    if subscription_plan in ("pro", "pro_yearly", "enterprise"):
+        return {"ai_analyses": -1, "reports": -1, "plan": subscription_plan}  # -1 = unlimited
+
+    daily_usage = await get_daily_usage(user_id)
+    max_analyses = user.get("max_free_daily_analyses", 3)
+    max_reports = user.get("max_free_reports", 1)
+
+    return {
+        "ai_analyses": max(0, max_analyses - daily_usage.get("ai_analyses", 0)),
+        "reports": max(0, max_reports - daily_usage.get("reports", 0)),
+        "plan": subscription_plan,
+    }
 
 
 # ---------------------------------------------------------------------------

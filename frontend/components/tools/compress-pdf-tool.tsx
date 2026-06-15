@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { Upload, Download, Zap, File, Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { FileUpload } from "@/components/file-upload";
 import { toast } from "sonner";
@@ -18,6 +19,8 @@ interface PDFFile {
 }
 
 export function CompressPDFTool() {
+  const t = useTranslations("compress_pdf");
+  const tp = useTranslations("tool_pages");
   const { files: globalFiles, addFiles, removeFile, clearFiles, isLoading } = useFileContext();
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -49,7 +52,7 @@ export function CompressPDFTool() {
     // Add new file to global context
     addFiles(uploadedFiles);
     setCompressedReady(false);
-    toast.success(`File "${uploadedFiles[0].name}" uploaded`);
+    toast.success(t("file_uploaded_toast", { name: uploadedFiles[0].name }));
   };
 
   const handleAddMoreFiles = () => {
@@ -61,27 +64,27 @@ export function CompressPDFTool() {
     setCompressedReady(false);
     compressedBlobRef.current = null;
     compressedFilenameRef.current = "";
-    toast.info("File removed");
+    toast.info(tp("file_removed"));
   };
 
   const handleManualDownload = () => {
     const blob = compressedBlobRef.current;
     const filename = compressedFilenameRef.current;
     if (!blob) {
-      toast.error("No compressed file available. Please compress again.");
+      toast.error(t("no_compressed_file"));
       return;
     }
     const success = downloadBlob(blob, filename);
     if (success) {
-      toast.success(`Downloading ${filename}`);
+      toast.success(t("downloading_toast", { filename }));
     } else {
-      toast.error("Download failed. Please try again or check your browser settings.");
+      toast.error(t("download_failed_msg"));
     }
   };
 
   const processCompress = async () => {
     if (globalFiles.length === 0) {
-      toast.error("Please upload a PDF file first");
+      toast.error(t("upload_pdf_first"));
       return;
     }
 
@@ -104,7 +107,7 @@ export function CompressPDFTool() {
 
       if (!result.success) {
         setIsProcessing(false);
-        handleApiError(result.error || "Failed to compress PDF");
+        handleApiError(result.error || t("compress_failed"));
         return;
       }
 
@@ -130,19 +133,32 @@ export function CompressPDFTool() {
       setProgress(100);
       setIsProcessing(false);
       setCompressedReady(true);
-      toast.success("PDF compressed successfully!");
+      toast.success(t("compress_success"));
+      // Clear uploaded files after successful processing
+      clearFiles();
     } catch (error) {
       console.error("Error compressing PDF:", error);
-      handleApiError("Failed to compress PDF");
+      handleApiError(t("compress_failed"));
       setIsProcessing(false);
     }
   };
 
+  const compressionLevelKey = compressionLevel === "high"
+    ? "high_compression_desc"
+    : compressionLevel === "medium"
+    ? "medium_compression_desc"
+    : "low_compression_desc";
+
+  const compressionStatusKey = compressionLevel === "high"
+    ? "max_compression_desc"
+    : compressionLevel === "medium"
+    ? "balanced_compression_desc"
+    : "light_compression_desc";
 
   const compressionOptions = [
-    { value: "low", label: "Low Compression", description: "Minimal size reduction, best quality" },
-    { value: "medium", label: "Medium Compression", description: "Balanced size and quality" },
-    { value: "high", label: "High Compression", description: "Maximum size reduction" },
+    { value: "low", labelKey: "low_compression", descKey: "low_compression_desc" },
+    { value: "medium", labelKey: "medium_compression", descKey: "medium_compression_desc" },
+    { value: "high", labelKey: "high_compression", descKey: "high_compression_desc" },
   ];
 
   return (
@@ -162,22 +178,22 @@ export function CompressPDFTool() {
       {file && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">File to Compress</h3>
+            <h3 className="text-lg font-semibold">{t("file_to_compress")}</h3>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Size: {formatFileSize(file.size)}
+              {t("size_label")}: {formatFileSize(file.size)}
             </div>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-800">
+          <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-800 overflow-hidden">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+              <div className="flex items-center gap-4 min-w-0 flex-1">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
                   <File className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <div>
-                  <div className="font-medium">{file.name}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium truncate" title={file.name}>{file.name}</div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {formatFileSize(file.size)} • PDF Document
+                    {formatFileSize(file.size)} • {t("pdf_document_label")}
                   </div>
                 </div>
               </div>
@@ -185,7 +201,7 @@ export function CompressPDFTool() {
                 variant="ghost"
                 size="icon"
                 onClick={handleRemoveFile}
-                className="h-8 w-8"
+                className="h-8 w-8 shrink-0"
               >
                 <Download className="h-4 w-4" />
               </Button>
@@ -193,7 +209,7 @@ export function CompressPDFTool() {
           </div>
 
           <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-800">
-            <h4 className="mb-4 text-lg font-semibold">Compression Settings</h4>
+            <h4 className="mb-4 text-lg font-semibold">{t("compression_settings")}</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {compressionOptions.map((option) => (
                 <button
@@ -205,9 +221,9 @@ export function CompressPDFTool() {
                       : "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
                   }`}
                 >
-                  <div className="font-medium">{option.label}</div>
+                  <div className="font-medium">{t(option.labelKey)}</div>
                   <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {option.description}
+                    {t(option.descKey)}
                   </div>
                 </button>
               ))}
@@ -220,13 +236,9 @@ export function CompressPDFTool() {
                 <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <div className="font-semibold">Ready to Compress</div>
+                <div className="font-semibold">{t("ready_to_compress")}</div>
                 <div className="text-sm text-gray-600 dark:text-gray-300">
-                  {compressionLevel === "high" 
-                    ? "Maximum compression (smallest file size)" 
-                    : compressionLevel === "medium"
-                    ? "Balanced compression (recommended)"
-                    : "Light compression (best quality)"}
+                  {t(compressionStatusKey)}
                 </div>
               </div>
             </div>
@@ -238,12 +250,12 @@ export function CompressPDFTool() {
               {isProcessing ? (
                 <>
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Compressing...
+                  {t("compressing")}
                 </>
               ) : (
                 <>
                   <Zap className="h-4 w-4" />
-                  Compress PDF
+                  {t("compress_button")}
                 </>
               )}
             </Button>
@@ -253,11 +265,11 @@ export function CompressPDFTool() {
 
       {isProcessing && (
         <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-          <h3 className="mb-4 text-lg font-semibold">Compressing PDF...</h3>
+          <h3 className="mb-4 text-lg font-semibold">{t("compressing_pdf_title")}</h3>
           <div className="space-y-4">
             <div>
               <div className="mb-2 flex justify-between text-sm">
-                <span>Optimizing PDF file</span>
+                <span>{t("optimizing_pdf")}</span>
                 <span>{progress}%</span>
               </div>
               <div className="h-3 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
@@ -274,13 +286,13 @@ export function CompressPDFTool() {
                 <div className="text-2xl font-bold">
                   {file ? formatFileSize(file.size) : "0 KB"}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Original Size</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">{t("original_size")}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold">
-                  {progress > 30 ? "Estimating..." : "0 KB"}
+                  {progress > 30 ? t("estimating") : "0 KB"}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Compressed Size</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">{t("compressed_size")}</div>
               </div>
             </div>
           </div>
@@ -298,31 +310,30 @@ export function CompressPDFTool() {
               <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold">PDF Compressed Successfully!</h3>
+              <h3 className="text-lg font-semibold">{t("compress_success")}</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Your PDF file has been compressed with {compressionLevel} compression.
-                The download has started automatically.
+                {t("compression_success_desc", { level: compressionLevel })}
               </p>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-4 rounded-lg bg-white p-4 dark:bg-gray-800">
             <div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">File Name</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">{t("file_name_label")}</div>
               <div className="font-medium">welovepdf-compressfile.pdf</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Original Size</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">{t("original_size")}</div>
               <div className="font-medium">{file ? formatFileSize(file.size) : "0 KB"}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Compression Level</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">{t("compression_level")}</div>
               <div className="font-medium capitalize">{compressionLevel}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Processing Time</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">{t("processing_time_label")}</div>
               <div className="font-medium">
                 {processingTime >= 1000
-                  ? `${(processingTime / 1000).toFixed(1)} seconds`
+                  ? `${(processingTime / 1000).toFixed(1)} ${t("seconds_label")}`
                   : `${processingTime} ms`}
               </div>
             </div>
@@ -337,37 +348,37 @@ export function CompressPDFTool() {
               className="gap-2"
             >
               <Upload className="h-4 w-4" />
-              Compress Another File
+              {t("compress_another")}
             </Button>
             <Button
               onClick={handleManualDownload}
               className="gap-2"
             >
               <Download className="h-4 w-4" />
-              Download
+              {t("download_button")}
             </Button>
           </div>
         </motion.div>
       )}
 
       <div className="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-900">
-        <h3 className="mb-4 text-lg font-semibold">About PDF Compression</h3>
+        <h3 className="mb-4 text-lg font-semibold">{t("about_compression")}</h3>
         <ul className="space-y-2">
           <li className="flex items-start gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
-            <span>Compression reduces file size by optimizing images and removing unnecessary data</span>
+            <span>{t("about_optimize")}</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
-            <span>Higher compression levels result in smaller files but may affect image quality</span>
+            <span>{t("about_quality_impact")}</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
-            <span>Text and vector graphics remain sharp at all compression levels</span>
+            <span>{t("about_text_sharp")}</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
-            <span>Compressed files are perfect for email attachments, web uploads, and storage</span>
+            <span>{t("about_perfect_for")}</span>
           </li>
         </ul>
       </div>

@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, getLocale } from 'next-intl/server';
+import { cookies } from 'next/headers';
 import { routing } from '@/routing';
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SentryInit } from "@/components/sentry-init";
 import { AnalyticsInitializer } from "@/components/analytics-provider";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { FileProvider } from "@/lib/file-context";
 import { AuthProvider } from "@/lib/auth-context";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 const inter = Inter({
   subsets: ["latin"],
   display: 'swap',
   variable: '--font-inter',
+  preload: true,
+  adjustFontFallback: true,
 });
 
 export const metadata: Metadata = {
@@ -24,6 +29,14 @@ export const metadata: Metadata = {
   keywords: "PDF tools, merge PDF, split PDF, compress PDF, PDF to Word, Word to PDF, PDF converter, AI PDF summarization",
   authors: [{ name: "WeLovePDF" }],
   robots: "index, follow",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com"),
+  alternates: {
+    canonical: "/",
+    languages: {
+      "en": "/en",
+      "hi": "/hi",
+    },
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -39,16 +52,35 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
+export const themeColor = [
+  { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+  { media: "(prefers-color-scheme: dark)", color: "#111827" },
+];
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Load messages for the current locale (detected via cookie by middleware)
   const messages = await getMessages();
+  const locale = await getLocale();
 
+  // Read theme cookie to SSR the correct class on <html>,
+  // eliminating the hydration mismatch caused by next-themes' inline script.
+  const cookieStore = cookies();
+  const themeCookie = cookieStore.get('theme')?.value;
+  // Only pre-set the class when the user has explicitly chosen dark.
+  // For 'system' or 'light', the server renders without a dark class;
+  // next-themes' blocking script adds it before hydration if needed.
+  const ssrThemeClass = themeCookie === 'dark' ? 'dark' : '';
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} className={ssrThemeClass} suppressHydrationWarning>
       <body className={`min-h-screen flex flex-col ${inter.className}`} suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
@@ -57,15 +89,18 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <AuthProvider>
-              <AnalyticsInitializer />
-              <Header />
-              <FileProvider>
-                <main className="flex-1">{children}</main>
-              </FileProvider>
-              <Footer />
-              <Toaster />
-            </AuthProvider>
+            <ErrorBoundary>
+              <SentryInit />
+              <AuthProvider>
+                <AnalyticsInitializer />
+                <Header />
+                <FileProvider>
+                  <main className="flex-1">{children}</main>
+                </FileProvider>
+                <Footer />
+                <Toaster />
+              </AuthProvider>
+            </ErrorBoundary>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

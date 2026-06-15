@@ -1261,37 +1261,36 @@ class ImageToPDFService:
             PDFProcessingError: If conversion fails
         """
         try:
-            # Create temporary directory for images
-            with tempfile.TemporaryDirectory() as temp_dir:
-                images = []
+            pil_images = []
+            
+            for img_bytes in image_files:
+                img_stream = io.BytesIO(img_bytes)
+                img = Image.open(img_stream)
                 
-                for i, img_bytes in enumerate(image_files):
-                    img_stream = io.BytesIO(img_bytes)
-                    img = Image.open(img_stream)
-                    
-                    # Convert to RGB if necessary
-                    if img.mode in ('RGBA', 'LA', 'P'):
-                        img = img.convert('RGB')
-                    
-                    # Save as temporary file
-                    temp_path = os.path.join(temp_dir, f"image_{i}.jpg")
-                    img.save(temp_path, "JPEG", quality=95)
-                    images.append(temp_path)
+                # Convert to RGB if necessary
+                if img.mode in ('RGBA', 'LA', 'P'):
+                    img = img.convert('RGB')
                 
-                # Create PDF from images
-                output_stream = io.BytesIO()
-                
-                if images:
-                    # Convert first image to PDF
-                    first_img = Image.open(images[0])
-                    first_img.save(output_stream, "PDF", resolution=100.0)
-                    
-                    # Append remaining images
-                    for img_path in images[1:]:
-                        img = Image.open(img_path)
-                        img.save(output_stream, "PDF", resolution=100.0, append=True)
-                
-                return output_stream.getvalue()
+                pil_images.append(img)
+            
+            # Create PDF from images using save_all (avoids Pillow 12.x
+            # "trailer loop found" bug with append=True in a loop)
+            output_stream = io.BytesIO()
+            
+            if pil_images:
+                pil_images[0].save(
+                    output_stream,
+                    "PDF",
+                    resolution=100.0,
+                    save_all=True,
+                    append_images=pil_images[1:]
+                )
+            
+            # Close all images to free memory
+            for img in pil_images:
+                img.close()
+            
+            return output_stream.getvalue()
         except Exception as e:
             raise PDFProcessingError(
                 f"Failed to convert images to PDF: {str(e)}",

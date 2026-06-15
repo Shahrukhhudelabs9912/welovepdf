@@ -40,21 +40,18 @@ export function FAQ() {
       icon: Lock,
     },
     {
-      question: "How fast is the processing?",
-      answer:
-        "Most operations complete in under 2 seconds for average-sized files. We use parallel processing, Web Workers, and optimized algorithms for maximum speed.",
+      question: t("faq.q6.question"),
+      answer: t("faq.q6.answer"),
       icon: Zap,
     },
     {
-      question: "What PDF tools do you offer?",
-      answer:
-        "We offer 14+ tools including merge, split, compress, convert (PDF to Word, Excel, PPT, JPG), rotate, protect, unlock, watermark, page numbering, organize, and AI-powered summarization.",
+      question: t("faq.q7.question"),
+      answer: t("faq.q7.answer"),
       icon: Brain,
     },
     {
-      question: "Do you have an API for developers?",
-      answer:
-        "Yes, we offer a comprehensive REST API for developers. You can integrate our PDF processing capabilities directly into your applications with detailed documentation and SDKs.",
+      question: t("faq.q8.question"),
+      answer: t("faq.q8.answer"),
       icon: Zap,
     },
   ];
@@ -67,7 +64,7 @@ export function FAQ() {
             {t("faq.title")}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-            Get answers to common questions about WeLovePDF.
+            {t("faq.subtitle")}
           </p>
         </div>
 
@@ -111,11 +108,11 @@ export function FAQ() {
 
         <div className="mt-12 text-center">
           <p className="text-gray-600 dark:text-gray-300">
-            Still have questions?{" "}
+            {t("faq.contact_text")}{" "}
             <a href="/contact" className="font-semibold text-primary hover:underline">
-              Contact our support team
+              {t("faq.contact_link")}
             </a>{" "}
-            — we're here to help!
+            {t("faq.contact_suffix")}
           </p>
         </div>
       </div>

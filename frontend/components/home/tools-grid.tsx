@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import Link from "next/link";
+import { Link } from "@/routing";
 import {
   FileText,
   Scissors,
@@ -17,6 +17,8 @@ import {
   Grid,
   Merge,
   Brain,
+  Sheet,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -92,6 +94,20 @@ export function ToolsGrid() {
       icon: Grid,
       href: "/organize-pdf",
       color: "from-amber-500 to-yellow-500",
+    },
+    {
+      key: "pdf_to_excel",
+      icon: Sheet,
+      href: "/pdf-to-excel",
+      color: "from-green-500 to-teal-500",
+      popular: true,
+    },
+    {
+      key: "excel_to_pdf",
+      icon: FileSpreadsheet,
+      href: "/excel-to-pdf",
+      color: "from-teal-500 to-cyan-500",
+      popular: true,
     },
     {
       key: "ai_summarization",

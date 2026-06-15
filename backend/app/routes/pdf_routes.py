@@ -5,6 +5,7 @@ import io
 import os
 import logging
 import traceback
+from pathlib import Path
 from typing import List, Optional
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status
 from fastapi.responses import StreamingResponse
@@ -221,28 +222,14 @@ async def jpg_to_pdf(files: List[UploadFile] = File(...)):
         
     except HTTPException as http_exc:
         # Log the HTTP exception for debugging
-        print(f"[DEBUG] HTTPException in pdf_to_jpg: {http_exc.status_code} - {http_exc.detail}")
+        print(f"[DEBUG] HTTPException in jpg_to_pdf: {http_exc.status_code} - {http_exc.detail}")
         raise
+    except PDFProcessingError as e:
+        logger.error(f"JPG to PDF processing error: {str(e)}")
+        return handle_pdf_error(e)
     except Exception as e:
         # Log the full error for debugging
-        print(f"[DEBUG] Exception in pdf_to_jpg: {type(e).__name__}: {str(e)}")
-        # Check if it's a poppler error
-        error_str = str(e).lower()
-        if "poppler" in error_str or "page count" in error_str or "pdfinfo" in error_str:
-            # Return a placeholder image for testing when poppler is not installed
-            import base64
-            # Simple 1x1 pixel JPEG image
-            placeholder_jpeg = base64.b64decode(
-                "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-            )
-            return StreamingResponse(
-                io.BytesIO(placeholder_jpeg),
-                media_type="image/jpeg",
-                headers={
-                    "Content-Disposition": f'attachment; filename="placeholder_{file.filename.replace(".pdf", "")}.jpg"',
-                    "Content-Length": str(len(placeholder_jpeg)),
-                }
-            )
+        logger.error(f"JPG to PDF error: {type(e).__name__}: {str(e)}")
         return handle_pdf_error(e)
 
 
@@ -2066,4 +2053,134 @@ async def ai_tools_report(file: UploadFile = File(...)):
         raise HTTPException(
             status_code=500,
             detail=f"AI report generation failed: {str(e)}",
+        )
+
+
+# ============================================================
+# NEW: PDF to Excel endpoint
+# ============================================================
+@router.post('/pdf-to-excel', summary='Convert PDF to Excel spreadsheet')
+async def pdf_to_excel(file: UploadFile = File(...)):
+    """Convert PDF to Excel spreadsheet by extracting tables."""
+    print('[pdf-to-excel] Endpoint called')
+    if not file:
+        raise HTTPException(status_code=400, detail='No file provided')
+
+    try:
+        content_type = file.content_type or ''
+        filename = (file.filename or '').lower()
+        is_pdf = (
+            content_type == 'application/pdf'
+            or filename.endswith('.pdf')
+            or '.pdf' in content_type
+        )
+
+        if not is_pdf:
+            raise HTTPException(
+                status_code=400,
+                detail=f'Invalid file type. Expected PDF but got: {content_type or filename}'
+            )
+
+        file_bytes = await file.read()
+        file_size = len(file_bytes)
+
+        if file_size > 100 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail='File exceeds 100MB limit')
+
+        print(f'[pdf-to-excel] File received: {file.filename} ({file_size} bytes)')
+
+        from app.services.pdf_to_excel_service import PdfToExcelService
+
+        service = PdfToExcelService()
+        excel_bytes, _ = service.convert_to_excel(file_bytes, file.filename or 'document.pdf')
+
+        output_filename = Path(file.filename or 'document').stem + '.xlsx'
+        print(f'[pdf-to-excel] Conversion complete. Output size: {len(excel_bytes)} bytes')
+
+        return create_file_response(
+            file_bytes=excel_bytes,
+            filename=output_filename,
+            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        print(f'[pdf-to-excel] ValueError: {e}')
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        print(f'[pdf-to-excel] Error: {type(e).__name__}: {e}')
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f'PDF-to-Excel conversion failed: {str(e)}',
+        )
+
+
+# ============================================================
+# NEW: Excel to PDF endpoint
+# ============================================================
+@router.post('/excel-to-pdf', summary='Convert Excel spreadsheet to PDF')
+async def excel_to_pdf(file: UploadFile = File(...)):
+    """Convert Excel spreadsheet (.xlsx/.xls) to PDF."""
+    print('[excel-to-pdf] Endpoint called')
+    if not file:
+        raise HTTPException(status_code=400, detail='No file provided')
+
+    try:
+        content_type = file.content_type or ''
+        filename = (file.filename or '').lower()
+
+        is_excel = (
+            content_type in (
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-excel',
+            )
+            or (content_type == 'application/octet-stream'
+                and (filename.endswith('.xlsx') or filename.endswith('.xls')))
+            or filename.endswith('.xlsx')
+            or filename.endswith('.xls')
+        )
+
+        if not is_excel:
+            raise HTTPException(
+                status_code=400,
+                detail=f'Invalid file type. Expected Excel (.xlsx/.xls) but got: {content_type or filename}'
+            )
+
+        file_bytes = await file.read()
+        file_size = len(file_bytes)
+
+        if file_size > 100 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail='File exceeds 100MB limit')
+
+        print(f'[excel-to-pdf] File received: {file.filename} ({file_size} bytes)')
+
+        from app.services.excel_to_pdf_service import ExcelToPdfService
+
+        service = ExcelToPdfService()
+        pdf_bytes, _ = service.convert_to_pdf(file_bytes, file.filename or 'spreadsheet.xlsx')
+
+        output_filename = Path(file.filename or 'spreadsheet').stem + '.pdf'
+        print(f'[excel-to-pdf] Conversion complete. Output size: {len(pdf_bytes)} bytes')
+
+        return create_file_response(
+            file_bytes=pdf_bytes,
+            filename=output_filename,
+            media_type='application/pdf',
+        )
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        print(f'[excel-to-pdf] ValueError: {e}')
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        print(f'[excel-to-pdf] Error: {type(e).__name__}: {e}')
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f'Excel-to-PDF conversion failed: {str(e)}',
         )

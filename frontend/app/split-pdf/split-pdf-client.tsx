@@ -1,13 +1,18 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
 import { Scissors, Download, Settings, File, X, Check } from "lucide-react";
 import { toast } from "sonner";
 import { processFiles } from "@/lib/api-client";
+import { useFileContext } from "@/lib/file-context";
 
 export function SplitPDFClient() {
+  const t = useTranslations("split_pdf");
+  const tp = useTranslations("tool_pages");
+  const { clearFiles: clearGlobalFiles } = useFileContext();
   const [files, setFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -22,18 +27,18 @@ export function SplitPDFClient() {
   const handleFileUpload = useCallback((uploadedFiles: File[]) => {
     if (uploadedFiles.length > 0) {
       setFiles(uploadedFiles);
-      toast.success(`Added ${uploadedFiles.length} PDF file(s)`);
+      toast.success(t("added_files_toast", { count: uploadedFiles.length }));
     }
-  }, []);
+  }, [t]);
 
   const removeFile = useCallback((index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
-    toast.info("File removed");
-  }, []);
+    toast.info(tp("file_removed"));
+  }, [tp]);
 
   const handleSplitPDF = async () => {
     if (files.length === 0) {
-      toast.error("Please upload a PDF file first");
+      toast.error(t("upload_pdf_first"));
       return;
     }
 
@@ -64,12 +69,15 @@ export function SplitPDFClient() {
           // Success callback
           setProgress(100);
           setIsProcessing(false);
-          toast.success("PDF split successfully!");
+          toast.success(t("split_success"));
+          // Clear uploaded files after successful processing
+          setFiles([]);
+          clearGlobalFiles();
         },
         (error) => {
           // Error callback
           setIsProcessing(false);
-          toast.error("Failed to split PDF");
+          toast.error(t("split_failed"));
         },
         (progress) => {
           // Progress callback
@@ -82,15 +90,20 @@ export function SplitPDFClient() {
       }
     } catch (error) {
       console.error("Error splitting PDF:", error);
-      toast.error("Failed to split PDF");
+      toast.error(t("split_failed"));
       setIsProcessing(false);
     }
   };
 
   const handleSampleOutput = () => {
-    toast.info("Sample output feature would download demo split PDF files");
+    toast.info(t("sample_output"));
     // In a real implementation, this would trigger a sample download
   };
+
+  const rangeHelp = t("page_range_help");
+  const pagesHelp = t("specific_pages_help");
+  const everyDesc = t("split_every_n_desc", { pages: everyPages });
+  const namingHelp = t("naming_help");
 
   return (
     <div className="space-y-8">
@@ -104,13 +117,13 @@ export function SplitPDFClient() {
 
         {files.length > 0 && (
           <div className="mt-6 space-y-4">
-            <h3 className="text-lg font-semibold">Uploaded Files</h3>
+            <h3 className="text-lg font-semibold">{tp("uploaded_files")}</h3>
             {files.map((file, index) => (
-              <div key={index} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-800">
-                <div className="flex items-center gap-3">
-                  <File className="h-5 w-5 text-gray-500" />
-                  <div>
-                    <div className="font-medium">{file.name}</div>
+              <div key={index} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-800 overflow-hidden">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <File className="h-5 w-5 shrink-0 text-gray-500" />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium truncate" title={file.name}>{file.name}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                       {(file.size / 1024 / 1024).toFixed(2)} MB
                     </div>
@@ -120,7 +133,7 @@ export function SplitPDFClient() {
                   variant="ghost"
                   size="icon"
                   onClick={() => removeFile(index)}
-                  className="h-8 w-8"
+                  className="h-8 w-8 shrink-0"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -133,30 +146,30 @@ export function SplitPDFClient() {
           <div className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <Settings className="h-4 w-4 text-primary" />
-              <h3 className="font-medium">Split Options</h3>
+              <h3 className="font-medium">{t("features_split_title")}</h3>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Choose how to split your PDF: by page ranges, extract pages, or split into equal parts.
+              {t("features_split_desc")}
             </p>
           </div>
 
           <div className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <Scissors className="h-4 w-4 text-primary" />
-              <h3 className="font-medium">Fast Processing</h3>
+              <h3 className="font-medium">{t("features_fast_title")}</h3>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Split PDF files quickly with our optimized processing engine. No waiting in queues.
+              {t("features_fast_desc")}
             </p>
           </div>
 
           <div className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <Download className="h-4 w-4 text-primary" />
-              <h3 className="font-medium">Download Instantly</h3>
+              <h3 className="font-medium">{t("features_download_title")}</h3>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Download split PDF files immediately after processing. All files are automatically deleted after 1 hour.
+              {t("features_download_desc")}
             </p>
           </div>
         </div>
@@ -165,7 +178,7 @@ export function SplitPDFClient() {
       {/* Split Options */}
       <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold">Split Options</h3>
+          <h3 className="text-xl font-semibold">{t("split_options_title")}</h3>
           <Button 
             variant="outline" 
             size="sm" 
@@ -173,14 +186,14 @@ export function SplitPDFClient() {
             onClick={() => setShowAdvanced(!showAdvanced)}
           >
             <Settings className="h-4 w-4" />
-            {showAdvanced ? "Hide Advanced" : "Advanced Settings"}
+            {showAdvanced ? t("hide_advanced") : t("advanced_settings")}
           </Button>
         </div>
 
         <div className="space-y-6">
           {/* Split Mode Selection */}
           <div>
-            <label className="block text-sm font-medium mb-3">Split Method</label>
+            <label className="block text-sm font-medium mb-3">{t("split_method")}</label>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <Button
                 variant={splitMode === 'range' ? 'default' : 'outline'}
@@ -188,7 +201,7 @@ export function SplitPDFClient() {
                 onClick={() => setSplitMode('range')}
               >
                 <Check className={`h-4 w-4 mr-2 ${splitMode === 'range' ? 'opacity-100' : 'opacity-0'}`} />
-                Page Range
+                {t("page_range")}
               </Button>
               <Button
                 variant={splitMode === 'every' ? 'default' : 'outline'}
@@ -196,7 +209,7 @@ export function SplitPDFClient() {
                 onClick={() => setSplitMode('every')}
               >
                 <Check className={`h-4 w-4 mr-2 ${splitMode === 'every' ? 'opacity-100' : 'opacity-0'}`} />
-                Every N Pages
+                {t("every_n_pages")}
               </Button>
               <Button
                 variant={splitMode === 'pages' ? 'default' : 'outline'}
@@ -204,7 +217,7 @@ export function SplitPDFClient() {
                 onClick={() => setSplitMode('pages')}
               >
                 <Check className={`h-4 w-4 mr-2 ${splitMode === 'pages' ? 'opacity-100' : 'opacity-0'}`} />
-                Specific Pages
+                {t("specific_pages")}
               </Button>
             </div>
           </div>
@@ -213,23 +226,23 @@ export function SplitPDFClient() {
           <div className="space-y-4">
             {splitMode === 'range' && (
               <div>
-                <label className="block text-sm font-medium mb-2">Page Range</label>
+                <label className="block text-sm font-medium mb-2">{t("page_range")}</label>
                 <input
                   type="text"
                   value={pageRange}
                   onChange={(e) => setPageRange(e.target.value)}
-                  placeholder="e.g., 1-5, 8-10, 15"
+                  placeholder={t("page_range_placeholder")}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"
                 />
                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  Enter page ranges like "1-5" or multiple ranges like "1-3, 5-7, 10"
+                  {rangeHelp}
                 </p>
               </div>
             )}
 
             {splitMode === 'every' && (
               <div>
-                <label className="block text-sm font-medium mb-2">Split Every N Pages</label>
+                <label className="block text-sm font-medium mb-2">{t("split_every_n_label")}</label>
                 <div className="flex items-center gap-4">
                   <input
                     type="range"
@@ -239,26 +252,26 @@ export function SplitPDFClient() {
                     onChange={(e) => setEveryPages(parseInt(e.target.value))}
                     className="flex-1"
                   />
-                  <span className="text-lg font-semibold">{everyPages} pages</span>
+                  <span className="text-lg font-semibold">{everyPages} {t("pages_unit")}</span>
                 </div>
                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  Split the PDF into separate files every {everyPages} pages
+                  {everyDesc}
                 </p>
               </div>
             )}
 
             {splitMode === 'pages' && (
               <div>
-                <label className="block text-sm font-medium mb-2">Specific Pages</label>
+                <label className="block text-sm font-medium mb-2">{t("specific_pages")}</label>
                 <input
                   type="text"
                   value={specificPages}
                   onChange={(e) => setSpecificPages(e.target.value)}
-                  placeholder="e.g., 1,3,5,7-9"
+                  placeholder={t("specific_pages_placeholder")}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"
                 />
                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  Enter specific page numbers separated by commas, or ranges like "1,3,5-7"
+                  {pagesHelp}
                 </p>
               </div>
             )}
@@ -267,29 +280,29 @@ export function SplitPDFClient() {
           {/* Advanced Settings */}
           {showAdvanced && (
             <div className="rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-4">
-              <h4 className="font-medium">Advanced Settings</h4>
+              <h4 className="font-medium">{t("advanced_settings")}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Output Format</label>
+                  <label className="block text-sm font-medium mb-2">{t("output_format")}</label>
                   <select
                     value={outputFormat}
                     onChange={(e) => setOutputFormat(e.target.value as 'individual' | 'single')}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"
                   >
-                    <option value="individual">Individual PDF files (ZIP)</option>
-                    <option value="single">Single PDF file</option>
+                    <option value="individual">{t("output_individual_zip")}</option>
+                    <option value="single">{t("output_single")}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Naming Pattern</label>
+                  <label className="block text-sm font-medium mb-2">{t("naming_pattern")}</label>
                   <input
                     type="text"
                     value={namingPattern}
                     onChange={(e) => setNamingPattern(e.target.value)}
-                    placeholder="Use {n} for page number"
+                    placeholder={t("naming_placeholder")}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"
                   />
-                  <p className="mt-1 text-xs text-gray-500">Use {'{n}'} for part number, e.g. "chapter_{'{n}'}.pdf"</p>
+                  <p className="mt-1 text-xs text-gray-500">{namingHelp}</p>
                 </div>
               </div>
             </div>
@@ -308,12 +321,12 @@ export function SplitPDFClient() {
           {isProcessing ? (
             <>
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Splitting...
+              {t("splitting")}
             </>
           ) : (
             <>
               <Scissors className="h-4 w-4" />
-              Split PDF Now
+              {t("split_now")}
             </>
           )}
         </Button>
@@ -324,29 +337,29 @@ export function SplitPDFClient() {
           onClick={handleSampleOutput}
         >
           <Download className="h-4 w-4" />
-          Sample Output
+          {t("sample_output")}
         </Button>
       </div>
 
       {/* Info Box */}
       <div className="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-900">
-        <h3 className="mb-4 text-lg font-semibold">Tips for Best Results</h3>
+        <h3 className="mb-4 text-lg font-semibold">{t("tips_title")}</h3>
         <ul className="space-y-2">
           <li className="flex items-start gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
-            <span>For large PDFs, consider splitting into smaller chunks for faster processing</span>
+            <span>{t("tips_chunks")}</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
-            <span>Use page ranges like "1-10" to extract the first 10 pages</span>
+            <span>{t("tips_ranges")}</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
-            <span>Split files will be automatically deleted after 1 hour for security</span>
+            <span>{t("tips_auto_delete")}</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
-            <span>For multiple ranges, use commas: "1-5, 8, 10-12"</span>
+            <span>{t("tips_commas")}</span>
           </li>
         </ul>
       </div>

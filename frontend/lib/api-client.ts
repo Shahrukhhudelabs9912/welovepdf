@@ -1,3 +1,5 @@
+"use client";
+
 import { toast } from 'sonner';
 
 export interface ApiResponse<T = any> {
@@ -37,6 +39,8 @@ const API_ENDPOINTS = {
   'fix-scanned-pdf': '/fix-scanned-pdf',
   'optimize-pdf': '/optimize-pdf',
   'prepare-print-pdf': '/prepare-print-pdf',
+  'pdf-to-excel': '/pdf-to-excel',
+  'excel-to-pdf': '/excel-to-pdf',
 } as const;
 
 type ApiEndpoint = keyof typeof API_ENDPOINTS;
@@ -75,8 +79,9 @@ export async function uploadFile(
     const singleFileEndpoints = [
       'split-pdf', 'pdf-to-jpg', 'add-watermark',
       'pdf-to-word', 'word-to-pdf', 'compress-pdf', 'protect-pdf',
-      'page-numbering',
-      'fix-scanned-pdf', 'optimize-pdf', 'prepare-print-pdf'
+      'page-numbering', 'organize-pdf',
+      'fix-scanned-pdf', 'optimize-pdf', 'prepare-print-pdf',
+      'pdf-to-excel', 'excel-to-pdf'
     ];
     
     if (files.length === 1 && singleFileEndpoints.includes(endpoint)) {
@@ -262,6 +267,8 @@ function validateFilesForEndpoint(endpoint: ApiEndpoint, files: File[]): string 
     case 'protect-pdf':
     case 'page-numbering':
     case 'organize-pdf':
+    case 'pdf-to-excel':
+    case 'excel-to-pdf':
       if (files.length !== 1) {
         return 'This tool requires exactly 1 file.';
       }
@@ -282,6 +289,7 @@ function validateFilesForEndpoint(endpoint: ApiEndpoint, files: File[]): string 
       case 'protect-pdf':
       case 'page-numbering':
       case 'organize-pdf':
+      case 'pdf-to-excel':
         if (!fileType.includes('pdf')) {
           return `File "${file.name}" is not a PDF. This tool requires PDF files.`;
         }
@@ -302,6 +310,12 @@ function validateFilesForEndpoint(endpoint: ApiEndpoint, files: File[]): string 
           return `File "${file.name}" is not a Word document. This tool requires DOC or DOCX files.`;
         }
         break;
+      case 'excel-to-pdf':
+        if (!fileType.includes('spreadsheetml') && !fileType.includes('excel') &&
+            !file.name.toLowerCase().endsWith('.xlsx') && !file.name.toLowerCase().endsWith('.xls')) {
+          return `File "${file.name}" is not an Excel file. This tool requires XLSX or XLS files.`;
+        }
+        break;
     }
   }
 
@@ -320,11 +334,14 @@ function getFileExtension(contentType: string, endpoint: ApiEndpoint): string {
     case 'jpg-to-pdf':
     case 'add-watermark':
     case 'word-to-pdf':
+    case 'excel-to-pdf':
       return '.pdf';
     case 'split-pdf':
       return '.zip';
     case 'pdf-to-jpg':
       return '.jpg';
+    case 'pdf-to-excel':
+      return '.xlsx';
     default:
       return '';
   }

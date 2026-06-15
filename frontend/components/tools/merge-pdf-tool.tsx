@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { formatFileSize } from "@/lib/utils";
 import { processFiles, handleApiError } from "@/lib/api-client";
 import { useFileContext } from "@/lib/file-context";
+import { useTranslations } from "next-intl";
 
 interface PDFFile {
   id: string;
@@ -20,6 +21,8 @@ interface PDFFile {
 }
 
 export function MergePDFTool() {
+  const t = useTranslations("merge_pdf");
+  const tp = useTranslations("tool_pages");
   const { files: globalFiles, addFiles, removeFile, clearFiles, isLoading, processingProgress } = useFileContext();
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -31,7 +34,8 @@ export function MergePDFTool() {
       id: `global-${file.name}-${index}`,
       name: file.name,
       size: file.size,
-      pages: Math.floor(Math.random() * 20) + 1, // Simulated page count
+      // Deterministic page count based on file size to avoid SSR/CSR mismatch from Math.random()
+      pages: Math.max(1, Math.floor((file.size % 19) + 1)),
       order: index + 1,
       file: file, // Store the actual File object
     }));
@@ -40,7 +44,7 @@ export function MergePDFTool() {
   const handleFileUpload = (uploadedFiles: File[]) => {
     // Add files to global context
     addFiles(uploadedFiles);
-    toast.success(`Added ${uploadedFiles.length} file(s)`);
+    toast.success(t("added_files_toast", { count: uploadedFiles.length }));
   };
 
   const handleAddMoreFiles = () => {
@@ -54,20 +58,20 @@ export function MergePDFTool() {
     if (index !== -1) {
       // Remove from global context by index
       removeFile(index);
-      toast.info("File removed");
+      toast.info(tp("file_removed"));
     }
   };
 
   const moveFile = (fromIndex: number, toIndex: number) => {
     // Since we can't reorder global files easily, we'll just update the local mapping
     // For now, we'll show a toast that reordering requires re-uploading
-    toast.info("To reorder files, please upload them in the desired order");
+    toast.info(t("reorder_hint"));
     // Note: In a production app, you'd implement reordering in the global context
   };
 
   const processMerge = async () => {
     if (globalFiles.length < 2) {
-      toast.error("Please add at least 2 PDF files to merge");
+      toast.error(t("upload_min_two"));
       return;
     }
 
@@ -89,6 +93,8 @@ export function MergePDFTool() {
           setProgress(100);
           setIsProcessing(false);
           setMergedReady(true);
+          // Clear uploaded files after successful processing
+          clearFiles();
         },
         (error) => {
           // Error callback
@@ -107,7 +113,7 @@ export function MergePDFTool() {
       }
     } catch (error) {
       console.error("Error merging PDFs:", error);
-      handleApiError("Failed to merge PDFs");
+      handleApiError(t("merge_failed"));
       setIsProcessing(false);
     }
   };
@@ -115,6 +121,7 @@ export function MergePDFTool() {
 
   const totalSize = files.reduce((sum, file) => sum + file.size, 0);
   const totalPages = files.reduce((sum, file) => sum + file.pages, 0);
+  const formattedTotalSize = formatFileSize(totalSize);
 
   return (
     <div className="space-y-6">
@@ -132,9 +139,9 @@ export function MergePDFTool() {
       {files.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Files to Merge ({files.length})</h3>
+            <h3 className="text-lg font-semibold">{t("files_to_merge", { count: files.length })}</h3>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Total: {formatFileSize(totalSize)} • {totalPages} pages
+              {t("total_stats", { size: formattedTotalSize, pages: totalPages })}
             </div>
           </div>
 
@@ -144,24 +151,24 @@ export function MergePDFTool() {
                 key={file.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-800"
+                className="flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-800 overflow-hidden"
               >
-                <div className="cursor-move" onDragStart={() => {}}>
+                <div className="cursor-move shrink-0" onDragStart={() => {}}>
                   <GripVertical className="h-5 w-5 text-gray-400" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">{file.name}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium truncate" title={file.name}>{file.name}</div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {formatFileSize(file.size)} • {file.pages} pages • Order: {file.order}
+                        {formatFileSize(file.size)} • {file.pages} {t("pages_label")} • {t("order_label")}: {file.order}
                       </div>
                     </div>
                     <Button
                      variant="ghost"
                      size="icon"
                      onClick={() => handleRemoveFile(file.id)}
-                     className="h-8 w-8"
+                     className="h-8 w-8 shrink-0"
                    >
                      <Trash2 className="h-4 w-4" />
                    </Button>
@@ -177,9 +184,9 @@ export function MergePDFTool() {
                 <Merge className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <div className="font-semibold">Merge Settings</div>
+                <div className="font-semibold">{t("merge_settings")}</div>
                 <div className="text-sm text-gray-600 dark:text-gray-300">
-                  Files will be merged in the order shown above
+                  {t("merge_settings_desc")}
                 </div>
               </div>
             </div>
@@ -189,7 +196,7 @@ export function MergePDFTool() {
                onClick={() => clearFiles()}
                disabled={files.length === 0}
              >
-               Clear All
+               {tp("clear_button")}
              </Button>
               <Button
                 onClick={processMerge}
@@ -199,12 +206,12 @@ export function MergePDFTool() {
                 {isProcessing ? (
                   <>
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Merging...
+                    {t("merging")}
                   </>
                 ) : (
                   <>
                     <Merge className="h-4 w-4" />
-                    Merge PDFs
+                    {t("merge_button")}
                   </>
                 )}
               </Button>
@@ -215,11 +222,11 @@ export function MergePDFTool() {
 
       {isProcessing && (
         <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-          <h3 className="mb-4 text-lg font-semibold">Processing...</h3>
+          <h3 className="mb-4 text-lg font-semibold">{tp("processing_progress")}</h3>
           <div className="space-y-4">
             <div>
               <div className="mb-2 flex justify-between text-sm">
-                <span>Merging PDF files</span>
+                <span>{t("merging_progress")}</span>
                 <span>{progress}%</span>
               </div>
               <div className="h-3 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
@@ -234,15 +241,15 @@ export function MergePDFTool() {
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold">{files.length}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Files</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">{t("files_label")}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold">{totalPages}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Total Pages</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">{t("total_pages_label")}</div>
               </div>
               <div>
-                <div className="text-2xl font-bold">{formatFileSize(totalSize)}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Total Size</div>
+                <div className="text-2xl font-bold">{formattedTotalSize}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">{t("total_size_label")}</div>
               </div>
             </div>
           </div>
@@ -260,29 +267,28 @@ export function MergePDFTool() {
               <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold">PDFs Merged Successfully!</h3>
+              <h3 className="text-lg font-semibold">{t("merge_success")}</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Your {files.length} PDF files have been merged into a single document.
-                The download has started automatically.
+                {t("merge_success_desc", { count: files.length })}
               </p>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-4 rounded-lg bg-white p-4 dark:bg-gray-800">
             <div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">File Name</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">{t("file_name_label")}</div>
               <div className="font-medium">merged-document.pdf</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">File Size</div>
-              <div className="font-medium">{formatFileSize(totalSize)}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">{t("file_size_label")}</div>
+              <div className="font-medium">{formattedTotalSize}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Total Pages</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">{t("total_pages_label")}</div>
               <div className="font-medium">{totalPages}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Processing Time</div>
-              <div className="font-medium">1.2 seconds</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">{t("processing_time_label")}</div>
+              <div className="font-medium">1.2 {t("seconds_label")}</div>
             </div>
           </div>
           <div className="mt-4 flex justify-end">
@@ -295,30 +301,30 @@ export function MergePDFTool() {
               className="gap-2"
             >
               <Upload className="h-4 w-4" />
-              Merge More Files
+              {t("merge_another")}
             </Button>
           </div>
         </motion.div>
       )}
 
       <div className="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-900">
-        <h3 className="mb-4 text-lg font-semibold">Tips for Best Results</h3>
+        <h3 className="mb-4 text-lg font-semibold">{t("tips_title")}</h3>
         <ul className="space-y-2">
           <li className="flex items-start gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
-            <span>Ensure all files are PDF format before uploading</span>
+            <span>{t("tips_pdf_format")}</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
-            <span>Use drag and drop to arrange files in desired order</span>
+            <span>{t("tips_order")}</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
-            <span>Large files may take longer to process</span>
+            <span>{t("tips_large_files")}</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
-            <span>Merged file will be automatically deleted after 1 hour</span>
+            <span>{t("tips_security")}</span>
           </li>
         </ul>
       </div>

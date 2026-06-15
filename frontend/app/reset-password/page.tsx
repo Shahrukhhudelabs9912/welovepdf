@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ type Step = "email" | "reset";
 export default function ResetPasswordPage() {
   const router = useRouter();
   const { forgotPassword, resetPassword } = useAuth();
+  const t = useTranslations("auth");
 
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
@@ -39,7 +41,7 @@ export default function ResetPasswordPage() {
     e.preventDefault();
 
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setErrors({ email: "Please enter a valid email address." });
+      setErrors({ email: t("validation.email_invalid") });
       return;
     }
 
@@ -50,11 +52,11 @@ export default function ResetPasswordPage() {
         // Dev mode: back to the reset token automatically
         setDevResetToken(devToken);
         setResetToken(devToken);
-        toast.info("Dev mode: Reset token has been auto-filled.");
+        toast.info(t("dev_token_autofill"));
       }
       setStep("reset");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Something went wrong.";
+      const message = err instanceof Error ? err.message : t("something_went_wrong");
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -69,25 +71,25 @@ export default function ResetPasswordPage() {
     const newErrors: typeof errors = {};
 
     if (!resetToken.trim() && !devResetToken) {
-      newErrors.token = "Reset token is required.";
+      newErrors.token = t("validation.token_required");
     }
 
     if (!newPassword) {
-      newErrors.newPassword = "New password is required.";
+      newErrors.newPassword = t("validation.new_password_required");
     } else if (newPassword.length < 8) {
-      newErrors.newPassword = "Password must be at least 8 characters.";
+      newErrors.newPassword = t("validation.password_min_length");
     } else if (!/[A-Z]/.test(newPassword)) {
-      newErrors.newPassword = "Password must include an uppercase letter.";
+      newErrors.newPassword = t("validation.password_uppercase");
     } else if (!/[a-z]/.test(newPassword)) {
-      newErrors.newPassword = "Password must include a lowercase letter.";
+      newErrors.newPassword = t("validation.password_lowercase");
     } else if (!/[0-9]/.test(newPassword)) {
-      newErrors.newPassword = "Password must include a number.";
+      newErrors.newPassword = t("validation.password_number");
     }
 
     if (!confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your new password.";
+      newErrors.confirmPassword = t("validation.confirm_new_password_required");
     } else if (newPassword !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match.";
+      newErrors.confirmPassword = t("validation.passwords_match");
     }
 
     setErrors(newErrors);
@@ -103,10 +105,10 @@ export default function ResetPasswordPage() {
     setIsSubmitting(true);
     try {
       await resetPassword(token, newPassword);
-      toast.success("Password reset successful! Redirecting to login...");
+      toast.success(t("password_reset_success"));
       setTimeout(() => router.push("/login"), 1500);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Password reset failed.";
+      const message = err instanceof Error ? err.message : t("reset_failed");
       toast.error(message);
       // If token is invalid, go back to step 1
       if (message.includes("expired") || message.includes("invalid")) {
@@ -143,9 +145,9 @@ export default function ResetPasswordPage() {
                   />
                 </svg>
               </div>
-              <CardTitle className="text-2xl">Reset your password</CardTitle>
+              <CardTitle className="text-2xl">{t("reset_title")}</CardTitle>
               <CardDescription>
-                Enter your email address and we'll send you a reset link.
+                {t("reset_subtitle")}
               </CardDescription>
             </CardHeader>
 
@@ -153,12 +155,12 @@ export default function ResetPasswordPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium leading-none">
-                    Email
+                    {t("email")}
                   </label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder={t("email_placeholder")}
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
@@ -200,17 +202,17 @@ export default function ResetPasswordPage() {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                         />
                       </svg>
-                      Sending...
+                      {t("sending")}
                     </span>
                   ) : (
-                    "Send Reset Link"
+                    t("send_reset_link")
                   )}
                 </Button>
 
                 <p className="text-center text-sm text-muted-foreground">
-                  Remember your password?{" "}
+                  {t("remember_password")}{" "}
                   <Link href="/login" className="text-primary hover:underline font-medium">
-                    Sign in
+                    {t("sign_in_link")}
                   </Link>
                 </p>
               </CardFooter>
@@ -234,9 +236,9 @@ export default function ResetPasswordPage() {
                   />
                 </svg>
               </div>
-              <CardTitle className="text-2xl">Set new password</CardTitle>
+              <CardTitle className="text-2xl">{t("set_new_password_title")}</CardTitle>
               <CardDescription>
-                Enter your new password below.
+                {t("set_new_password_subtitle")}
               </CardDescription>
             </CardHeader>
 
@@ -246,12 +248,12 @@ export default function ResetPasswordPage() {
                 {!devResetToken && (
                   <div className="space-y-2">
                     <label htmlFor="token" className="text-sm font-medium leading-none">
-                      Reset Token
+                      {t("reset_token")}
                     </label>
                     <Input
                       id="token"
                       type="text"
-                      placeholder="Paste your reset token here"
+                      placeholder={t("reset_token_placeholder")}
                       value={resetToken}
                       onChange={(e) => {
                         setResetToken(e.target.value);
@@ -272,13 +274,13 @@ export default function ResetPasswordPage() {
                 {/* New Password */}
                 <div className="space-y-2">
                   <label htmlFor="newPassword" className="text-sm font-medium leading-none">
-                    New Password
+                    {t("new_password")}
                   </label>
                   <div className="relative">
                     <Input
                       id="newPassword"
                       type={showNewPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder={t("new_password_placeholder")}
                       value={newPassword}
                       onChange={(e) => {
                         setNewPassword(e.target.value);
@@ -295,7 +297,7 @@ export default function ResetPasswordPage() {
                       onClick={() => setShowNewPassword(!showNewPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       tabIndex={-1}
-                      aria-label={showNewPassword ? "Hide password" : "Show password"}
+                      aria-label={showNewPassword ? t("hide_password") : t("show_password")}
                     >
                       {showNewPassword ? (
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -320,13 +322,13 @@ export default function ResetPasswordPage() {
                 {/* Confirm New Password */}
                 <div className="space-y-2">
                   <label htmlFor="confirmPassword" className="text-sm font-medium leading-none">
-                    Confirm New Password
+                    {t("confirm_new_password_label")}
                   </label>
                   <div className="relative">
                     <Input
                       id="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder={t("confirm_password_placeholder")}
                       value={confirmPassword}
                       onChange={(e) => {
                         setConfirmPassword(e.target.value);
@@ -343,7 +345,7 @@ export default function ResetPasswordPage() {
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       tabIndex={-1}
-                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      aria-label={showConfirmPassword ? t("hide_password") : t("show_password")}
                     >
                       {showConfirmPassword ? (
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -389,10 +391,10 @@ export default function ResetPasswordPage() {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                         />
                       </svg>
-                      Resetting password...
+                      {t("resetting_password")}
                     </span>
                   ) : (
-                    "Reset Password"
+                    t("reset_button")
                   )}
                 </Button>
 
@@ -406,7 +408,7 @@ export default function ResetPasswordPage() {
                   }}
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  ← Back to email entry
+                  {t("back_to_email")}
                 </button>
               </CardFooter>
             </form>

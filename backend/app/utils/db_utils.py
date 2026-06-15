@@ -10,6 +10,17 @@ Usage::
    user = await db.users.find_one({"email": "test@example.com"})
 """
 
+# ---------------------------------------------------------------------------
+# Force dnspython to use public DNS resolvers so that mongodb+srv:// SRV
+# resolution works even when the local / corporate DNS is not compatible
+# with dnspython's internal resolver (a known edge-case with pymongo).
+# ---------------------------------------------------------------------------
+import dns.resolver as _dns_resolver
+
+_default_resolver = _dns_resolver.get_default_resolver()
+_default_resolver.nameservers = ["8.8.8.8", "8.8.4.4"]
+# ---------------------------------------------------------------------------
+
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
 from app.config import settings
@@ -35,7 +46,7 @@ def get_database() -> AsyncIOMotorDatabase:
 async def connect_to_mongo() -> None:
     """Create the Motor client and connect to the configured database.
 
-    Also ensures the ``users`` collection exists with a unique email index.
+    Also ensures indexes on core collections.
     Called once during FastAPI startup.
     """
     global _client, _db
@@ -45,6 +56,15 @@ async def connect_to_mongo() -> None:
 
     # Ensure email uniqueness index on the users collection
     await _db.users.create_index("email", unique=True, background=True)
+
+    # AI history collection indexes
+    await _db.ai_history.create_index([("user_id", 1), ("created_at", -1)], background=True)
+
+    # User activity / usage tracking indexes
+    await _db.user_activity.create_index([("user_id", 1), ("timestamp", -1)], background=True)
+    await _db.user_activity.create_index(
+        [("user_id", 1), ("action", 1), ("timestamp", -1)], background=True
+    )
 
     # Ping to verify connectivity
     await _client.admin.command("ping")

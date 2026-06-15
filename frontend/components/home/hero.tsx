@@ -33,11 +33,11 @@ export function HeroSection() {
               {t("hero.badge")}
             </div>
             <h1 className="mt-6 text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl">
-              Fast, Secure &{" "}
+              {t("hero.main_heading_prefix")}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                AI-Powered
-              </span>{" "}
-              PDF Tools
+                {t("hero.main_heading_highlight")}
+              </span>
+              {t("hero.main_heading_suffix")}
             </h1>
             <p className="mt-6 text-lg text-gray-600 dark:text-gray-300">
               {t("hero.subtitle")}
@@ -53,7 +53,7 @@ export function HeroSection() {
               </Button>
             </div>
 
-            <div className="mt-12 grid grid-cols-3 gap-6">
+            <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
                   <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />

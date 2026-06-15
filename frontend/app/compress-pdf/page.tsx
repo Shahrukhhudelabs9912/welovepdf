@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { ToolLayout } from "@/components/tools/tool-layout";
-import { CompressPDFTool } from "@/components/tools/compress-pdf-tool";
+import { ToolContentSkeleton } from "@/components/skeleton-loader";
+
+const CompressPDFTool = dynamic(
+  () => import("@/components/tools/compress-pdf-tool").then((mod) => ({ default: mod.CompressPDFTool })),
+  { loading: () => <ToolContentSkeleton />, ssr: false }
+);
 
 export const metadata: Metadata = {
   title: "Compress PDF Online Free - Reduce PDF File Size | WeLovePDF",

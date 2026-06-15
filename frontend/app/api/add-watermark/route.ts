@@ -1,51 +1,57 @@
 import { NextRequest } from 'next/server';
-import { 
-  handleFileUpload, 
-  createPdfDocument, 
-  addWatermarkToPdf, 
-  createApiResponse, 
-  createErrorResponse 
-} from '@/lib/api-handler';
+
+const PYTHON_API_BASE = process.env.NEXT_PUBLIC_PYTHON_API_BASE || 'http://localhost:8000/api';
 
 export async function POST(request: NextRequest) {
   try {
-    const uploadResult = await handleFileUpload(request, { 
-      maxFiles: 1,
-      allowedTypes: ['application/pdf']
+    const formData = await request.formData();
+    console.log('[add-watermark API] Received request');
+
+    // Forward to Python backend
+    const backendFormData = new FormData();
+    for (const [key, value] of formData.entries()) {
+      backendFormData.append(key, value);
+    }
+
+    console.log(`[add-watermark API] Forwarding to backend`);
+
+    const response = await fetch(`${PYTHON_API_BASE}/add-watermark`, {
+      method: 'POST',
+      body: backendFormData,
     });
-    
-    if ('error' in uploadResult) {
-      return createErrorResponse(uploadResult.error || 'Upload error', uploadResult.status || 400);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Watermark failed' }));
+      return new Response(JSON.stringify({
+        error: errorData.detail || errorData.message || 'Watermark failed'
+      }), {
+        status: response.status,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
-    
-    const { files } = uploadResult;
-    const pdfDoc = await createPdfDocument(files[0]);
-    
-    // Get watermark text from request body (default to "CONFIDENTIAL")
-    let watermarkText = "CONFIDENTIAL";
-    try {
-      const formData = await request.formData();
-      const text = formData.get('watermark');
-      if (text) {
-        watermarkText = text.toString();
-      }
-    } catch (e) {
-      // Use default
-    }
-    
-    // Add watermark to PDF
-    const watermarkedBuffer = await addWatermarkToPdf(pdfDoc, watermarkText);
-    
-    // Return the watermarked PDF
-    return createApiResponse(
-      watermarkedBuffer,
-      `watermarked-${Date.now()}.pdf`,
-      'application/pdf'
-    );
-    
+
+    // Return the watermarked PDF blob
+    const blob = await response.blob();
+    const contentDisposition = response.headers.get('content-disposition') || 'attachment; filename="watermarked.pdf"';
+
+    return new Response(blob, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': contentDisposition,
+        'Content-Length': String(blob.size),
+      },
+    });
+
   } catch (error) {
-    console.error('Error adding watermark to PDF:', error);
-    return createErrorResponse('Failed to add watermark to PDF file', 500);
+    console.error('[add-watermark API] Error:', error);
+    return new Response(JSON.stringify({
+      error: 'Failed to add watermark',
+      details: error instanceof Error ? error.message : String(error)
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }
 

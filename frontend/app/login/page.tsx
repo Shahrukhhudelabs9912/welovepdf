@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const t = useTranslations("auth");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,13 +26,13 @@ export default function LoginPage() {
     const newErrors: { email?: string; password?: string } = {};
 
     if (!email.trim()) {
-      newErrors.email = "Email is required.";
+      newErrors.email = t("validation.email_required");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email address.";
+      newErrors.email = t("validation.email_invalid");
     }
 
     if (!password) {
-      newErrors.password = "Password is required.";
+      newErrors.password = t("validation.password_required");
     }
 
     setErrors(newErrors);
@@ -44,9 +46,9 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await login(email.trim(), password, rememberMe);
-      router.push("/");
+      router.push("/dashboard");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Login failed. Please try again.";
+      const message = err instanceof Error ? err.message : t("login_failed");
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -72,9 +74,9 @@ export default function LoginPage() {
               />
             </svg>
           </div>
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
+          <CardTitle className="text-2xl">{t("login_title")}</CardTitle>
           <CardDescription>
-            Sign in to your account to continue
+            {t("login_subtitle")}
           </CardDescription>
         </CardHeader>
 
@@ -83,12 +85,12 @@ export default function LoginPage() {
             {/* Email */}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                Email
+                {t("email")}
               </label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t("email_placeholder")}
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
@@ -110,20 +112,20 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label htmlFor="password" className="text-sm font-medium leading-none">
-                  Password
+                  {t("password")}
                 </label>
                 <Link
                   href="/reset-password"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Forgot password?
+                  {t("forgot_password")}
                 </Link>
               </div>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder={t("password_placeholder")}
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
@@ -140,7 +142,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   tabIndex={-1}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? t("hide_password") : t("show_password")}
                 >
                   {showPassword ? (
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,7 +175,7 @@ export default function LoginPage() {
                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
               />
               <label htmlFor="remember-me" className="text-sm text-muted-foreground cursor-pointer select-none">
-                Remember me
+                {t("remember_me")}
               </label>
             </div>
           </CardContent>
@@ -201,17 +203,17 @@ export default function LoginPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                     />
                   </svg>
-                  Signing in...
+                  {t("signing_in")}
                 </span>
               ) : (
-                "Sign In"
+                t("sign_in")
               )}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
-              Don't have an account?{" "}
+              {t("no_account")}{" "}
               <Link href="/signup" className="text-primary hover:underline font-medium">
-                Sign up
+                {t("sign_up")}
               </Link>
             </p>
           </CardFooter>

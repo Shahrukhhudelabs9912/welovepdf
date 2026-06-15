@@ -114,7 +114,8 @@ export function useToolProcessing({
         'split-pdf', 'pdf-to-jpg', 'add-watermark',
         'pdf-to-word', 'word-to-pdf', 'compress-pdf', 'protect-pdf',
         'page-numbering', 'organize-pdf',
-        'fix-scanned-pdf', 'optimize-pdf', 'prepare-print-pdf'
+        'fix-scanned-pdf', 'optimize-pdf', 'prepare-print-pdf',
+        'pdf-to-excel', 'excel-to-pdf'
       ];
       
       // Extract the endpoint path from the URL (e.g., 'word-to-pdf' from 'http://127.0.0.1:8000/api/word-to-pdf')

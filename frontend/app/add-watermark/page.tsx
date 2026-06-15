@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { ToolLayout } from "@/components/tools/tool-layout";
-import { AddWatermarkClient } from "./add-watermark-client";
+import { ToolContentSkeleton } from "@/components/skeleton-loader";
+
+const AddWatermarkClient = dynamic(
+  () => import("./add-watermark-client").then((mod) => ({ default: mod.AddWatermarkClient })),
+  { loading: () => <ToolContentSkeleton />, ssr: false }
+);
 
 export const metadata: Metadata = {
   title: "Add Watermark to PDF Online Free | WeLovePDF",

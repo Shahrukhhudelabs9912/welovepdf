@@ -4,7 +4,7 @@ Provides: signup, login, logout, forgot-password, reset-password, me (user info)
 and token refresh endpoints. All endpoints use JSON request/response bodies.
 """
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, status, Response, Depends
+from fastapi import APIRouter, HTTPException, status, Response, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional
 
@@ -38,6 +38,7 @@ from app.services.auth_service import (
     get_user_by_id,
 )
 from app.config import settings
+from app.utils.rate_limit import limiter
 
 router = APIRouter(tags=["Authentication"])
 security = HTTPBearer(auto_error=False)
@@ -150,23 +151,27 @@ def _sanitize(user: dict) -> dict:
 # Auth Endpoints
 # ---------------------------------------------------------------------------
 
-@router.post("/auth/signup", response_model=AuthResponse, summary="Register a new user")
-async def signup(request: SignupRequest):
-    """Create a new user account and return authentication tokens."""
+@router.post("/auth/signup", summary="Register a new user")
+@limiter.limit(settings.RATE_LIMIT_AUTH)
+async def signup(request: Request, body: SignupRequest):
+    """Create a new user account (no auto-login; user must log in separately)."""
     try:
         user = await create_user(
-            email=request.email,
-            password=request.password,
-            full_name=request.full_name,
+            email=body.email,
+            password=body.password,
+            full_name=body.full_name,
         )
-        # Look up the full user record to build tokens
-        full_user = await get_user_by_email(request.email)
+        # Look up the full user record to return
+        full_user = await get_user_by_email(body.email)
         if not full_user:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="User creation failed. Please try again.",
             )
-        return _build_auth_tokens(full_user)
+        return {
+            "message": "Account created successfully. Please log in.",
+            "user": _sanitize(full_user),
+        }
     except HTTPException:
         raise
     except Exception as e:
@@ -178,10 +183,11 @@ async def signup(request: SignupRequest):
 
 
 @router.post("/auth/login", response_model=AuthResponse, summary="Log in to an existing account")
-async def login(request: LoginRequest):
+@limiter.limit(settings.RATE_LIMIT_AUTH)
+async def login(request: Request, body: LoginRequest):
     """Authenticate a user with email and password, return tokens."""
     try:
-        user = await get_user_by_email(request.email)
+        user = await get_user_by_email(body.email)
 
         if not user:
             raise HTTPException(
@@ -195,13 +201,13 @@ async def login(request: LoginRequest):
                 detail="This account has been deactivated.",
             )
 
-        if not verify_password(request.password, user["password_hash"]):
+        if not verify_password(body.password, user["password_hash"]):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password.",
             )
 
-        return _build_auth_tokens(user, request.remember_me)
+        return _build_auth_tokens(user, body.remember_me)
     except HTTPException:
         raise
     except Exception as e:

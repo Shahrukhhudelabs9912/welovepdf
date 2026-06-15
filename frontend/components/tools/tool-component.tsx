@@ -20,6 +20,7 @@ interface ToolComponentProps {
   additionalData?: Record<string, any>;
   onFileUpload?: (files: File[]) => void;
   autoClearFiles?: boolean;
+  onSuccess?: (result: { url: string; filename: string; blob: Blob }) => void;
 }
 
 export function ToolComponent({
@@ -34,6 +35,7 @@ export function ToolComponent({
   additionalData,
   onFileUpload,
   autoClearFiles = true,
+  onSuccess,
 }: ToolComponentProps) {
   const t = useTranslations("tool_pages");
   const {
@@ -50,6 +52,7 @@ export function ToolComponent({
     toolName,
     endpoint,
     autoClearFiles,
+    onSuccess,
   });
 
   const handleFileUpload = (uploadedFiles: File[]) => {
@@ -134,13 +137,13 @@ export function ToolComponent({
             <span className="text-sm text-gray-500">{files.length} {t("file_s")}</span>
           </div>
           {files.map((file, index) => (
-            <div key={index} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-800 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+            <div key={index} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
                   <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <div>
-                  <p className="font-medium">{file.name}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate" title={file.name}>{file.name}</p>
                   <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                 </div>
               </div>
@@ -148,7 +151,7 @@ export function ToolComponent({
                 variant="ghost"
                 size="sm"
                 onClick={() => removeFile(index)}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300"
+                className="shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

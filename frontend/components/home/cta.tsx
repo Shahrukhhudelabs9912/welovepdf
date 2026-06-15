@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { ArrowRight, Shield, Zap, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Link } from "@/routing";
 
 export function CTASection() {
   const t = useTranslations();
@@ -44,7 +44,7 @@ export function CTASection() {
                     </Link>
                   </div>
 
-                  <div className="mt-12 grid grid-cols-3 gap-6">
+                  <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <div className="flex items-center gap-3">
                       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
                         <Shield className="h-6 w-6 text-white" />

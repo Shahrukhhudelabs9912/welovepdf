@@ -42,7 +42,11 @@
     "supported_formats": "Supported formats",
     "sign_out": "Sign Out",
     "settings": "Settings",
-    "my_account": "My Account"
+    "my_account": "My Account",
+    "error_something_wrong": "Something went wrong",
+    "error_unexpected": "An unexpected error occurred. Please try refreshing the page.",
+    "error_unknown": "Unknown error",
+    "error_reload": "Reload Page"
   },
   "header": {
     "title": "WeLovePDF",
@@ -55,10 +59,31 @@
       "convert_pdf": "Convert PDF",
       "edit_pdf": "Edit PDF",
       "ai_tools": "AI Tools"
+    },
+    "tool_categories": {
+      "merge_split": {
+        "title": "Merge & Split",
+        "description": "Combine and split PDF documents"
+      },
+      "convert": {
+        "title": "Convert",
+        "description": "Convert PDFs to other formats"
+      },
+      "optimize": {
+        "title": "Optimize",
+        "description": "Compress and protect PDFs"
+      },
+      "edit_enhance": {
+        "title": "Edit & Enhance",
+        "description": "Add watermarks and page numbers"
+      }
     }
   },
   "hero": {
     "badge": "AI-Powered PDF Tools",
+    "main_heading_prefix": "Fast, Secure & ",
+    "main_heading_highlight": "AI-Powered",
+    "main_heading_suffix": " PDF Tools",
     "title": "Transform Your PDFs with Ease",
     "subtitle": "Merge, split, compress, convert, and edit PDF files online for free. No installation required.",
     "upload_label": "Drag & drop your PDF files here",
@@ -137,6 +162,14 @@
     "ai_summarization": {
       "title": "AI Summarization",
       "description": "AI-powered PDF summary and key points extraction"
+    },
+    "pdf_to_excel": {
+      "title": "PDF to Excel",
+      "description": "Extract tables from PDF and convert to Excel spreadsheets"
+    },
+    "excel_to_pdf": {
+      "title": "Excel to PDF",
+      "description": "Convert Excel spreadsheets to PDF format"
     }
   },
   "features": {
@@ -185,20 +218,53 @@
   },
   "testimonials": {
     "title": "Trusted by Millions Worldwide",
+    "subtitle": "See what our users have to say about their experience with WeLovePDF.",
     "user1": {
       "name": "Rajesh Kumar",
       "role": "Business Owner",
+      "company": "",
       "text": "This platform saved me hours of work. The PDF merging tool is incredibly fast and reliable."
     },
     "user2": {
       "name": "Priya Sharma",
-      "role": "Student",
-      "text": "As a student, I use WeLovePDF daily for converting lecture notes. It's a lifesaver!"
+      "role": "Marketing Manager",
+      "company": "TechCorp India",
+      "text": "WeLovePDF has revolutionized how our team handles documents. The AI summarization feature saves us hours every week."
     },
     "user3": {
       "name": "Amit Patel",
-      "role": "Developer",
-      "text": "The API integration and batch processing capabilities are excellent for our business needs."
+      "role": "Freelance Designer",
+      "company": "Self-Employed",
+      "text": "I use multiple PDF tools daily, and WeLovePDF is by far the fastest and most reliable."
+    },
+    "user4": {
+      "name": "Michael Chen",
+      "role": "CTO",
+      "company": "StartupXYZ",
+      "text": "The parallel processing capabilities are impressive. We process large batches of legal documents in seconds instead of minutes."
+    },
+    "user5": {
+      "name": "Sofia Rodriguez",
+      "role": "Legal Assistant",
+      "company": "Law Partners LLC",
+      "text": "Password protection and watermark features are essential for our legal documents. WeLovePDF handles everything securely."
+    },
+    "user6": {
+      "name": "Arjun Mehta",
+      "role": "SEO Specialist",
+      "company": "Digital Boost",
+      "text": "The SEO optimization on tool pages is brilliant. The Hindi keywords targeting is smart for the Indian market."
+    },
+    "stats": {
+      "user_rating_value": "4.9/5",
+      "user_rating": "User Rating",
+      "rating_desc": "Based on 12,847 reviews across platforms",
+      "uptime_value": "98.7%",
+      "uptime": "Uptime",
+      "uptime_desc": "Reliable service with 24/7 monitoring",
+      "ranking_value": "#1",
+      "google_ranking": "Google Ranking",
+      "ranking_desc": "Top result for \"PDF tools\" in 15 countries"
     }
   },
   "faq": {
@@ -222,7 +288,23 @@
     "q5": {
       "question": "Can I use it on mobile?",
       "answer": "Yes! Our website is fully responsive and works perfectly on all mobile devices."
-    }
+    },
+    "q6": {
+      "question": "How fast is the processing?",
+      "answer": "Most operations complete in under 2 seconds for average-sized files. We use parallel processing, Web Workers, and optimized algorithms for maximum speed."
+    },
+    "q7": {
+      "question": "What PDF tools do you offer?",
+      "answer": "We offer 14+ tools including merge, split, compress, convert (PDF to Word, Excel, PPT, JPG), rotate, protect, unlock, watermark, page numbering, organize, and AI-powered summarization."
+    },
+    "q8": {
+      "question": "Do you have an API for developers?",
+      "answer": "Yes, we offer a comprehensive REST API for developers. You can integrate our PDF processing capabilities directly into your applications with detailed documentation and SDKs."
+    },
+    "subtitle": "Get answers to common questions about WeLovePDF.",
+    "contact_text": "Still have questions?",
+    "contact_link": "Contact our support team",
+    "contact_suffix": "— we're here to help!"
   },
   "cta": {
     "title": "Ready to Transform Your PDF Workflow?",
@@ -267,7 +349,11 @@
       "multi_language": "Multi-language",
       "browser_processing": "Browser Processing",
       "about_us": "About Us",
-      "careers": "Careers"
+      "careers": "Careers",
+      "gdpr": "GDPR",
+      "dmca": "DMCA",
+      "github": "GitHub",
+      "twitter": "Twitter"
     }
   },
   "auth": {
@@ -308,6 +394,22 @@
     "terms_link": "Terms of Service",
     "and": "and",
     "privacy_link": "Privacy Policy",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
+    "login_failed": "Login failed. Please try again.",
+    "signup_failed": "Signup failed. Please try again.",
+    "password_hint": "Must be at least 8 characters with uppercase, lowercase, and a number.",
+    "send_reset_link": "Send Reset Link",
+    "sending": "Sending...",
+    "remember_password": "Remember your password?",
+    "set_new_password_title": "Set new password",
+    "set_new_password_subtitle": "Enter your new password below.",
+    "confirm_new_password_label": "Confirm New Password",
+    "back_to_email": "← Back to email entry",
+    "dev_token_autofill": "Dev mode: Reset token has been auto-filled.",
+    "something_went_wrong": "Something went wrong.",
+    "resetting_password": "Resetting password...",
+    "reset_failed": "Password reset failed.",
     "password_strength": {
       "very_weak": "Very Weak",
       "weak": "Weak",
@@ -324,9 +426,13 @@
       "password_lowercase": "Password must contain a lowercase letter",
       "password_number": "Password must contain a number",
       "name_required": "Full name is required",
+      "name_min_length": "Name must be at least 2 characters.",
       "confirm_required": "Please confirm your password",
       "passwords_match": "Passwords do not match",
-      "terms_required": "You must agree to the terms"
+      "terms_required": "You must agree to the terms",
+      "token_required": "Reset token is required.",
+      "new_password_required": "New password is required.",
+      "confirm_new_password_required": "Please confirm your new password."
     }
   },
   "tool_pages": {
@@ -378,11 +484,57 @@
     "popular_split_pdf": "Split PDF",
     "popular_compress_pdf": "Compress PDF",
     "popular_pdf_to_word": "PDF to Word",
-    "popular_protect_pdf": "Protect PDF"
+    "popular_protect_pdf": "Protect PDF",
+    "download_hint": "If download doesn't start automatically, click the button above.",
+    "please_upload_first": "Please upload a file first",
+    "conversion_success": "Conversion Successful!",
+    "conversion_failed": "Conversion Failed",
+    "download_auto": "Download should start automatically.",
+    "download_ready": "Your file is ready. Click Download if it didn't start automatically.",
+    "server_error_retry": "An unexpected server error occurred. Please try again with a different file.",
+    "try_again": "Please try again with a valid file.",
+    "uploading": "Uploading...",
+    "why_convert_title": "Why Convert?",
+    "perfect_formatting": "Perfect Formatting",
+    "perfect_formatting_desc": "Preserves all formatting, fonts, and layout from your original document",
+    "multiple_formats": "Multiple Formats",
+    "multiple_formats_desc": "Support for all major file formats and document types",
+    "batch_convert": "Batch Convert",
+    "batch_convert_desc": "Upload multiple files at once and convert them all in one go",
+    "uploaded_count_toast": "Uploaded {count} file(s)",
+    "added_count_toast": "Added {count} file(s)",
+    "converted_success_toast": "{filename} converted successfully!",
+    "converted_failed_toast": "Failed to convert {filename}. Please try again.",
+    "files_cleared_toast": "All files cleared",
+    "file_removed_toast": "File removed"
   },
   "merge_pdf": {
     "title": "Merge PDF",
     "description": "Combine multiple PDF files into a single document. Upload your files, arrange them in order, and download the merged result.",
+    "seo_h1": "Merge PDF Files Online for Free",
+    "seo_h2": "How to Merge PDF Files",
+    "seo_faq": [
+      {
+        "question": "Is PDF merging free?",
+        "answer": "Yes, our PDF merger is completely free with no hidden charges. You can merge unlimited files without registration."
+      },
+      {
+        "question": "Can I reorder pages before merging?",
+        "answer": "Yes, you can drag and drop files to rearrange them in any order before merging. The merged PDF will follow your specified order."
+      },
+      {
+        "question": "Is there a file size limit?",
+        "answer": "You can merge PDFs up to 100MB each for free. For larger files, consider using our premium plan."
+      },
+      {
+        "question": "How many PDFs can I merge at once?",
+        "answer": "You can merge up to 20 PDF files at once. If you need to merge more, simply process them in batches."
+      },
+      {
+        "question": "Is my data secure?",
+        "answer": "Absolutely. All files are processed securely with end-to-end encryption and are automatically deleted from our servers after 1 hour."
+      }
+    ],
     "how_to": "How to Merge PDF Files",
     "step1": "Upload your PDF files",
     "step2": "Arrange them in the desired order",
@@ -391,11 +543,69 @@
     "sort_by_name": "Sort by Name",
     "sort_by_date": "Sort by Date",
     "merge_button": "Merge PDF",
-    "merging": "Merging..."
+    "merging": "Merging...",
+    "added_files_toast": "Added {count} PDF files",
+    "upload_min_two": "Please upload at least 2 PDF files",
+    "uploaded_files_title": "Uploaded Files",
+    "add_more_files": "Add More Files",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "no_files_toast": "No files to merge. Please upload files first.",
+    "merge_success": "Merge Completed Successfully!",
+    "merge_success_desc": "Your {count} PDF files have been merged into a single document. The download has started automatically.",
+    "merge_failed": "Failed to merge PDF",
+    "download_merged": "Download Merged PDF",
+    "download_merged_file": "Download Merged File",
+    "merge_another": "Merge Another Document",
+    "download_button": "Download",
+    "tips_title": "Tips for Merging PDFs",
+    "tips_order": "Drag files up or down to arrange them in the desired order",
+    "tips_quality": "The quality of the merged PDF matches the original files",
+    "tips_security": "Your files are securely processed and automatically deleted after 1 hour",
+    "tips_preview": "You can merge up to 20 PDF files at once",
+    "files_to_merge": "Files to Merge ({count})",
+    "total_stats": "Total: {size} • {pages} pages",
+    "pages_label": "pages",
+    "order_label": "Order",
+    "merge_settings": "Merge Settings",
+    "merge_settings_desc": "Files will be merged in the order shown above",
+    "merging_progress": "Merging PDF files",
+    "files_label": "Files",
+    "total_pages_label": "Total Pages",
+    "total_size_label": "Total Size",
+    "file_name_label": "File Name",
+    "file_size_label": "File Size",
+    "processing_time_label": "Processing Time",
+    "seconds_label": "seconds",
+    "reorder_hint": "To reorder files, please upload them in the desired order",
+    "tips_pdf_format": "Ensure all files are PDF format before uploading",
+    "tips_large_files": "Large files may take longer to process"
   },
   "compress_pdf": {
     "title": "Compress PDF",
     "description": "Reduce PDF file size while maintaining quality. Choose compression level based on your needs.",
+    "seo_h1": "Compress PDF Files Online for Free",
+    "seo_h2": "How to Compress PDF Files",
+    "seo_faq": [
+      {
+        "question": "Is PDF compression safe?",
+        "answer": "Yes, compression only optimizes images and removes unnecessary metadata. Your document content remains completely intact."
+      },
+      {
+        "question": "How much can I reduce my PDF size?",
+        "answer": "Depending on the content, you can reduce file size by 20–90%. PDFs with large images benefit the most from compression."
+      },
+      {
+        "question": "Will compression affect the quality of my PDF?",
+        "answer": "Low and medium compression preserve excellent visual quality. High compression reduces size the most but may slightly affect image sharpness."
+      },
+      {
+        "question": "Is there a file size limit?",
+        "answer": "You can compress PDFs up to 100MB for free. For larger files, consider our premium plan."
+      }
+    ],
+    "upload_title": "Upload PDF File",
+    "upload_description": "Upload a PDF to compress and reduce its file size.",
     "compression_level": "Compression Level",
     "low": "Low (Best Quality)",
     "medium": "Medium (Recommended)",
@@ -404,11 +614,82 @@
     "compressed_size": "Compressed Size",
     "saved": "Saved",
     "compress_button": "Compress PDF",
-    "compressing": "Compressing..."
+    "compressing": "Compressing...",
+    "estimating": "Estimating...",
+    "download_compressed": "Download Compressed PDF",
+    "download_hint": "If download doesn't start automatically, click the button above.",
+    "compress_success": "PDF Compressed Successfully!",
+    "compress_failed": "Failed to compress PDF",
+    "upload_pdf_first": "Please upload a PDF file first",
+    "why_compress_title": "Why Compress Your PDF?",
+    "why_compress_desc": "Reduce file size for easier sharing via email, faster uploads, and saving storage space.",
+    "feature_reduce": "Reduce File Size",
+    "feature_reduce_desc": "Shrink PDF files by up to 90% while keeping good visual quality.",
+    "feature_quality": "Quality Control",
+    "feature_quality_desc": "Choose from three compression levels to balance size and quality.",
+    "feature_fast": "Fast Processing",
+    "feature_fast_desc": "Compress PDFs in seconds with our optimized compression engine.",
+    "tips_title": "Tips for Compression",
+    "tips_level": "Use recommended compression for the best balance",
+    "tips_preview": "Check the preview before downloading",
+    "tips_original": "Your original file is never modified",
+    "file_uploaded_toast": "File \"{name}\" uploaded",
+    "no_compressed_file": "No compressed file available. Please compress again.",
+    "downloading_toast": "Downloading {filename}",
+    "download_failed_msg": "Download failed. Please try again or check your browser settings.",
+    "file_to_compress": "File to Compress",
+    "size_label": "Size",
+    "pdf_document_label": "PDF Document",
+    "compression_settings": "Compression Settings",
+    "low_compression": "Low Compression",
+    "medium_compression": "Medium Compression",
+    "high_compression": "High Compression",
+    "low_compression_desc": "Minimal size reduction, best quality",
+    "medium_compression_desc": "Balanced size and quality",
+    "high_compression_desc": "Maximum size reduction",
+    "ready_to_compress": "Ready to Compress",
+    "max_compression_desc": "Maximum compression (smallest file size)",
+    "balanced_compression_desc": "Balanced compression (recommended)",
+    "light_compression_desc": "Light compression (best quality)",
+    "compressing_pdf_title": "Compressing PDF...",
+    "optimizing_pdf": "Optimizing PDF file",
+    "compression_success_desc": "Your PDF file has been compressed with {level} compression. The download has started automatically.",
+    "file_name_label": "File Name",
+    "processing_time_label": "Processing Time",
+    "seconds_label": "seconds",
+    "compress_another": "Compress Another File",
+    "download_button": "Download",
+    "about_compression": "About PDF Compression",
+    "about_optimize": "Compression reduces file size by optimizing images and removing unnecessary data",
+    "about_quality_impact": "Higher compression levels result in smaller files but may affect image quality",
+    "about_text_sharp": "Text and vector graphics remain sharp at all compression levels",
+    "about_perfect_for": "Compressed files are perfect for email attachments, web uploads, and storage"
   },
   "split_pdf": {
     "title": "Split PDF",
-    "description": "Split a PDF into multiple files. Extract specific pages or split by page ranges.",
+    "description": "Split a PDF into multiple files or extract specific pages.",
+    "seo_h1": "Split PDF Files Online for Free",
+    "seo_h2": "How to Split PDF Files",
+    "seo_faq": [
+      {
+        "question": "Can I split a PDF into individual pages?",
+        "answer": "Yes! Our tool lets you split a PDF into individual pages, by page range, or every N pages — whatever you need."
+      },
+      {
+        "question": "How do I extract specific pages from a PDF?",
+        "answer": "Use 'Extract Pages' mode and enter the page numbers you want, separated by commas (e.g. 1, 3, 5-7). The tool creates a new PDF with only those pages."
+      },
+      {
+        "question": "Will splitting change the PDF quality?",
+        "answer": "No. Splitting only separates pages — the content, images, and formatting of each page remain exactly as in the original."
+      },
+      {
+        "question": "Is the split PDF downloaded as a ZIP?",
+        "answer": "When splitting into multiple files, the result is packaged as a ZIP archive for easy download. Single-file extractions download directly."
+      }
+    ],
+    "upload_title": "Upload PDF File",
+    "upload_description": "Upload a PDF to split into separate files or extract pages.",
     "split_mode": "Split Mode",
     "by_range": "By Page Range",
     "by_pages": "Extract Pages",
@@ -417,33 +698,239 @@
     "extract_pages": "Pages to Extract",
     "extract_pages_placeholder": "e.g. 1, 3, 5",
     "split_button": "Split PDF",
-    "splitting": "Splitting..."
+    "splitting": "Splitting...",
+    "download_split": "Download Split PDF",
+    "download_hint": "If download doesn't start automatically, click the button above.",
+    "split_success": "PDF Split Successfully!",
+    "split_failed": "Failed to split PDF",
+    "upload_pdf_first": "Please upload a PDF file first",
+    "all_pages": "All Pages",
+    "custom_range": "Custom Range",
+    "why_split_title": "Why Split Your PDF?",
+    "why_split_desc": "Extract only the pages you need or split large PDFs into smaller, more manageable files.",
+    "feature_extract": "Extract Pages",
+    "feature_extract_desc": "Pull out specific pages from a PDF to create a new document.",
+    "feature_range": "Split by Range",
+    "feature_range_desc": "Divide a PDF into multiple files based on page ranges.",
+    "feature_individual": "Individual Pages",
+    "feature_individual_desc": "Split each page into its own separate PDF file.",
+    "tips_title": "Tips for Splitting",
+    "tips_select": "Select the right split mode for your needs",
+    "tips_preview": "Check the page count before splitting",
+    "tips_download": "Download all split files as a ZIP archive",
+    "features_split_title": "Split Options",
+    "features_split_desc": "Choose how to split your PDF: extract pages, split by range, or split into equal parts.",
+    "features_fast_title": "Fast Processing",
+    "features_fast_desc": "Split PDF files quickly with our optimized processing engine. No waiting in queues.",
+    "features_download_title": "Download Instantly",
+    "features_download_desc": "Download split PDF files immediately after processing. All files are automatically deleted after 1 hour.",
+    "split_options_title": "Split Options",
+    "advanced_settings": "Advanced Settings",
+    "hide_advanced": "Hide Advanced",
+    "split_method": "Split Method",
+    "every_n_pages": "Every N Pages",
+    "split_every_n_label": "Split Every N Pages",
+    "page_range_help": "Enter page ranges like \"1-5\" or multiple ranges like \"1-3, 5-7, 10\"",
+    "specific_pages_help": "Enter specific page numbers separated by commas, or ranges like \"1,3,5-7\"",
+    "output_format": "Output Format",
+    "output_individual_zip": "Individual PDF files (ZIP)",
+    "output_single": "Single PDF file",
+    "naming_pattern": "Naming Pattern",
+    "naming_placeholder": "Use '{n}' for page number",
+    "naming_help": "Use '{n}' for part number, e.g. \"chapter_'{n}'.pdf\"",
+    "sample_output": "Sample Output",
+    "pages_unit": "pages",
+    "tips_chunks": "For large PDFs, consider splitting into smaller chunks for faster processing",
+    "tips_ranges": "Use page ranges like \"1-10\" to extract the first 10 pages",
+    "tips_auto_delete": "Split files will be automatically deleted after 1 hour for security",
+    "tips_commas": "For multiple ranges, use commas: \"1-5, 8, 10-12\"",
+    "specific_pages": "Specific Pages",
+    "specific_pages_placeholder": "e.g., 1,3,5,7-9",
+    "split_every_n_desc": "Split the PDF into separate files every {pages} pages",
+    "split_now": "Split PDF Now",
+    "added_files_toast": "Added {count} PDF file(s)"
   },
   "pdf_to_word": {
     "title": "PDF to Word",
     "description": "Convert PDF files to editable Word documents (.docx) with high accuracy.",
+    "seo_h1": "Convert PDF to Word Online for Free",
+    "seo_h2": "How to Convert PDF to Word",
+    "seo_faq": [
+      {
+        "question": "Will the formatting be preserved?",
+        "answer": "Yes, our converter preserves the original layout, fonts, images, and table structures in the resulting Word document."
+      },
+      {
+        "question": "Can I convert a scanned PDF to Word?",
+        "answer": "Yes! Our tool uses OCR (Optical Character Recognition) to extract text from scanned PDFs and create editable Word documents."
+      },
+      {
+        "question": "Is there a file size limit?",
+        "answer": "You can convert PDFs up to 100MB for free. Larger files may be processed with our premium plan."
+      },
+      {
+        "question": "What Word format will I receive?",
+        "answer": "You'll receive a .docx file compatible with Microsoft Word, Google Docs, LibreOffice, and other word processors."
+      }
+    ],
+    "upload_title": "Upload PDF File",
+    "upload_description": "Upload a PDF to convert it into an editable Word document.",
     "convert_button": "Convert to Word",
-    "converting": "Converting..."
+    "converting": "Converting to Word...",
+    "download_word": "Download Word Document",
+    "download_hint": "If download doesn't start automatically, click the button above.",
+    "conversion_success": "PDF Converted Successfully!",
+    "conversion_failed": "Failed to convert PDF to Word",
+    "upload_pdf_first": "Please upload a PDF file first",
+    "why_convert_title": "Why Convert PDF to Word?",
+    "why_convert_desc": "Edit your PDF content freely in Microsoft Word or any compatible word processor.",
+    "feature_formatting": "Preserves Formatting",
+    "feature_formatting_desc": "Maintains original layout, fonts, images, and table structures.",
+    "feature_ocr": "OCR Technology",
+    "feature_ocr_desc": "Extracts text from scanned PDFs using optical character recognition.",
+    "feature_accurate": "High Accuracy",
+    "feature_accurate_desc": "Advanced conversion engine delivers accurate results.",
+    "tips_title": "Tips for Best Results",
+    "tips_clear": "Use clear, text-based PDFs for best accuracy",
+    "tips_scanned": "Scanned PDFs will be processed with OCR",
+    "tips_complex": "Complex layouts may need minor adjustments",
+    "downloading_file": "Downloading {filename}..."
   },
   "word_to_pdf": {
     "title": "Word to PDF",
     "description": "Convert Word documents (.doc, .docx) to PDF format.",
+    "seo_h1": "Convert Word to PDF Online for Free",
+    "seo_h2": "How to Convert Word to PDF",
+    "seo_faq": [
+      {
+        "question": "Will the Word formatting be preserved?",
+        "answer": "Yes, our converter maintains fonts, images, tables, and layout exactly as in the original Word document."
+      },
+      {
+        "question": "Can I convert .doc and .docx files?",
+        "answer": "Yes, we support both the older .doc format and the modern .docx format."
+      },
+      {
+        "question": "Is the conversion free?",
+        "answer": "Yes, converting Word to PDF is completely free with no registration required."
+      },
+      {
+        "question": "Will the PDF be editable?",
+        "answer": "The output PDF preserves your document layout and is not editable by default, which is ideal for sharing and printing."
+      }
+    ],
+    "upload_title": "Upload Word File",
+    "upload_description": "Upload a Word document to convert it to PDF format.",
     "convert_button": "Convert to PDF",
-    "converting": "Converting..."
+    "converting": "Converting to PDF...",
+    "download_pdf": "Download PDF",
+    "download_hint": "If download doesn't start automatically, click the button above.",
+    "conversion_success": "Word Converted Successfully!",
+    "conversion_failed": "Failed to convert Word to PDF",
+    "upload_word_first": "Please upload a Word document first",
+    "why_convert_title": "Why Convert Word to PDF?",
+    "why_convert_desc": "Create professional PDF documents from your Word files for sharing and printing.",
+    "feature_preserve": "Preserves Formatting",
+    "feature_preserve_desc": "Maintains fonts, images, tables, and layout exactly as in the original.",
+    "feature_universal": "Universal Format",
+    "feature_universal_desc": "PDF files look the same on any device or operating system.",
+    "feature_professional": "Professional Output",
+    "feature_professional_desc": "Create polished, print-ready PDFs perfect for business documents.",
+    "tips_title": "Tips for Best Results",
+    "tips_format": "Ensure your Word document is well-formatted",
+    "tips_images": "Embed images properly for best output",
+    "tips_preview": "Preview the PDF before sharing",
+    "progress_percent": "{progress}%",
+    "feature_preserve_desc_short": "Fonts, images, tables and layout intact.",
+    "feature_formats": "Multi-format Support",
+    "feature_formats_desc_short": "Supports .doc, .docx and .rtf files.",
+    "feature_batch": "Fast Conversion",
+    "feature_batch_desc_short": "Convert documents in seconds.",
+    "why_convert_universal": "<strong>Universal:</strong> PDFs render the same on every device and OS.",
+    "why_convert_professional": "<strong>Professional:</strong> Print-ready output ideal for business sharing.",
+    "why_convert_optimization": "<strong>Optimized:</strong> Smaller, easier-to-share files than DOCX.",
+    "why_convert_security": "<strong>Secure:</strong> Files auto-deleted after processing."
   },
   "pdf_to_jpg": {
     "title": "PDF to JPG",
     "description": "Convert PDF pages to high-quality JPG images. Extract all pages or specific ones.",
+    "seo_h1": "Convert PDF to JPG Online for Free",
+    "seo_h2": "How to Convert PDF to JPG",
+    "seo_faq": [
+      {
+        "question": "Can I convert all pages at once?",
+        "answer": "Yes, you can convert all pages of your PDF to individual JPG images in one operation. They are delivered in a ZIP archive."
+      },
+      {
+        "question": "What quality will the images be?",
+        "answer": "You can choose the output quality. Higher quality produces sharper images at larger file sizes."
+      },
+      {
+        "question": "Can I extract just one page?",
+        "answer": "Yes, use 'Specific Page' mode and enter the page number you want to extract as a JPG."
+      },
+      {
+        "question": "Is the conversion free?",
+        "answer": "Yes, PDF to JPG conversion is completely free with no registration required."
+      }
+    ],
     "quality": "Quality",
     "all_pages": "All Pages",
     "specific_page": "Specific Page",
     "page_number": "Page Number",
     "convert_button": "Convert to JPG",
-    "converting": "Converting..."
+    "converting": "Converting...",
+    "settings_title": "Conversion Settings",
+    "show_settings": "Show Settings",
+    "hide_settings": "Hide Settings",
+    "quality_label": "Image Quality",
+    "quality_hint": "Higher quality means larger file size.",
+    "dpi_label": "DPI (Resolution)",
+    "dpi_hint": "Higher DPI = sharper images, bigger files.",
+    "dpi_value": "{dpi} DPI",
+    "page_number_label": "Page Number (0 = all pages)",
+    "page_number_hint": "Enter 0 to convert every page (downloaded as ZIP).",
+    "jpg_label": "JPG",
+    "page_label_with_number": "Page {page}",
+    "auto_downloaded_hint": "File downloaded automatically.",
+    "sample_output_title": "Sample Output Preview",
+    "sample_output_desc": "Each page becomes a separate JPG image.",
+    "sample_output_footer": "Upload a PDF to convert it to JPG images.",
+    "single_result_title": "Image Ready",
+    "single_result_desc": "Your PDF page has been converted to JPG.",
+    "zip_result_title": "ZIP Archive Ready",
+    "zip_result_desc": "All pages converted and bundled in a ZIP file.",
+    "zip_check_item1": "All pages converted to JPG.",
+    "zip_check_item2": "Quality: {quality}% at {dpi} DPI.",
+    "zip_check_item3": "Bundled in a single ZIP file.",
+    "zip_extract_hint": "Extract the ZIP to access individual JPG files.",
+    "download_zip_again": "Download ZIP again"
   },
   "jpg_to_pdf": {
     "title": "JPG to PDF",
     "description": "Convert JPG, PNG, or other image formats to a single PDF document.",
+    "seo_h1": "Convert JPG to PDF Online for Free",
+    "seo_h2": "How to Convert Images to PDF",
+    "seo_faq": [
+      {
+        "question": "Can I combine multiple images into one PDF?",
+        "answer": "Yes! Upload multiple images and they will all be combined into a single PDF document in the order you upload them."
+      },
+      {
+        "question": "What image formats are supported?",
+        "answer": "We support JPG, PNG, GIF, WebP, BMP, and TIFF image formats."
+      },
+      {
+        "question": "Can I choose the page size and orientation?",
+        "answer": "Yes, you can choose between portrait and landscape orientation and page sizes like A4, Letter, and Legal."
+      },
+      {
+        "question": "Is the conversion free?",
+        "answer": "Yes, converting images to PDF is completely free with no registration required."
+      }
+    ],
+    "upload_title": "Upload Images",
+    "upload_description": "Upload JPG, PNG, or other images to combine into a PDF.",
     "orientation": "Page Orientation",
     "portrait": "Portrait",
     "landscape": "Landscape",
@@ -456,16 +943,83 @@
     "small": "Small",
     "large": "Large",
     "convert_button": "Convert to PDF",
-    "converting": "Converting..."
+    "converting": "Converting to PDF...",
+    "download_pdf": "Download PDF",
+    "download_hint": "If download doesn't start automatically, click the button above.",
+    "conversion_success": "Images Converted to PDF Successfully!",
+    "conversion_failed": "Failed to convert images to PDF",
+    "upload_images_first": "Please upload at least one image",
+    "why_convert_title": "Why Convert JPG to PDF?",
+    "why_convert_desc": "Combine multiple images into a single, shareable PDF document.",
+    "feature_multiple": "Multiple Images",
+    "feature_multiple_desc": "Combine several images into one organized PDF file.",
+    "feature_orientation": "Orientation Control",
+    "feature_orientation_desc": "Choose portrait or landscape orientation for your output.",
+    "feature_margins": "Margin Settings",
+    "feature_margins_desc": "Adjust margins for a clean, professional appearance.",
+    "tips_title": "Tips for Best Results",
+    "tips_order": "Upload images in the order you want them to appear",
+    "tips_quality": "Use high-resolution images for best PDF quality",
+    "tips_size": "Choose page size that matches your image dimensions",
+    "added_files_toast": "Added {count} image file(s)",
+    "uploaded_images_title": "Uploaded Images",
+    "page_in_pdf": "Page {n} in PDF",
+    "feature_formats_title": "Multiple Formats",
+    "feature_formats_desc": "Convert JPG, PNG, GIF, WebP, and other image formats to high-quality PDF files.",
+    "feature_combine_title": "Combine Images",
+    "feature_combine_desc": "Combine multiple images into a single PDF document with customizable page order.",
+    "feature_instant_title": "Download Instantly",
+    "feature_instant_desc": "Download converted PDF files immediately after processing. All files are automatically deleted after 1 hour.",
+    "pdf_settings": "PDF Settings",
+    "advanced_settings": "Advanced Settings",
+    "hide_advanced": "Hide Advanced",
+    "a4_international": "A4 (International)",
+    "letter_us": "Letter (US)",
+    "legal": "Legal",
+    "margin_size": "Margin Size",
+    "small_5mm": "Small (5mm)",
+    "medium_10mm_recommended": "Medium (10mm) - Recommended",
+    "large_20mm": "Large (20mm)",
+    "image_fit": "Image Fit",
+    "fit_to_page": "Fit to page (maintain aspect ratio)",
+    "stretch_to_fill": "Stretch to fill page",
+    "center_on_page": "Center on page",
+    "convert_to_pdf_now": "Convert to PDF Now",
+    "sample_output": "Sample Output",
+    "sample_output_toast": "Sample output feature would download a demo PDF file",
+    "tips_high_res": "For best quality, use high-resolution images (at least 150 DPI)",
+    "tips_portrait": "Portrait orientation works best for photos taken vertically",
+    "tips_drag_drop": "Use drag and drop to rearrange images in the desired order",
+    "tips_auto_delete": "Converted PDF files are automatically deleted after 1 hour for security"
   },
   "protect_pdf": {
     "title": "Protect PDF",
     "description": "Add password protection and encryption to your PDF files.",
+    "seo_h1": "Protect PDF with Password Online for Free",
+    "seo_h2": "How to Password Protect a PDF",
+    "seo_faq": [
+      {
+        "question": "What encryption standard is used?",
+        "answer": "We use AES-256 encryption — the same military-grade standard used by banks and governments — to protect your PDF."
+      },
+      {
+        "question": "Can I control what the recipient can do with the PDF?",
+        "answer": "Yes, you can restrict printing, copying text, and modifying the document independently from the open password."
+      },
+      {
+        "question": "What happens if I forget the password?",
+        "answer": "There is no way to recover a lost password for an encrypted PDF. Please save your password somewhere safe before applying protection."
+      },
+      {
+        "question": "Is the protection permanent?",
+        "answer": "Yes, the password protection is embedded in the PDF itself, so it remains active regardless of how the file is shared or stored."
+      }
+    ],
     "password_label": "Password",
-    "password_placeholder": "Enter password",
+    "password_placeholder": "Enter password (min 4 characters)",
     "confirm_password_label": "Confirm Password",
-    "confirm_password_placeholder": "Re-enter password",
-    "permissions": "Permissions",
+    "confirm_password_placeholder": "Confirm password",
+    "permissions": "Document Permissions",
     "allow_printing": "Allow Printing",
     "allow_copying": "Allow Copying",
     "allow_modifying": "Allow Modifying",
@@ -473,11 +1027,66 @@
     "aes128": "AES-128 (Compatible)",
     "aes256": "AES-256 (More Secure)",
     "protect_button": "Protect PDF",
-    "protecting": "Protecting..."
+    "protecting": "Encrypting PDF...",
+    "upload_title": "Upload PDF",
+    "upload_description": "Upload the PDF file you want to protect with a password",
+    "allowed": "Allowed",
+    "restricted": "Restricted",
+    "protect_download": "Protect & Download",
+    "protect_download_desc": "Secure your PDF and download the protected version",
+    "protection_failed": "Protection Failed",
+    "protection_success": "PDF Protected Successfully!",
+    "security_features": "Security Features",
+    "feature_aes256": "256-bit AES Encryption",
+    "feature_permission": "Permission Control",
+    "feature_autoclean": "Auto Cleanup",
+    "feature_aes256_desc": "Bank-level security with AES-256 encryption standard",
+    "feature_permission_desc": "Control printing, copying, and modifying permissions",
+    "feature_autoclean_desc": "Files are automatically deleted after processing",
+    "tips_title": "Tips for Strong Passwords",
+    "tips_use_long": "Use at least 12 characters with mixed case",
+    "tips_avoid_common": "Avoid common words and personal information",
+    "tips_special_chars": "Include special characters and numbers",
+    "tips_unique": "Use a unique password for each document",
+    "password_min_length": "Password must be at least 4 characters",
+    "passwords_mismatch": "Passwords do not match",
+    "enter_matching": "Please enter matching passwords",
+    "upload_pdf_first": "Please upload a PDF file first",
+    "remember_warning": "Remember: If you lose the password, you cannot recover the PDF",
+    "download_protected": "Download Protected PDF",
+    "download_hint": "If download doesn't start automatically, click the button above.",
+    "security_settings": "Security Settings",
+    "security_settings_desc": "Set password and control document permissions",
+    "protection_success_desc": "Your PDF is now encrypted with AES-256 password protection.",
+    "feature_aes256_desc_active": "PDF encrypted with military-grade encryption",
+    "feature_permission_desc_active": "Permissions applied",
+    "feature_autoclean_desc_active": "Temporary files securely deleted"
   },
   "organize_pdf": {
     "title": "Organize PDF",
     "description": "Reorder, rotate, or delete pages in your PDF document.",
+    "seo_h1": "Organize PDF Pages Online for Free",
+    "seo_h2": "How to Organize PDF Pages",
+    "seo_faq": [
+      {
+        "question": "Can I organize multiple PDFs at once?",
+        "answer": "Yes! You can upload multiple PDF files and organize their pages together as if they were a single document."
+      },
+      {
+        "question": "How do I reorder pages?",
+        "answer": "Simply drag and drop page thumbnails to rearrange them. You can also use our sorting options to automatically organize pages ascending or descending."
+      },
+      {
+        "question": "Can I delete pages from my PDF?",
+        "answer": "Absolutely. Hover over any page and click the trash icon to delete it. Use 'Reset to Original' to restore all deleted pages."
+      },
+      {
+        "question": "Is there a limit to the number of pages I can organize?",
+        "answer": "Our free tier supports PDFs with up to 500 pages. For larger documents, consider splitting them first or upgrading to our premium plan."
+      }
+    ],
+    "upload_title": "Upload PDF File",
+    "upload_description": "Upload a PDF to rearrange, rotate, or delete its pages.",
     "sort_asc": "Sort Ascending",
     "sort_desc": "Sort Descending",
     "reset_order": "Reset Order",
@@ -486,11 +1095,76 @@
     "rotate_ccw": "Rotate Left",
     "apply_button": "Apply Changes",
     "applying": "Applying...",
-    "pages_count": "{count} pages"
+    "organizing": "Organizing PDF...",
+    "detecting_pages": "Detecting PDF pages...",
+    "grid_view": "Grid",
+    "list_view": "List",
+    "drag_to_reorder": "Drag to reorder pages",
+    "no_pages_detected": "No pages detected",
+    "pages_count": "{count} pages",
+    "download_organized": "Download Organized PDF",
+    "download_hint": "If download doesn't start automatically, click the button above.",
+    "organization_success": "PDF Organized Successfully!",
+    "organization_failed": "Failed to organize PDF",
+    "upload_pdf_first": "Please upload a PDF file first",
+    "why_organize_title": "Why Organize Your PDF?",
+    "why_organize_desc": "Rearrange, rotate, or delete pages to create the perfect PDF document.",
+    "feature_reorder": "Reorder Pages",
+    "feature_reorder_desc": "Drag and drop to rearrange pages in any order you want.",
+    "feature_rotate": "Rotate Pages",
+    "feature_rotate_desc": "Rotate individual pages left or right for proper orientation.",
+    "feature_delete": "Delete Pages",
+    "feature_delete_desc": "Remove unwanted pages from your PDF document.",
+    "tips_title": "Tips for Organizing",
+    "tips_drag": "Drag and drop pages to reorder them quickly",
+    "tips_multiple": "You can select and delete multiple pages at once",
+    "tips_preview": "Use grid view to see more pages at once",
+    "invalid_pdf_toast": "Failed to read PDF file. Please ensure it's a valid PDF.",
+    "page_removed_toast": "Page {pageNumber} removed",
+    "sort_asc_toast": "Pages sorted in ascending order",
+    "sort_desc_toast": "Pages sorted in descending order",
+    "reset_toast": "Pages reset to original order",
+    "no_pages_to_organize": "No pages to organize",
+    "upload_to_organize_title": "Upload PDF to Organize",
+    "detected_pages_info": "Detected {count} {page_word}",
+    "page_singular": "page",
+    "page_plural": "pages",
+    "after_deletions_info": " (showing {shown} after deletions)",
+    "sorting_options": "Sorting Options",
+    "sort_asc_label": "Sort Ascending (1 → N)",
+    "sort_desc_label": "Sort Descending (N → 1)",
+    "reset_to_original": "Reset to Original",
+    "page_preview_title": "Page Preview ({count} {page_word})",
+    "drag_hint_description": "Drag and drop pages to reorder. Hover over a page to see delete and drag options.",
+    "all_pages_deleted": "All pages have been deleted. Upload a new file or reset.",
+    "organization_success_desc": "Your PDF has been reorganized according to your page order.",
+    "org_failed_title": "Organization Failed",
+    "apply_organization": "Apply Organization",
+    "organizing_button": "Organizing..."
   },
   "add_watermark": {
     "title": "Add Watermark",
     "description": "Add text or image watermarks to your PDF pages.",
+    "seo_h1": "Add Watermark to PDF Online for Free",
+    "seo_h2": "How to Add a Watermark to PDF",
+    "seo_faq": [
+      {
+        "question": "Can I customize the watermark appearance?",
+        "answer": "Yes, you can customize the text, font size, color, opacity, rotation, and position of the watermark."
+      },
+      {
+        "question": "Can I watermark only specific pages?",
+        "answer": "Yes, you can apply the watermark to all pages, only the first page, or a custom range of pages."
+      },
+      {
+        "question": "Will the watermark cover my content?",
+        "answer": "You can control the opacity to make the watermark subtle. A typical 30–50% opacity is visible but doesn't obscure your content."
+      },
+      {
+        "question": "Is watermarking free?",
+        "answer": "Yes, adding watermarks to PDFs is completely free with no registration required."
+      }
+    ],
     "watermark_type": "Watermark Type",
     "text": "Text",
     "image": "Image",
@@ -507,7 +1181,60 @@
     "bottom_right": "Bottom Right",
     "color": "Color",
     "add_button": "Add Watermark",
-    "adding": "Adding Watermark..."
+    "adding": "Adding Watermark...",
+    "upload_title": "Upload PDF",
+    "settings_title": "Watermark Settings",
+    "text_watermark_label": "Text Watermark",
+    "text_watermark_placeholder": "Enter watermark text (e.g., We Love PDF)",
+    "position_label": "Position",
+    "diagonal_repeated": "Diagonal (Repeated)",
+    "opacity_label": "Opacity",
+    "faint": "Faint",
+    "normal": "Normal",
+    "bold": "Bold",
+    "rotation_label": "Rotation",
+    "pages_label": "Pages",
+    "all_pages": "All Pages",
+    "first_page": "First Page",
+    "custom_range": "Custom Range",
+    "custom_range_placeholder": "e.g., 1-5, 7, 10-12",
+    "show_advanced": "Show Advanced Settings",
+    "hide_advanced": "Hide Advanced Settings",
+    "font_size_label": "Font Size",
+    "font_size_small": "Small (12pt)",
+    "font_size_medium": "Medium (24pt)",
+    "font_size_large": "Large (36pt)",
+    "font_size_xlarge": "Extra Large (48pt)",
+    "font_size_huge": "Huge (60pt)",
+    "color_label": "Color",
+    "color_red": "Red",
+    "color_blue": "Blue",
+    "color_gray": "Gray",
+    "color_black": "Black",
+    "color_green": "Green",
+    "click_to_select_color": "Click to select color",
+    "preview_title": "Preview",
+    "zoom_button": "Zoom",
+    "pdf_preview_title": "PDF Preview",
+    "ready_to_add": "Ready to add text watermark to {count} PDF(s)",
+    "upload_to_preview": "Upload a PDF to preview",
+    "preview_description": "Preview will show \"{text}\" watermark at {position} position with {opacity}% opacity",
+    "processing": "Processing...",
+    "adding_watermark_progress": "Adding watermark to your PDF file...",
+    "uploaded_files_toast": "Uploaded {count} PDF file(s)",
+    "all_fields_cleared": "All fields cleared",
+    "upload_pdf_first_error": "Please upload a PDF file first",
+    "enter_watermark_text_error": "Please enter watermark text",
+    "watermark_success": "Watermark added successfully!",
+    "watermark_failed": "Failed to add watermark. Please try again.",
+    "unexpected_error": "An unexpected error occurred",
+    "clear_button": "Clear All",
+    "add_watermark_button": "Add Watermark",
+    "close_preview": "Close Preview",
+    "pdf_preview_zoom_title": "PDF Preview - Zoom View",
+    "watermark_preview_label": "Watermark Preview:",
+    "watermark_preview_text": "\"{text}\" will be added at {position} position with {opacity}% opacity and {rotation}° rotation.",
+    "pdf_preview_failed_error": "Failed to load PDF preview."
   },
   "page_numbering": {
     "title": "Page Numbering",
@@ -516,7 +1243,10 @@
     "numeric": "1, 2, 3",
     "roman": "I, II, III",
     "alphabetic": "A, B, C",
-    "start_number": "Start Number",
+    "start_number": "Starting Number",
+    "start_number_hint": "Page 1 will be numbered as this value",
+    "format_template": "Format Template",
+    "format_template_hint": "Use '{n}' for page number and '{total}' for total pages. Preview:",
     "prefix": "Prefix",
     "suffix": "Suffix",
     "position_label": "Position",
@@ -526,14 +1256,147 @@
     "left": "Left",
     "center_position": "Center",
     "right": "Right",
-    "font_family": "Font",
-    "font_size_label": "Size",
-    "page_range_label": "Apply To",
+    "font_family": "Font Family",
+    "font_size_label": "Font Size",
+    "font_color": "Font Color",
+    "page_range_label": "Page Range",
+    "page_range_all": "All Pages",
+    "page_range_odd": "Odd Pages Only",
+    "page_range_even": "Even Pages Only",
+    "page_range_first": "First Page Only",
+    "page_range_custom": "Custom Range",
     "all_pages_label": "All Pages",
     "custom_range": "Custom Range",
     "custom_range_placeholder": "e.g. 1-5, 7, 9-12",
+    "upload_title": "Upload PDF for Page Numbering",
+    "format_style_title": "Format & Style",
+    "position_layout_title": "Position & Layout",
+    "position_top_left": "Top Left",
+    "position_top_center": "Top Center",
+    "position_top_right": "Top Right",
+    "position_bottom_left": "Bottom Left",
+    "position_bottom_center": "Bottom Center",
+    "position_bottom_right": "Bottom Right",
     "add_button": "Add Page Numbers",
-    "adding": "Adding Page Numbers..."
+    "adding": "Adding Page Numbers...",
+    "adding_progress": "Adding page numbers... {percent}%",
+    "success_message": "Page numbers have been added successfully!",
+    "download_numbered": "Download Numbered PDF",
+    "process_another": "Process Another PDF",
+    "reset_settings": "Reset Settings",
+    "download_failed": "Download failed. Please use the manual download button.",
+    "seo_h1": "Add Page Numbers to PDF Online for Free",
+    "seo_h2": "How to Add Page Numbers to PDF",
+    "seo_faq": [
+      {
+        "question": "Can I skip the first page or title page?",
+        "answer": "Yes! You can specify which pages should be numbered. Common setups include skipping the cover page, starting numbering from page 2 or 3, or using Roman numerals for front matter."
+      },
+      {
+        "question": "What number formats are available?",
+        "answer": "We support Arabic numerals (1, 2, 3), Roman numerals (I, II, III, i, ii, iii), alphabetic (A, B, C), and custom formats. You can also add prefixes like 'Page' or suffixes like 'of 50'."
+      },
+      {
+        "question": "Can I add page numbers to multiple PDFs at once?",
+        "answer": "Yes, you can upload multiple PDF files and apply the same page numbering settings to all of them simultaneously, saving you time on batch processing."
+      },
+      {
+        "question": "Will adding page numbers affect my document's layout?",
+        "answer": "No, page numbers are added as a separate layer and don't interfere with your existing content. The tool automatically adjusts spacing to ensure your content remains intact."
+      }
+    ]
+  },
+  "pdf_to_excel": {
+    "title": "PDF to Excel",
+    "description": "Extract tables from your PDF files and convert them into editable Excel spreadsheets. Our converter preserves rows, columns, and table structure for accurate data extraction.",
+    "seo_h1": "Convert PDF to Excel Online for Free",
+    "seo_h2": "How to Convert PDF to Excel",
+    "seo_faq": [
+      {
+        "question": "What kind of PDFs work best?",
+        "answer": "PDFs with clearly structured tables — rows, columns, and borders — yield the best results. Scanned PDFs are also supported via OCR."
+      },
+      {
+        "question": "Will all tables be extracted?",
+        "answer": "Yes, our tool automatically detects all tables in the PDF and creates separate Excel sheets for each one."
+      },
+      {
+        "question": "Is the conversion free?",
+        "answer": "Yes, converting PDFs to Excel is completely free with no registration required."
+      },
+      {
+        "question": "What Excel format will I receive?",
+        "answer": "You will receive an .xlsx file compatible with Microsoft Excel, Google Sheets, LibreOffice Calc, and other spreadsheet applications."
+      }
+    ],
+    "upload_title": "Upload PDF File",
+    "upload_description": "Upload a PDF to extract tables and convert to Excel format.",
+    "convert_button": "Convert to Excel",
+    "converting": "Converting to Excel...",
+    "download_excel": "Download Excel File",
+    "download_hint": "If download doesn't start automatically, click the button above.",
+    "conversion_success": "PDF Converted to Excel Successfully!",
+    "conversion_failed": "Failed to convert PDF to Excel",
+    "upload_pdf_first": "Please upload a PDF file first",
+    "why_convert_title": "Why Convert PDF to Excel?",
+    "why_convert_desc": "Extract table data from PDFs and work with it in Excel for analysis and calculations.",
+    "feature_tables": "Table Extraction",
+    "feature_tables_desc": "Automatically detects and extracts tables from your PDF documents.",
+    "feature_accuracy": "High Accuracy",
+    "feature_accuracy_desc": "Preserves rows, columns, and cell data with precision.",
+    "feature_multi": "Multiple Sheet Support",
+    "feature_multi_desc": "Creates separate Excel sheets for each table found in the PDF.",
+    "tips_title": "Tips for Best Results",
+    "tips_tables": "Works best with PDFs containing clear table structures",
+    "tips_scanned": "Scanned PDFs with tables will be processed with OCR",
+    "tips_review": "Review extracted data for accuracy before use",
+    "downloading_file": "Downloading {filename}..."
+  },
+  "excel_to_pdf": {
+    "title": "Excel to PDF",
+    "description": "Transform your Excel spreadsheets into professional PDF documents. Our converter maintains table structure, formatting, and supports multiple sheets for perfect conversion every time.",
+    "seo_h1": "Convert Excel to PDF Online for Free",
+    "seo_h2": "How to Convert Excel to PDF",
+    "seo_faq": [
+      {
+        "question": "Will all sheets be included in the PDF?",
+        "answer": "Yes, all sheets in your Excel workbook are converted and included as separate pages in the output PDF."
+      },
+      {
+        "question": "Will the formatting be preserved?",
+        "answer": "Yes, cell styles, colors, borders, fonts, and number formatting are all preserved in the output PDF."
+      },
+      {
+        "question": "Is the conversion free?",
+        "answer": "Yes, converting Excel to PDF is completely free with no registration required."
+      },
+      {
+        "question": "What Excel formats are supported?",
+        "answer": "We support both .xls and .xlsx file formats."
+      }
+    ],
+    "upload_title": "Upload Excel File",
+    "upload_description": "Upload an Excel spreadsheet to convert it to a professional PDF.",
+    "convert_button": "Convert to PDF",
+    "converting": "Converting to PDF...",
+    "download_pdf": "Download PDF",
+    "download_hint": "If download doesn't start automatically, click the button above.",
+    "conversion_success": "Excel Converted to PDF Successfully!",
+    "conversion_failed": "Failed to convert Excel to PDF",
+    "upload_excel_first": "Please upload an Excel file first",
+    "why_convert_title": "Why Convert Excel to PDF?",
+    "why_convert_desc": "Share your spreadsheet data in a professional, non-editable PDF format.",
+    "feature_formatting": "Preserves Formatting",
+    "feature_formatting_desc": "Maintains cell styles, colors, borders, and number formatting.",
+    "feature_sheets": "Multiple Sheets",
+    "feature_sheets_desc": "Converts all sheets in your workbook to individual PDF pages.",
+    "feature_professional": "Professional Layout",
+    "feature_professional_desc": "Creates clean, print-ready PDF documents from your spreadsheets.",
+    "tips_title": "Tips for Best Results",
+    "tips_format": "Format your spreadsheet before converting for best results",
+    "tips_sheets": "All sheets will be included in the output PDF",
+    "tips_print": "Use print preview in Excel first to check layout",
+    "downloading_file": "Downloading {filename}..."
   },
   "ai_tools": {
     "title": "AI-Powered PDF Tools",
@@ -635,7 +1498,14 @@
       "business": "Business Reports",
       "education": "Educational Materials"
     },
-    "footer_note": "AI analysis is performed in your browser. Your documents remain private and are never stored. Processing time varies based on document length."
+    "footer_note": "AI analysis is performed in your browser. Your documents remain private and are never stored. Processing time varies based on document length.",
+    "analysis_completed": "AI analysis completed successfully!",
+    "copied_to_clipboard": "Copied to clipboard!",
+    "no_file_for_report": "No file to generate report from. Please upload a PDF first.",
+    "report_downloaded": "Report downloaded successfully!",
+    "report_generation_failed": "Failed to generate report.",
+    "auto_download_failed": "Auto-download failed. You can use the manual download button below.",
+    "analysis_error": "An unexpected error occurred during analysis."
   },
   "blog": {
     "title": "Blog",
@@ -860,6 +1730,57 @@
     "sending": "Sending...",
     "sent": "Message sent! We'll get back to you soon."
   },
+  "dashboard": {
+    "title": "Dashboard",
+    "sidebar_section": "Dashboard",
+    "overview": "Overview",
+    "history": "History",
+    "reports": "Reports",
+    "settings": "Settings",
+    "welcome_back": "Welcome back{name}",
+    "overview_subtitle": "Here's an overview of your AI-powered PDF activity.",
+    "ai_analyses": "AI Analyses",
+    "analyses_desc": "Total PDFs analyzed",
+    "reports_generated": "Reports Generated",
+    "reports_desc": "Exported DOCX reports",
+    "history_entries": "History Entries",
+    "history_desc": "Saved analysis results",
+    "quick_actions": "Quick Actions",
+    "analyze_pdf": "Analyze a PDF",
+    "view_history": "View History",
+    "recent_activity": "Recent Activity",
+    "activity_ai_analysis": "AI Analysis",
+    "activity_report_exported": "Report Exported",
+    "activity_login": "Login",
+    "activity_just_now": "Just now",
+    "activity_mins_ago": "{minutes}m ago",
+    "activity_hours_ago": "{hours}h ago",
+    "activity_days_ago": "{days}d ago",
+    "no_activity": "No recent activity",
+    "no_activity_desc": "Your recent actions will appear here",
+    "no_history": "No analysis history",
+    "no_history_desc": "Your AI-powered PDF analysis results will appear here",
+    "no_reports": "No reports yet",
+    "no_reports_desc": "Analyze a PDF with AI tools to generate your first report.",
+    "history_title": "AI Analysis History",
+    "history_subtitle": "Browse and manage your past PDF analysis results.",
+    "reports_title": "Saved Reports",
+    "reports_subtitle": "Re-download your generated AI analysis reports.",
+    "sign_in_to_view": "Sign in to view your dashboard",
+    "sign_in_desc": "Track your AI analysis history, generate reports, and manage your account.",
+    "sign_in_history": "Sign in to view your history",
+    "sign_in_history_desc": "Access your AI analysis history and past reports.",
+    "sign_in_reports": "Sign in to view your reports",
+    "sign_in_reports_desc": "Download your generated AI analysis reports.",
+    "try_ai_analysis": "Try AI Analysis",
+    "report_download": "Download Report",
+    "view_details": "View details",
+    "delete": "Delete",
+    "words_label": "words",
+    "pages_label": "pages",
+    "showing": "Showing {start}–{end} of {total}",
+    "vs_last_month": "vs last month"
+  },
   "settings_page": {
     "title": "Settings",
     "description": "Manage your account settings and preferences",
@@ -889,7 +1810,23 @@
     "wrong_password": "Current password is incorrect",
     "passwords_dont_match": "Passwords do not match",
     "unauthorized": "You must be logged in to access settings",
-    "loading_error": "Failed to load user information"
+    "loading_error": "Failed to load user information",
+    "current_password_required": "Current password is required",
+    "new_password_required": "New password is required",
+    "password_min_length_error": "Password must be at least 8 characters",
+    "confirm_new_password_required": "Please confirm your new password"
+  },
+  "file_upload": {
+    "drop_here": "Drop files here",
+    "drag_drop": "Drag & drop files",
+    "click_to_browse": "or click to browse. Max file size:",
+    "supported_formats": "Supported",
+    "select_files": "Select Files",
+    "selected_files": "Selected Files ({count})",
+    "clear_all": "Clear All",
+    "ready": "Ready",
+    "process_files": "Process Files",
+    "add_more_files": "Add More Files"
   },
   "errors": {
     "not_found": "Page Not Found",
