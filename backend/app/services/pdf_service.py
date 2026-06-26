@@ -9,6 +9,14 @@ from PyPDF2 import PdfReader, PdfWriter, PdfMerger
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from PIL import Image
+
+# Raise Pillow's decompression bomb limit. The default (~89M pixels) blocks
+# legitimate high-DPI PDF page renders — an A4 page at 300 DPI is ~8.7M
+# pixels but tabloid/A3 pages, multi-page composites, or scanned PDFs at
+# 300 DPI often exceed the default. We allow up to 600M pixels (~2.4 GB
+# uncompressed RGBA), which covers real-world documents without opening us
+# up to actual decompression-bomb attacks.
+Image.MAX_IMAGE_PIXELS = 600_000_000
 import tempfile
 import os
 from pathlib import Path
@@ -408,9 +416,11 @@ class PDFService:
             
             # Apply watermark to selected pages
             writer = PdfWriter()
-            
+
+            # O(1) membership check — list was O(n²) on large PDFs.
+            page_index_set = set(page_indices)
             for i, page in enumerate(reader.pages):
-                if i in page_indices:
+                if i in page_index_set:
                     # Merge watermark onto this page
                     page.merge_page(watermark_page)
                 writer.add_page(page)
@@ -988,6 +998,80 @@ class PDFService:
             )
 
     @staticmethod
+    def unlock_pdf(pdf_bytes: bytes, password: str) -> bytes:
+        """Remove password protection from an encrypted PDF.
+
+        Raises PDFProcessingError if the password is wrong or the file isn't encrypted.
+        """
+        try:
+            reader = PdfReader(io.BytesIO(pdf_bytes))
+            if reader.is_encrypted:
+                # pypdf returns 0 on wrong password, 1 user pw, 2 owner pw
+                if reader.decrypt(password) == 0:
+                    raise PDFProcessingError("Incorrect password for this PDF.")
+            writer = PdfWriter()
+            for page in reader.pages:
+                writer.add_page(page)
+            output = io.BytesIO()
+            writer.write(output)
+            return output.getvalue()
+        except PDFProcessingError:
+            raise
+        except Exception as e:
+            raise PDFProcessingError(f"Failed to unlock PDF: {e}")
+
+    @staticmethod
+    def rotate_pdf(pdf_bytes: bytes, angle: int, page_range: str = "all") -> bytes:
+        """Rotate selected pages by angle (90/180/270). page_range follows the
+        split-pdf `_parse_specific_pages` syntax (e.g. "1,3,5-7"); "all" rotates every page.
+        """
+        if angle not in (90, 180, 270):
+            raise PDFProcessingError("Rotation angle must be 90, 180, or 270.")
+        try:
+            reader = PdfReader(io.BytesIO(pdf_bytes))
+            total = len(reader.pages)
+            if total == 0:
+                raise PDFProcessingError("PDF has no pages.")
+            if page_range.strip().lower() == "all":
+                indices = set(range(total))
+            else:
+                indices = set(PDFService._parse_specific_pages(page_range, total))
+            writer = PdfWriter()
+            for i, page in enumerate(reader.pages):
+                if i in indices:
+                    page.rotate(angle)
+                writer.add_page(page)
+            output = io.BytesIO()
+            writer.write(output)
+            return output.getvalue()
+        except PDFProcessingError:
+            raise
+        except Exception as e:
+            raise PDFProcessingError(f"Failed to rotate PDF: {e}")
+
+    @staticmethod
+    def extract_pages(pdf_bytes: bytes, pages: str) -> bytes:
+        """Extract selected pages (e.g. "1,3,5-7") into a single new PDF."""
+        try:
+            reader = PdfReader(io.BytesIO(pdf_bytes))
+            total = len(reader.pages)
+            if total == 0:
+                raise PDFProcessingError("PDF has no pages.")
+            indices = PDFService._parse_specific_pages(pages, total)
+            if not indices:
+                raise PDFProcessingError("No pages selected.")
+            writer = PdfWriter()
+            for idx in indices:
+                writer.add_page(reader.pages[idx])
+            output = io.BytesIO()
+            writer.write(output)
+            return output.getvalue()
+        except PDFProcessingError:
+            raise
+        except Exception as e:
+            raise PDFProcessingError(f"Failed to extract pages: {e}")
+
+    @staticmethod
     def page_numbering(
         pdf_bytes: bytes,
         number_format: str = "1,2,3",
@@ -1319,54 +1403,196 @@ class PDFToImageService:
         except Exception:
             return 0
 
+    # Largest acceptable single-image pixel count for the raster step. Anything
+    # over this causes Pillow to refuse the render (decompression-bomb guard)
+    # and effectively blows up backend RAM. We cap below MAX_IMAGE_PIXELS to
+    # leave headroom for intermediate buffers and JPEG encoding.
+    SAFE_MAX_PIXELS_PER_PAGE = 400_000_000
+
+    @staticmethod
+    def safe_dpi(pdf_bytes: bytes, requested_dpi: int) -> tuple[int, bool]:
+        """Return a DPI that won't blow past SAFE_MAX_PIXELS_PER_PAGE.
+
+        Examines the largest page in the PDF and, if that page rendered at the
+        requested DPI would exceed the safety threshold, scales DPI down to the
+        highest value that stays within it. Always returns a (dpi, adjusted)
+        tuple — `adjusted=True` means the caller should surface a notice to
+        the user.
+
+        Math: Poppler renders at `dpi` per inch. A page that is W x H points
+        (1 pt = 1/72 inch) renders to ((W/72) * dpi) x ((H/72) * dpi) pixels.
+        """
+        try:
+            reader = PdfReader(io.BytesIO(pdf_bytes))
+            # Find the largest page (area in points^2). Some PDFs mix sizes.
+            largest_pts_squared = 0
+            largest_w_pts = 612.0  # default Letter
+            largest_h_pts = 792.0
+            for page in reader.pages:
+                box = page.mediabox
+                w = float(box.width)
+                h = float(box.height)
+                if w * h > largest_pts_squared:
+                    largest_pts_squared = w * h
+                    largest_w_pts = w
+                    largest_h_pts = h
+        except Exception:
+            # Couldn't read sizes — be conservative and return requested DPI
+            # untouched. The Pillow MAX_IMAGE_PIXELS guard is the second line
+            # of defence.
+            return requested_dpi, False
+
+        # Predict pixels at requested DPI.
+        w_in = largest_w_pts / 72.0
+        h_in = largest_h_pts / 72.0
+        predicted_pixels = (w_in * requested_dpi) * (h_in * requested_dpi)
+
+        if predicted_pixels <= PDFToImageService.SAFE_MAX_PIXELS_PER_PAGE:
+            return requested_dpi, False
+
+        # Solve for the highest DPI that fits: pixels = (w_in * dpi) * (h_in * dpi)
+        # ⇒ dpi = sqrt(SAFE_MAX_PIXELS / (w_in * h_in))
+        import math
+        max_dpi = int(math.floor(
+            math.sqrt(PDFToImageService.SAFE_MAX_PIXELS_PER_PAGE / (w_in * h_in))
+        ))
+        # Clamp to a sane floor so we never auto-downgrade below "readable".
+        capped = max(72, min(max_dpi, requested_dpi))
+        return capped, capped < requested_dpi
+
+    @staticmethod
+    def _render_pages_pymupdf(pdf_bytes: bytes, page_indices: list, dpi: int, quality: int) -> list:
+        """Render 0-indexed pages with PyMuPDF, returning [(idx, jpeg_bytes), ...].
+
+        Single-document, single-threaded path. MuPDF rendering is native C++ —
+        no subprocess, no temp file, no PDF re-parse per page — and
+        Pixmap.tobytes("jpeg") encodes via libjpeg directly. For multi-page
+        PDFs the threaded variant fans this out across cores.
+        """
+        import fitz
+
+        zoom = dpi / 72.0  # PDF user space is 72 DPI; matrix scales to target DPI
+        matrix = fitz.Matrix(zoom, zoom)
+
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        try:
+            out = []
+            for idx in page_indices:
+                page = doc.load_page(idx)
+                pix = page.get_pixmap(matrix=matrix, alpha=False)
+                out.append((idx, pix.tobytes("jpeg", jpg_quality=quality)))
+                pix = None  # release backing buffer immediately
+            return out
+        finally:
+            doc.close()
+
+    @staticmethod
+    def _render_pages_pymupdf_threaded(pdf_bytes: bytes, page_indices: list, dpi: int, quality: int) -> list:
+        """Multi-threaded PyMuPDF render.
+
+        MuPDF's per-Document state is not thread-safe, so each worker opens
+        its own Document on the same in-memory bytes (fitz.open is zero-copy
+        for stream= input). get_pixmap releases the GIL for the heavy raster
+        step, so threads scale close to linearly on multi-core boxes.
+        """
+        from concurrent.futures import ThreadPoolExecutor
+
+        n = len(page_indices)
+        if n <= 1:
+            return PDFToImageService._render_pages_pymupdf(pdf_bytes, page_indices, dpi, quality)
+
+        workers = min(8, os.cpu_count() or 2, n)
+        if workers <= 1:
+            return PDFToImageService._render_pages_pymupdf(pdf_bytes, page_indices, dpi, quality)
+
+        # Even-sized chunks; remainder spread across the first few workers
+        base, rem = divmod(n, workers)
+        chunks = []
+        cursor = 0
+        for i in range(workers):
+            size = base + (1 if i < rem else 0)
+            if size > 0:
+                chunks.append(page_indices[cursor:cursor + size])
+                cursor += size
+
+        with ThreadPoolExecutor(max_workers=len(chunks)) as pool:
+            futures = [
+                pool.submit(
+                    PDFToImageService._render_pages_pymupdf,
+                    pdf_bytes, ch, dpi, quality,
+                )
+                for ch in chunks
+            ]
+            chunk_results = [f.result() for f in futures]
+
+        # Flatten + sort by absolute page index (cheap; safer than trusting order)
+        flat = [item for chunk in chunk_results for item in chunk]
+        flat.sort(key=lambda t: t[0])
+        return flat
+
     @staticmethod
     def convert_pdf_to_image(pdf_bytes: bytes, page_number: int = 0, quality: int = 85, dpi: int = 150) -> bytes:
         """
         Convert a single PDF page to JPEG image.
-        
-        Args:
-            pdf_bytes: PDF file bytes
-            page_number: Page number to convert (0-indexed)
-            quality: Image quality (1-100%)
-            dpi: Image resolution in DPI
-            
-        Returns:
-            bytes: JPEG image as bytes
-            
-        Raises:
-            PDFProcessingError: If conversion fails
+
+        Primary path uses PyMuPDF (fitz) — no Poppler subprocess, no temp
+        file, encodes JPEG via libjpeg directly. Typically 3-8x faster than
+        the pdf2image/pdftoppm pipeline for the same render. Falls back to
+        pdf2image when fitz is unavailable or rejects a PDF that Poppler
+        still parses.
         """
+        # --- Primary: PyMuPDF ---
+        try:
+            results = PDFToImageService._render_pages_pymupdf(
+                pdf_bytes, [page_number], dpi, quality,
+            )
+            if results:
+                jpeg_bytes = results[0][1]
+                logger.debug(
+                    f"[PDFToImageService] Single page rendered via PyMuPDF: "
+                    f"{len(jpeg_bytes)} bytes (page={page_number + 1}, dpi={dpi}, q={quality})"
+                )
+                return jpeg_bytes
+        except ImportError:
+            logger.debug("[PDFToImageService] PyMuPDF not installed, falling back to pdf2image")
+        except Exception as fitz_err:
+            logger.debug(
+                f"[PDFToImageService] PyMuPDF render failed "
+                f"({type(fitz_err).__name__}: {fitz_err}), falling back to pdf2image"
+            )
+
+        # --- Fallback: pdf2image (Poppler) ---
         try:
             from pdf2image import convert_from_bytes
             poppler_path = PDFToImageService._get_poppler_path()
-            
-            print(f"[PDFToImageService] Converting page {page_number + 1} with quality={quality}, dpi={dpi}")
-            
+
+            logger.debug(f"[PDFToImageService] Converting page {page_number + 1} via pdf2image (quality={quality}, dpi={dpi})")
+
             images = convert_from_bytes(
                 pdf_bytes,
                 first_page=page_number + 1,
                 last_page=page_number + 1,
                 dpi=dpi,
-                poppler_path=poppler_path
+                poppler_path=poppler_path,
             )
-            
+
             if images:
                 img_stream = io.BytesIO()
                 images[0].save(img_stream, format="JPEG", quality=quality)
                 result = img_stream.getvalue()
-                print(f"[PDFToImageService] Single page converted: {len(result)} bytes")
+                logger.debug(f"[PDFToImageService] Single page converted (pdf2image): {len(result)} bytes")
                 return result
-            else:
-                raise PDFProcessingError(
-                    "No images generated from PDF",
-                    {"page_number": page_number, "quality": quality, "dpi": dpi}
-                )
+            raise PDFProcessingError(
+                "No images generated from PDF",
+                {"page_number": page_number, "quality": quality, "dpi": dpi}
+            )
         except ImportError:
-            print(f"[PDFToImageService] pdf2image not installed, using fallback")
+            logger.debug("[PDFToImageService] pdf2image not installed, using fallback JPEG")
             return PDFToImageService._create_fallback_jpeg(quality)
+        except PDFProcessingError:
+            raise
         except Exception as e:
-            print(f"[PDFToImageService] Conversion error: {type(e).__name__}: {e}")
-            # Try fallback before giving up
+            logger.debug(f"[PDFToImageService] Conversion error: {type(e).__name__}: {e}")
             try:
                 return PDFToImageService._create_fallback_jpeg(quality)
             except Exception:
@@ -1376,51 +1602,142 @@ class PDFToImageService:
                 )
     
     @staticmethod
+    def _render_and_encode_chunk(
+        pdf_bytes: bytes,
+        first_page: int,
+        last_page: int,
+        dpi: int,
+        quality: int,
+        poppler_path,
+    ) -> list:
+        """Render a page range via one pdftoppm subprocess and JPEG-encode in
+        the same worker. Returns [(absolute_page_idx, jpeg_bytes), ...].
+
+        Used by convert_all_pages_to_images to fan rendering out across
+        multiple Poppler subprocesses in parallel — see that function's
+        docstring for why this beats the in-subprocess thread_count option.
+        """
+        from pdf2image import convert_from_bytes
+
+        images = convert_from_bytes(
+            pdf_bytes,
+            first_page=first_page,
+            last_page=last_page,
+            dpi=dpi,
+            poppler_path=poppler_path,
+        )
+        out = []
+        for offset, img in enumerate(images):
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=quality)
+            # absolute 0-indexed page number across the whole PDF
+            out.append((first_page - 1 + offset, buf.getvalue()))
+        return out
+
+    @staticmethod
     def convert_all_pages_to_images(pdf_bytes: bytes, quality: int = 85, dpi: int = 150) -> list:
         """
         Convert all pages of a PDF to JPEG images.
-        
-        Args:
-            pdf_bytes: PDF file bytes
-            quality: Image quality (1-100%)
-            dpi: Image resolution in DPI
-            
-        Returns:
-            list: List of (page_number, image_bytes) tuples
-            
-        Raises:
-            PDFProcessingError: If conversion fails
+
+        Primary path: PyMuPDF (fitz) with a thread-pool fan-out. Each worker
+        thread opens its own Document on the same in-memory bytes (zero-copy
+        via fitz.open(stream=...)) so MuPDF's per-Document non-thread-safety
+        is respected; get_pixmap releases the GIL for the heavy raster step
+        so threads scale near-linearly across cores. No subprocess, no temp
+        files, no per-worker PDF re-parse beyond opening the in-memory bytes.
+
+        Fallback: pdf2image with one independent Poppler subprocess per
+        chunk. Kept for environments where PyMuPDF is unavailable or rejects
+        a specific PDF that Poppler still parses.
         """
+        # --- Primary: PyMuPDF ---
         try:
-            from pdf2image import convert_from_bytes
-            poppler_path = PDFToImageService._get_poppler_path()
-            
-            print(f"[PDFToImageService] Converting all pages with quality={quality}, dpi={dpi}")
-            
-            images = convert_from_bytes(
-                pdf_bytes,
-                dpi=dpi,
-                poppler_path=poppler_path
-            )
-            
-            if not images:
-                raise PDFProcessingError("No images generated from PDF")
-            
-            results = []
-            for idx, img in enumerate(images):
-                img_stream = io.BytesIO()
-                img.save(img_stream, format="JPEG", quality=quality)
-                results.append((idx, img_stream.getvalue()))
-            
-            print(f"[PDFToImageService] All pages converted: {len(results)} pages")
-            return results
-            
+            import fitz  # noqa: F401 — probe; the helper does the real work
+
+            total_pages = PDFToImageService._get_page_count(pdf_bytes)
+            if total_pages <= 0:
+                # PyPDF2 couldn't read the page count — ask MuPDF directly.
+                doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+                try:
+                    total_pages = doc.page_count
+                finally:
+                    doc.close()
+
+            if total_pages > 0:
+                logger.debug(
+                    f"[PDFToImageService] Rendering {total_pages} pages via "
+                    f"PyMuPDF (dpi={dpi}, quality={quality})"
+                )
+                results = PDFToImageService._render_pages_pymupdf_threaded(
+                    pdf_bytes, list(range(total_pages)), dpi, quality,
+                )
+                if results:
+                    logger.debug(
+                        f"[PDFToImageService] All pages rendered via PyMuPDF: "
+                        f"{len(results)} pages"
+                    )
+                    return results
         except ImportError:
-            print(f"[PDFToImageService] pdf2image not installed, using fallback for all pages")
-            # Return a single fallback page
+            logger.debug("[PDFToImageService] PyMuPDF not installed, falling back to pdf2image")
+        except Exception as fitz_err:
+            logger.debug(
+                f"[PDFToImageService] PyMuPDF render failed "
+                f"({type(fitz_err).__name__}: {fitz_err}), falling back to pdf2image"
+            )
+
+        # --- Fallback: pdf2image with parallel Poppler subprocesses ---
+        try:
+            from pdf2image import convert_from_bytes  # noqa: F401  (import-or-fallback probe)
+            poppler_path = PDFToImageService._get_poppler_path()
+
+            total_pages = PDFToImageService._get_page_count(pdf_bytes)
+            if total_pages <= 0:
+                # Couldn't read page count — fall back to single-shot render so
+                # we still produce something instead of erroring.
+                logger.debug("[PDFToImageService] page count unknown, single-shot render")
+                return PDFToImageService._render_and_encode_chunk(
+                    pdf_bytes, 1, 999_999, dpi, quality, poppler_path,
+                )
+
+            workers = min(8, os.cpu_count() or 2, total_pages)
+            base, rem = divmod(total_pages, workers)
+            chunks = []
+            cursor = 1
+            for i in range(workers):
+                size = base + (1 if i < rem else 0)
+                chunks.append((cursor, cursor + size - 1))
+                cursor += size
+
+            logger.debug(
+                f"[PDFToImageService] Converting {total_pages} pages in "
+                f"{workers} parallel chunks via pdf2image (dpi={dpi}, quality={quality})"
+            )
+
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                futures = [
+                    pool.submit(
+                        PDFToImageService._render_and_encode_chunk,
+                        pdf_bytes, first, last, dpi, quality, poppler_path,
+                    )
+                    for (first, last) in chunks
+                ]
+                chunk_results = [f.result() for f in futures]
+
+            flat = [item for chunk in chunk_results for item in chunk]
+            flat.sort(key=lambda t: t[0])
+
+            if not flat:
+                raise PDFProcessingError("No images generated from PDF")
+
+            logger.debug(f"[PDFToImageService] All pages converted (pdf2image): {len(flat)} pages")
+            return flat
+
+        except ImportError:
+            logger.debug("[PDFToImageService] pdf2image not installed, using fallback for all pages")
             return [(0, PDFToImageService._create_fallback_jpeg(quality))]
         except Exception as e:
-            print(f"[PDFToImageService] All-pages conversion error: {type(e).__name__}: {e}")
+            logger.debug(f"[PDFToImageService] All-pages conversion error: {type(e).__name__}: {e}")
             raise PDFProcessingError(
                 f"Failed to convert PDF pages to images: {str(e)}",
                 {"error_type": type(e).__name__, "quality": quality, "dpi": dpi}
@@ -1443,9 +1760,12 @@ class PDFToImageService:
         import zipfile
         
         pages = PDFToImageService.convert_all_pages_to_images(pdf_bytes, quality, dpi)
-        
+
         zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        # ZIP_STORED — not DEFLATE — because JPEG payloads are already
+        # entropy-coded. Re-compressing them with DEFLATE gains <1% size and
+        # costs noticeable CPU on multi-MB outputs (~50-150ms for a 10MB ZIP).
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_STORED) as zf:
             for page_num, img_bytes in pages:
                 filename = f"{base_filename}_page_{page_num + 1}.jpg"
                 zf.writestr(filename, img_bytes)
@@ -1454,7 +1774,7 @@ class PDFToImageService:
         zip_bytes = zip_buffer.getvalue()
         zip_filename = f"{base_filename}_images.zip"
         
-        print(f"[PDFToImageService] ZIP created: {zip_filename} ({len(zip_bytes)} bytes, {len(pages)} pages)")
+        logger.debug(f"[PDFToImageService] ZIP created: {zip_filename} ({len(zip_bytes)} bytes, {len(pages)} pages)")
         return zip_bytes, zip_filename
     
     @staticmethod

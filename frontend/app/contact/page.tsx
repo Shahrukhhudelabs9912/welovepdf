@@ -1,11 +1,19 @@
 "use client";
 
-import { Mail, Phone, MapPin, Clock, MessageSquare, Send } from "lucide-react";
+import { Mail, Clock, MessageSquare, Send, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PageMeta } from "@/components/seo-provider";
 import { useTranslations } from "next-intl";
+
+/**
+ * Contact page intentionally omits a fake phone number and physical
+ * address. Showing fabricated contact details is the fastest way to
+ * lose trust (and break Google's misrepresentation policy). When real
+ * details are available, fill the constants below.
+ */
+const SUPPORT_EMAIL = "support@welovepdf.app";
+const PRIVACY_EMAIL = "privacy@welovepdf.app";
 
 export default function ContactPage() {
   const t = useTranslations("contact_page");
@@ -15,68 +23,34 @@ export default function ContactPage() {
       icon: <Mail className="h-6 w-6" />,
       title: t("email_support_title"),
       description: t("email_support_desc"),
-      details: t("email_support_details"),
+      details: SUPPORT_EMAIL,
       action: t("email_support_action"),
-      href: "mailto:support@welovepdf.com",
+      href: `mailto:${SUPPORT_EMAIL}`,
     },
     {
-      icon: <MessageSquare className="h-6 w-6" />,
-      title: t("live_chat_title"),
-      description: t("live_chat_desc"),
-      details: t("live_chat_details"),
-      action: t("live_chat_action"),
-      href: "#",
-    },
-    {
-      icon: <Phone className="h-6 w-6" />,
-      title: t("phone_support_title"),
-      description: t("phone_support_desc"),
-      details: t("phone_support_details"),
-      action: t("phone_support_action"),
-      href: "tel:+15551234567",
-    },
-    {
-      icon: <MapPin className="h-6 w-6" />,
-      title: t("office_title"),
-      description: t("office_desc"),
-      details: t("office_details"),
-      action: t("office_action"),
-      href: "https://maps.google.com",
+      icon: <ShieldCheck className="h-6 w-6" />,
+      title: t("privacy_inquiries_title"),
+      description: t("privacy_inquiries_desc"),
+      details: PRIVACY_EMAIL,
+      action: t("email_support_action"),
+      href: `mailto:${PRIVACY_EMAIL}`,
     },
   ];
 
   const faqs = [
-    {
-      question: t("faq_1_q"),
-      answer: t("faq_1_a"),
-    },
-    {
-      question: t("faq_2_q"),
-      answer: t("faq_2_a"),
-    },
-    {
-      question: t("faq_3_q"),
-      answer: t("faq_3_a"),
-    },
-    {
-      question: t("faq_4_q"),
-      answer: t("faq_4_a"),
-    },
+    { question: t("faq_1_q"), answer: t("faq_1_a") },
+    { question: t("faq_2_q"), answer: t("faq_2_a") },
+    { question: t("faq_3_q"), answer: t("faq_3_a") },
+    { question: t("faq_4_q"), answer: t("faq_4_a") },
   ];
 
   return (
     <>
-      <PageMeta
-        title={`${t("title")} | WeLovePDF`}
-        description={t("description")}
-        keywords="contact welovepdf, pdf support, help center, feedback, partnership"
-      />
-      
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
-        {/* Hero Section */}
-        <section className="px-4 py-16 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
+        {/* Hero */}
+        <section className="px-4 py-20 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-3xl text-center">
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
               {t("hero_heading_part1")}{" "}
               <span className="text-primary">{t("hero_heading_part2")}</span>
             </h1>
@@ -86,89 +60,113 @@ export default function ContactPage() {
           </div>
         </section>
 
-        {/* Contact Methods */}
+        {/* Contact channels */}
         <section className="px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-              {contactMethods.map((method, index) => (
-                <div
-                  key={index}
-                  className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 text-center shadow-sm hover:shadow-lg transition-shadow duration-300"
-                >
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    {method.icon}
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {method.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                    {method.description}
-                  </p>
-                  <p className="mt-4 font-medium text-gray-900 dark:text-white">
-                    {method.details}
-                  </p>
-                  <a href={method.href}>
-                    <Button
-                      variant="outline"
-                      className="mt-6 w-full"
-                    >
-                      {method.action}
-                    </Button>
-                  </a>
+          <div className="mx-auto grid max-w-4xl gap-6 sm:grid-cols-2">
+            {contactMethods.map((m) => (
+              <div
+                key={m.title}
+                className="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm transition-shadow hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
+              >
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  {m.icon}
                 </div>
-              ))}
-            </div>
+                <h3 className="text-lg font-semibold">{m.title}</h3>
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  {m.description}
+                </p>
+                <p className="mt-4 font-mono text-sm text-gray-900 dark:text-white">
+                  {m.details}
+                </p>
+                <a href={m.href}>
+                  <Button variant="outline" className="mt-6 w-full">
+                    {m.action}
+                  </Button>
+                </a>
+              </div>
+            ))}
           </div>
         </section>
 
-        {/* Contact Form & Info */}
+        {/* Form + sidebar */}
         <section className="px-4 py-16 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-              {/* Contact Form */}
-              <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 shadow-lg">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {t("form_title")}
-                </h2>
+          <div className="mx-auto max-w-6xl">
+            <div className="grid gap-12 lg:grid-cols-2">
+              {/* Form */}
+              <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-lg dark:border-gray-800 dark:bg-gray-900">
+                <h2 className="text-2xl font-bold">{t("form_title")}</h2>
                 <p className="mt-2 text-gray-600 dark:text-gray-400">
                   {t("form_subtitle")}
                 </p>
 
-                <form className="mt-8 space-y-6">
+                <form
+                  className="mt-8 space-y-6"
+                  onSubmit={(e) => {
+                    // Until the backend endpoint exists, gracefully redirect
+                    // to a prefilled mailto so the user's message isn't lost.
+                    e.preventDefault();
+                    const fd = new FormData(e.currentTarget);
+                    const params = new URLSearchParams({
+                      subject: String(fd.get("subject") || "WeLovePDF inquiry"),
+                      body: `From: ${fd.get("first_name") || ""} ${
+                        fd.get("last_name") || ""
+                      } <${fd.get("email") || ""}>\n\n${fd.get("message") || ""}`,
+                    });
+                    window.location.href = `mailto:${SUPPORT_EMAIL}?${params.toString()}`;
+                  }}
+                >
                   <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="mb-2 block text-sm font-medium">
                         {t("first_name")}
                       </label>
-                      <Input placeholder={t("first_name_placeholder")} required />
+                      <Input
+                        name="first_name"
+                        placeholder={t("first_name_placeholder")}
+                        required
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="mb-2 block text-sm font-medium">
                         {t("last_name")}
                       </label>
-                      <Input placeholder={t("last_name_placeholder")} required />
+                      <Input
+                        name="last_name"
+                        placeholder={t("last_name_placeholder")}
+                        required
+                      />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="mb-2 block text-sm font-medium">
                       {t("email_label")}
                     </label>
-                    <Input type="email" placeholder={t("email_placeholder")} required />
+                    <Input
+                      type="email"
+                      name="email"
+                      placeholder={t("email_placeholder")}
+                      required
+                    />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="mb-2 block text-sm font-medium">
                       {t("subject_label")}
                     </label>
-                    <Input placeholder={t("subject_placeholder")} required />
+                    <Input
+                      name="subject"
+                      placeholder={t("subject_placeholder")}
+                      required
+                    />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="mb-2 block text-sm font-medium">
                       {t("message_label")}
                     </label>
                     <Textarea
+                      name="message"
                       placeholder={t("message_placeholder")}
                       rows={6}
                       required
@@ -182,33 +180,30 @@ export default function ContactPage() {
                 </form>
               </div>
 
-              {/* Company Info & FAQ */}
+              {/* Sidebar: about + FAQ */}
               <div className="space-y-8">
-                {/* Company Info */}
-                <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {t("about_title")}
-                  </h2>
+                <div className="rounded-2xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
+                  <h2 className="text-2xl font-bold">{t("about_title")}</h2>
                   <p className="mt-4 text-gray-600 dark:text-gray-400">
                     {t("about_text")}
                   </p>
-                  
+
                   <div className="mt-8 space-y-4">
                     <div className="flex items-center gap-3">
                       <Clock className="h-5 w-5 text-primary" />
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{t("business_hours_label")}</p>
+                        <p className="font-medium">{t("response_time_label")}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {t("business_hours_value")}
+                          {t("response_time_value")}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <MessageSquare className="h-5 w-5 text-primary" />
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{t("response_time_label")}</p>
+                        <p className="font-medium">{t("language_label")}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {t("response_time_value")}
+                          {t("language_value")}
                         </p>
                       </div>
                     </div>
@@ -216,43 +211,23 @@ export default function ContactPage() {
                 </div>
 
                 {/* FAQ */}
-                <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {t("faq_title")}
-                  </h2>
+                <div className="rounded-2xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
+                  <h2 className="text-2xl font-bold">{t("faq_title")}</h2>
                   <div className="mt-6 space-y-6">
-                    {faqs.map((faq, index) => (
-                      <div key={index} className="border-b border-gray-200 dark:border-gray-800 pb-6 last:border-0">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {faq.question}
-                        </h3>
+                    {faqs.map((f) => (
+                      <div
+                        key={f.question}
+                        className="border-b border-gray-200 pb-6 last:border-0 dark:border-gray-800"
+                      >
+                        <h3 className="text-lg font-semibold">{f.question}</h3>
                         <p className="mt-2 text-gray-600 dark:text-gray-400">
-                          {faq.answer}
+                          {f.answer}
                         </p>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="px-4 py-16 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-4xl rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-8 text-center text-white">
-            <h2 className="text-3xl font-bold">{t("cta_heading")}</h2>
-            <p className="mt-4 text-lg opacity-90">
-              {t("cta_description")}
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <Button size="lg" variant="secondary" className="gap-2">
-                <Phone className="h-4 w-4" />
-                {t("cta_call_now")}
-              </Button>
-              <Button size="lg" variant="outline" className="bg-white/10 text-white hover:bg-white/20">
-                {t("cta_schedule")}
-              </Button>
             </div>
           </div>
         </section>

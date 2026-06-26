@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { FileProvider } from "@/lib/file-context";
 import { AuthProvider } from "@/lib/auth-context";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/seo/json-ld";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -56,12 +57,11 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#111827" },
+  ],
 };
-
-export const themeColor = [
-  { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-  { media: "(prefers-color-scheme: dark)", color: "#111827" },
-];
 
 export default async function RootLayout({
   children,
@@ -82,10 +82,12 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={ssrThemeClass} suppressHydrationWarning>
       <body className={`min-h-screen flex flex-col ${inter.className}`} suppressHydrationWarning>
+        <OrganizationJsonLd />
+        <WebSiteJsonLd />
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme="light"
             enableSystem
             disableTransitionOnChange
           >

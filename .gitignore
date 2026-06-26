@@ -75,11 +75,17 @@ test_*.docx
 test_*.xlsx
 test_*.jpg
 test_*.png
+test_*.js
 debug_*.txt
 debug_*.jpg
 *_test_output.*
 backend/test_*.py
 backend/test_*.pdf
+
+# Local diagnostic / one-off scripts (never ship to production)
+analyze_*.py
+diagnose_*.py
+check_*.py
 
 # Editor / OS metadata
 .DS_Store

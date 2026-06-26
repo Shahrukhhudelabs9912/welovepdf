@@ -11,19 +11,29 @@ Usage::
 """
 
 # ---------------------------------------------------------------------------
-# Force dnspython to use public DNS resolvers so that mongodb+srv:// SRV
-# resolution works even when the local / corporate DNS is not compatible
-# with dnspython's internal resolver (a known edge-case with pymongo).
+# Optionally force dnspython to use public DNS resolvers so that mongodb+srv://
+# SRV resolution works on networks whose default DNS doesn't return SRV records
+# (a known edge-case with pymongo). Gate this behind settings.FORCE_PUBLIC_DNS
+# — by default we leave the resolver alone so that Sentry / SMTP / Resend /
+# etc. keep using whatever resolver the host or container expects. Set
+# FORCE_PUBLIC_DNS=1 in .env only if mongodb+srv SRV lookups fail.
 # ---------------------------------------------------------------------------
-import dns.resolver as _dns_resolver
+from app.config import settings as _settings_for_dns
 
-_default_resolver = _dns_resolver.get_default_resolver()
-_default_resolver.nameservers = ["8.8.8.8", "8.8.4.4"]
+if _settings_for_dns.FORCE_PUBLIC_DNS:
+    import dns.resolver as _dns_resolver
+
+    _default_resolver = _dns_resolver.get_default_resolver()
+    _default_resolver.nameservers = ["8.8.8.8", "8.8.4.4"]
 # ---------------------------------------------------------------------------
+
+import logging
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 __all__ = ["get_database", "connect_to_mongo", "close_mongo_connection"]
 
@@ -68,7 +78,9 @@ async def connect_to_mongo() -> None:
 
     # Ping to verify connectivity
     await _client.admin.command("ping")
-    print(f"[MongoDB] Connected to '{settings.MONGO_DB_NAME}' at {settings.MONGO_URL}")
+    # Log the DB name only — never the full MONGO_URL, which contains the
+    # username/password in the connection string.
+    logger.info("Connected to MongoDB", extra={"db_name": settings.MONGO_DB_NAME})
 
 
 async def close_mongo_connection() -> None:
@@ -81,4 +93,4 @@ async def close_mongo_connection() -> None:
         _client.close()
         _client = None
         _db = None
-        print("[MongoDB] Connection closed.")
+        logger.info("MongoDB connection closed.")

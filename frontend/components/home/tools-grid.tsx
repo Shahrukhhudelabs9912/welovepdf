@@ -11,6 +11,8 @@ import {
   Image as ImageIcon,
   RotateCw,
   Lock,
+  Unlock,
+  Copy,
   Shield,
   Droplets,
   Hash,
@@ -19,6 +21,9 @@ import {
   Brain,
   Sheet,
   FileSpreadsheet,
+  Presentation,
+  ScanLine,
+  PenTool,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -115,6 +120,48 @@ export function ToolsGrid() {
       href: "/ai-tools",
       color: "from-purple-500 to-indigo-500",
       featured: true,
+    },
+    {
+      key: "unlock_pdf",
+      icon: Unlock,
+      href: "/unlock-pdf",
+      color: "from-rose-500 to-pink-500",
+    },
+    {
+      key: "rotate_pdf",
+      icon: RotateCw,
+      href: "/rotate-pdf",
+      color: "from-indigo-500 to-blue-500",
+    },
+    {
+      key: "extract_pages",
+      icon: Copy,
+      href: "/extract-pages",
+      color: "from-fuchsia-500 to-purple-500",
+    },
+    {
+      key: "powerpoint_to_pdf",
+      icon: Presentation,
+      href: "/powerpoint-to-pdf",
+      color: "from-orange-500 to-red-500",
+    },
+    {
+      key: "pdf_to_powerpoint",
+      icon: Presentation,
+      href: "/pdf-to-powerpoint",
+      color: "from-red-500 to-pink-500",
+    },
+    {
+      key: "ocr_pdf",
+      icon: ScanLine,
+      href: "/ocr-pdf",
+      color: "from-emerald-500 to-teal-500",
+    },
+    {
+      key: "sign_pdf",
+      icon: PenTool,
+      href: "/sign-pdf",
+      color: "from-sky-500 to-blue-500",
     },
   ];
 

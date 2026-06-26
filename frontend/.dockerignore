@@ -1,0 +1,12 @@
+node_modules
+.next
+out
+.git
+.gitignore
+npm-debug.log*
+.env
+.env.*
+!.env.production.example
+*.log
+Dockerfile
+.dockerignore

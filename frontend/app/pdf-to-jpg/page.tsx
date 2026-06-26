@@ -3,6 +3,41 @@ import dynamic from "next/dynamic";
 import { ToolLayout } from "@/components/tools/tool-layout";
 import { ToolContentSkeleton } from "@/components/skeleton-loader";
 
+import {
+  SoftwareApplicationJsonLd,
+  HowToJsonLd,
+  FAQPageJsonLd,
+  BreadcrumbJsonLd,
+} from "@/components/seo/json-ld";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+
+const HOW_TO_STEPS = [
+  { name: "Upload your PDF", text: "Click upload or drop the PDF you want to convert." },
+  { name: "Pick pages and quality", text: "Select all pages or a specific range and choose image quality / DPI." },
+  { name: "Convert to JPG", text: "Click Convert — each page becomes a separate JPG image." },
+  { name: "Download", text: "Save the images as a zip or individually." },
+];
+
+const FAQ_ITEMS = [
+          {
+            question: "What's the maximum resolution for JPG conversion?",
+            answer: "Our tool supports up to 300 DPI (dots per inch) for high-quality prints. For web use, 72-150 DPI is usually sufficient and results in smaller file sizes.",
+          },
+          {
+            question: "Can I convert only specific pages to JPG?",
+            answer: "Yes! You can select individual pages or page ranges to convert. For example, convert only pages 1-5, or select specific pages like 1, 3, and 7.",
+          },
+          {
+            question: "Will the text in my PDF remain clear in the JPG?",
+            answer: "Absolutely. Our conversion process maintains text clarity and sharpness. You can adjust the resolution to ensure text remains readable, even at smaller sizes.",
+          },
+          {
+            question: "Can I convert PDF to other image formats?",
+            answer: "Yes, in addition to JPG, you can convert to PNG (for transparency), WebP (for web optimization), and TIFF (for high-quality prints).",
+          },
+        ];
+
 const PDFToJPGClient = dynamic(
   () => import("./pdf-to-jpg-client").then((mod) => ({ default: mod.PDFToJPGClient })),
   { loading: () => <ToolContentSkeleton />, ssr: false }
@@ -23,16 +58,35 @@ export const metadata: Metadata = {
     description: "Convert PDF pages to high-quality JPG images online for free.",
   },
   alternates: {
-    canonical: "https://welovepdf.com/pdf-to-jpg",
+    canonical: `${SITE_URL}/pdf-to-jpg`,
     languages: {
-      en: "https://welovepdf.com/pdf-to-jpg",
-      hi: "https://welovepdf.com/hi/pdf-to-jpg",
+      en: `${SITE_URL}/pdf-to-jpg`,
+      hi: `${SITE_URL}/hi/pdf-to-jpg`,
     },
   },
 };
 
 export default function PDFToJPGPage() {
+  const pageUrl = `${SITE_URL}/pdf-to-jpg`;
   return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", url: SITE_URL },
+          { name: "PDF to JPG", url: pageUrl },
+        ]}
+      />
+      <SoftwareApplicationJsonLd
+        name="PDF to JPG Converter"
+        description="Free online tool to convert PDF pages into high-quality JPG images."
+        url={pageUrl}
+      />
+      <HowToJsonLd
+        name="How to Convert PDF to JPG"
+        description="Turn PDF pages into JPG images in 4 steps."
+        steps={HOW_TO_STEPS}
+      />
+      <FAQPageJsonLd items={FAQ_ITEMS} />
     <ToolLayout
       title="Convert PDF to JPG"
       description="Convert PDF pages to high-quality JPG images with customizable settings."
@@ -57,27 +111,11 @@ export default function PDFToJPGPage() {
           </ul>
           <p>Perfect for creating social media graphics, website images, presentation slides, or extracting visual content from documents.</p>
         `,
-        faq: [
-          {
-            question: "What's the maximum resolution for JPG conversion?",
-            answer: "Our tool supports up to 300 DPI (dots per inch) for high-quality prints. For web use, 72-150 DPI is usually sufficient and results in smaller file sizes.",
-          },
-          {
-            question: "Can I convert only specific pages to JPG?",
-            answer: "Yes! You can select individual pages or page ranges to convert. For example, convert only pages 1-5, or select specific pages like 1, 3, and 7.",
-          },
-          {
-            question: "Will the text in my PDF remain clear in the JPG?",
-            answer: "Absolutely. Our conversion process maintains text clarity and sharpness. You can adjust the resolution to ensure text remains readable, even at smaller sizes.",
-          },
-          {
-            question: "Can I convert PDF to other image formats?",
-            answer: "Yes, in addition to JPG, you can convert to PNG (for transparency), WebP (for web optimization), and TIFF (for high-quality prints).",
-          },
-        ],
+        faq: FAQ_ITEMS,
       }}
     >
       <PDFToJPGClient />
     </ToolLayout>
+    </>
   );
 }

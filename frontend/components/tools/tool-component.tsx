@@ -4,9 +4,10 @@ import { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Sparkles, Loader2, Trash2, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { FileText, Download, Sparkles, Trash2, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
-import { useToolProcessing } from "@/hooks/use-tool-processing";
+import { ButtonLoader, Spinner } from "@/components/brand-loader";
+import { useToolProcessing, formatElapsed } from "@/hooks/use-tool-processing";
 
 interface ToolComponentProps {
   toolName: string;
@@ -20,7 +21,19 @@ interface ToolComponentProps {
   additionalData?: Record<string, any>;
   onFileUpload?: (files: File[]) => void;
   autoClearFiles?: boolean;
-  onSuccess?: (result: { url: string; filename: string; blob: Blob }) => void;
+  onSuccess?: (result: {
+    url: string;
+    filename: string;
+    blob: Blob;
+    headers?: Record<string, string>;
+  }) => void;
+  /**
+   * Optional pre-flight check called before kicking off the request. Return
+   * `false` (or a falsy promise) to abort the conversion — useful for tool-
+   * specific confirmation dialogs (e.g. PDF→JPG warning users when picking
+   * 300 DPI on a large file).
+   */
+  onBeforeProcess?: (files: File[]) => boolean | Promise<boolean>;
 }
 
 export function ToolComponent({
@@ -36,6 +49,7 @@ export function ToolComponent({
   onFileUpload,
   autoClearFiles = true,
   onSuccess,
+  onBeforeProcess,
 }: ToolComponentProps) {
   const t = useTranslations("tool_pages");
   const {
@@ -45,6 +59,7 @@ export function ToolComponent({
     stage,
     stageMessage,
     error,
+    elapsedMs,
     processFiles,
     clearAllFiles,
     hasFiles,
@@ -67,6 +82,12 @@ export function ToolComponent({
     console.log(`[ToolComponent:${toolName}] Starting processing with ${files.length} files`);
     if (additionalData) {
       console.log(`[ToolComponent:${toolName}] Additional data:`, additionalData);
+    }
+    // Pre-flight hook lets tool-specific clients run a confirmation dialog
+    // or other gate before paying for an expensive backend round-trip.
+    if (onBeforeProcess) {
+      const ok = await onBeforeProcess(files);
+      if (!ok) return;
     }
     await processFiles(additionalData);
   };
@@ -105,10 +126,13 @@ export function ToolComponent({
             <div className="flex items-center gap-2">
               {stage === 'completed' && <CheckCircle className="h-5 w-5 text-green-500" />}
               {stage === 'error' && <XCircle className="h-5 w-5 text-red-500" />}
-              {isLoading && <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />}
+              {isLoading && <Spinner size="sm" />}
               <span className="font-medium">{stageMessage}</span>
             </div>
-            <span className="text-sm font-medium">{progress}%</span>
+            {/* Live elapsed timer while loading; static % once finished. */}
+            <span className="text-sm font-medium tabular-nums text-gray-600 dark:text-gray-400">
+              {isLoading ? formatElapsed(elapsedMs) : `${progress}%`}
+            </span>
           </div>
           <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden">
             <div
@@ -173,7 +197,7 @@ export function ToolComponent({
         >
           {isLoading ? (
             <>
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <ButtonLoader />
               {t("processing_progress")}
             </>
           ) : (

@@ -1,0 +1,51 @@
+# Linux/production requirements for the WeLovePDF backend Docker image.
+#
+# Differences from requirements.txt (the Windows dev list):
+#   - python-magic-bin REMOVED: it ships Windows DLLs only. On Linux the
+#     `python-magic` package binds to the system libmagic1 (installed via
+#     apt in the Dockerfile), so no -bin wheel is needed.
+#   - torch / transformers REMOVED: the AI engine uses Groq cloud
+#     (USE_CLOUD_LLM=True). The local HuggingFace fallback pulls a 1.6GB
+#     model that won't fit a 2vCPU/4GB box. If you ever need offline AI,
+#     build a separate "fat" image that adds the torch CPU wheel +
+#     transformers. The code degrades gracefully when they're absent.
+#   - gunicorn ADDED: production process manager running UvicornWorkers.
+
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+gunicorn>=21.2.0
+python-multipart==0.0.6
+PyPDF2==3.0.1
+reportlab==4.0.4
+pillow>=10.4.0
+pdf2image==1.16.3
+python-magic==0.4.27
+pydantic>=2.10.0
+pydantic-settings>=2.7.0
+pdf2docx>=0.5.7
+python-docx>=1.1.0
+pdfplumber>=0.10.3
+pikepdf>=10.0.0
+pycryptodome>=3.23.0
+pytesseract>=0.3.10
+# Excel <-> PDF tools
+pandas>=2.0.0
+openpyxl>=3.1.0
+# PowerPoint <-> PDF tools
+python-pptx>=1.0.0
+# OCR PDF — requires system Ghostscript + Tesseract (installed via apt).
+ocrmypdf>=16.0.0
+# AI tools (PDF text extraction) — lightweight, kept.
+pymupdf>=1.24.0
+# Cloud LLM (Groq) — primary AI engine.
+groq>=0.11.0
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+pydantic[email]==2.10.0
+email-validator==2.1.0
+motor==3.7.0
+# Rate limiting — uses RATELIMIT_STORAGE_URI=redis://redis:6379/0 in prod.
+slowapi>=0.1.9
+# Sentry error tracking. No-op until SENTRY_DSN is set.
+sentry-sdk[fastapi]>=2.0.0

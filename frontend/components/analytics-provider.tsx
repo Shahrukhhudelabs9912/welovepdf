@@ -7,6 +7,19 @@ import { usePathname, useSearchParams } from "next/navigation";
  * Mock analytics provider for tracking page views and events
  * In a real implementation, this would integrate with Google Analytics, Mixpanel, etc.
  */
+
+// Verbose analytics/web-vitals logging is debug-only. It's OFF by default so
+// content-heavy pages (e.g. the blog) don't flood the console — the CLS/LCP
+// PerformanceObservers below fire on every layout shift, which previously
+// spammed the console hard enough to jank the main thread. Set
+// NEXT_PUBLIC_DEBUG_ANALYTICS=true to re-enable.
+const DEBUG_ANALYTICS = process.env.NEXT_PUBLIC_DEBUG_ANALYTICS === "true";
+const debugLog = (...args: unknown[]) => {
+  if (DEBUG_ANALYTICS) console.log(...args);
+};
+const debugWarn = (...args: unknown[]) => {
+  if (DEBUG_ANALYTICS) console.warn(...args);
+};
 export function AnalyticsProvider() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -15,7 +28,7 @@ export function AnalyticsProvider() {
     // Track page view
     const trackPageView = () => {
       // Mock analytics - in real implementation, send to analytics service
-      console.log(`[Analytics] Page view: ${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ""}`);
+      debugLog(`[Analytics] Page view: ${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ""}`);
       
       // Simulate sending to analytics service
       if (typeof window !== "undefined") {
@@ -40,7 +53,7 @@ export function AnalyticsProvider() {
    * Track custom event
    */
   const trackEvent = (eventName: string, eventParams?: Record<string, any>) => {
-    console.log(`[Analytics] Event: ${eventName}`, eventParams);
+    debugLog(`[Analytics] Event: ${eventName}`, eventParams);
     
     // In real implementation:
     // - Send to Google Analytics via gtag
@@ -127,11 +140,11 @@ export class PerformanceMonitor {
     this.measures.set(operation, duration);
     
     // Log performance data
-    console.log(`[Performance] ${operation}: ${duration}ms`);
-    
+    debugLog(`[Performance] ${operation}: ${duration}ms`);
+
     // Track slow operations
     if (duration > 1000) {
-      console.warn(`[Performance Warning] ${operation} took ${duration}ms`);
+      debugWarn(`[Performance Warning] ${operation} took ${duration}ms`);
     }
 
     return duration;
@@ -161,6 +174,12 @@ export class PerformanceMonitor {
  * Web Vitals monitoring (Core Web Vitals)
  */
 export function monitorWebVitals() {
+  // These PerformanceObservers fire on every layout shift / paint and only
+  // console.log in this mock implementation. Running them unconditionally
+  // floods the console on content-heavy pages and steals main-thread time,
+  // which made the blog page unresponsive. Only run when explicitly debugging.
+  if (!DEBUG_ANALYTICS) return;
+
   if (typeof window !== "undefined") {
     // Mock web vitals monitoring
     // In real implementation, use web-vitals library
@@ -168,7 +187,7 @@ export function monitorWebVitals() {
       const observer = new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
         const lastEntry = entries[entries.length - 1];
-        console.log(`[Web Vitals] LCP: ${lastEntry?.startTime || 0}`);
+        debugLog(`[Web Vitals] LCP: ${lastEntry?.startTime || 0}`);
       });
       observer.observe({ type: "largest-contentful-paint", buffered: true });
     };
@@ -179,7 +198,7 @@ export function monitorWebVitals() {
         entries.forEach((entry) => {
           const fidEntry = entry as PerformanceEventTiming;
           if (fidEntry.processingStart) {
-            console.log(`[Web Vitals] FID: ${fidEntry.processingStart - fidEntry.startTime}`);
+            debugLog(`[Web Vitals] FID: ${fidEntry.processingStart - fidEntry.startTime}`);
           }
         });
       });
@@ -192,7 +211,7 @@ export function monitorWebVitals() {
         for (const entry of entryList.getEntries()) {
           if (!(entry as any).hadRecentInput) {
             clsValue += (entry as any).value;
-            console.log(`[Web Vitals] CLS: ${clsValue}`);
+            debugLog(`[Web Vitals] CLS: ${clsValue}`);
           }
         }
       });
@@ -227,8 +246,8 @@ export function AnalyticsInitializer() {
       // Track initial page load performance
       const navigationTiming = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
       if (navigationTiming) {
-        console.log(`[Performance] Page load: ${navigationTiming.loadEventEnd - navigationTiming.startTime}ms`);
-        console.log(`[Performance] DOM Content Loaded: ${navigationTiming.domContentLoadedEventEnd - navigationTiming.startTime}ms`);
+        debugLog(`[Performance] Page load: ${navigationTiming.loadEventEnd - navigationTiming.startTime}ms`);
+        debugLog(`[Performance] DOM Content Loaded: ${navigationTiming.domContentLoadedEventEnd - navigationTiming.startTime}ms`);
       }
     }
 

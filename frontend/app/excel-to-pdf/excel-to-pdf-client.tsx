@@ -5,10 +5,11 @@ import { useTranslations } from "next-intl";
 import { ToolLayout } from "@/components/tools/tool-layout";
 import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Sparkles, Loader2, Trash2, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { FileText, Download, Sparkles, Trash2, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useToolProcessing } from "@/hooks/use-tool-processing";
 import { triggerDownload } from "@/lib/download-utils";
+import { ButtonLoader } from "@/components/brand-loader";
 
 interface ConversionResult {
   url: string;
@@ -169,7 +170,7 @@ export function ExcelToPDFClient() {
               <div className="flex items-center gap-2">
                 {stage === 'completed' && <CheckCircle className="h-5 w-5 text-green-500" />}
                 {stage === 'error' && <XCircle className="h-5 w-5 text-red-500" />}
-                {isLoading && <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />}
+                {isLoading && <ButtonLoader />}
                 <span className="font-medium">{stageMessage}</span>
               </div>
               <span className="text-sm font-medium">{progress}%</span>
@@ -256,7 +257,7 @@ export function ExcelToPDFClient() {
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <ButtonLoader />
                 {t("converting")}
               </>
             ) : (

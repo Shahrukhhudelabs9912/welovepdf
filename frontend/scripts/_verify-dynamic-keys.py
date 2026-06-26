@@ -3,7 +3,6 @@ Patterns scanned:
   - header.tsx: nameKey strings (top-level keys like 'common.tools', 'tools.merge_pdf', etc.)
   - tools-grid.tsx: tools.{key}.title / tools.{key}.description for 14 tools
   - features.tsx: features.{key}.title / features.{key}.description for 8 features
-  - testimonials.tsx: testimonials.user{n}.{name,role,company,text} for 6 users
   - dashboard-layout.tsx: dashboard.{labelKey} for 3 nav links
   - activity-feed.tsx: dashboard.{labelKey} for 3 activity types
   - page-numbering: position_* and page_range_* (already verified)
@@ -53,10 +52,8 @@ for k in feature_keys:
     expected.append(("features", f"features.{k}.title"))
     expected.append(("features", f"features.{k}.description"))
 
-# testimonials.tsx — testimonials.user{1..6}.{name,role,company,text}
-for n in range(1, 7):
-    for sub in ("name","role","company","text"):
-        expected.append(("testimonials", f"testimonials.user{n}.{sub}"))
+# testimonials.tsx removed — block kept here intentionally blank for history
+# (component deleted along with its fake user data)
 
 # dashboard-layout.tsx — dashboard.{overview,history,reports}
 for k in ("overview","history","reports"):

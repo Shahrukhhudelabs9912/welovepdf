@@ -8,20 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { toast } from "sonner";
-import { User, Settings, Shield, Loader2, Eye, EyeOff } from "lucide-react";
+import { User, Shield, Eye, EyeOff } from "lucide-react";
+import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { ButtonLoader } from "@/components/brand-loader";
 
 // ---------------------------------------------------------------------------
-// API helpers (mirror auth-context pattern)
+// API helpers (all calls go through Next.js /api/auth/* proxy)
 // ---------------------------------------------------------------------------
 
-const PYTHON_API_BASE = process.env.NEXT_PUBLIC_PYTHON_API_BASE || "http://localhost:8000/api";
-const USE_PYTHON_BACKEND = process.env.NEXT_PUBLIC_USE_PYTHON_BACKEND === "true";
 const TOKEN_KEY = "welovepdf_auth_tokens";
 
 function getApiUrl(path: string): string {
-  if (USE_PYTHON_BACKEND) {
-    return `${PYTHON_API_BASE}${path}`;
-  }
   return `/api${path}`;
 }
 
@@ -212,12 +209,12 @@ export default function SettingsPage() {
   // -----------------------------------------------------------------------
   if (authLoading) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
+      <DashboardLayout>
+        <div className="space-y-6 animate-pulse">
+          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="h-64 rounded-lg bg-gray-200 dark:bg-gray-700" />
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -238,19 +235,16 @@ export default function SettingsPage() {
   // Render
   // -----------------------------------------------------------------------
   return (
-    <div className="min-h-[80vh] px-4 py-12">
-      <div className="mx-auto max-w-2xl">
-        {/* Page Header */}
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Settings className="h-6 w-6 text-primary" />
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("settings_page.title")}</h1>
-          <p className="mt-2 text-muted-foreground">{t("settings_page.description")}</p>
+    <DashboardLayout>
+      <div className="mx-auto max-w-2xl space-y-6">
+        {/* Page Header — left-aligned to match other dashboard pages */}
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{t("settings_page.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("settings_page.description")}</p>
         </div>
 
         {/* Tab Navigation */}
-        <div className="mb-6 flex border-b">
+        <div className="flex border-b">
           <button
             onClick={() => setActiveTab("profile")}
             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
@@ -326,7 +320,7 @@ export default function SettingsPage() {
                 <Button type="submit" disabled={isUpdatingProfile || !fullName.trim()}>
                   {isUpdatingProfile ? (
                     <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <ButtonLoader />
                       {t("settings_page.updating_profile")}
                     </span>
                   ) : (
@@ -456,7 +450,7 @@ export default function SettingsPage() {
                 <Button type="submit" disabled={isChangingPassword}>
                   {isChangingPassword ? (
                     <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <ButtonLoader />
                       {t("settings_page.changing_password")}
                     </span>
                   ) : (
@@ -468,6 +462,6 @@ export default function SettingsPage() {
           </Card>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

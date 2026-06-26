@@ -40,15 +40,10 @@ interface AuthContextType {
 // Configuration
 // ---------------------------------------------------------------------------
 
-const PYTHON_API_BASE = process.env.NEXT_PUBLIC_PYTHON_API_BASE || "http://localhost:8000/api";
-const USE_PYTHON_BACKEND = process.env.NEXT_PUBLIC_USE_PYTHON_BACKEND === "true";
-
+// All auth requests go through the Next.js server-side proxy at /api/auth/*
+// (see app/api/auth/[...path]/route.ts). The Python backend URL is never
+// exposed to the browser bundle.
 function getApiUrl(path: string): string {
-  // Auth routes always go through Python backend when available,
-  // or fall back to Next.js proxy routes
-  if (USE_PYTHON_BACKEND) {
-    return `${PYTHON_API_BASE}${path}`;
-  }
   return `/api${path}`;
 }
 

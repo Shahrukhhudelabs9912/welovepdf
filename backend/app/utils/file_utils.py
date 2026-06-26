@@ -2,6 +2,12 @@
 File utility functions for validation and processing.
 """
 import io
+import re
+# import magic
+try:
+    import magic
+except Exception:
+    magic = None
 import zipfile
 from typing import List, Tuple, Optional
 from fastapi import UploadFile, HTTPException
@@ -83,7 +89,7 @@ def create_file_response(
         io.BytesIO(file_bytes),
         media_type=media_type,
         headers={
-            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Disposition": f'attachment; filename="{_safe_filename(filename)}"',
             "Content-Length": str(len(file_bytes)),
         }
     )
@@ -113,7 +119,7 @@ def create_zip_response(files: List[Tuple[str, bytes]], zip_filename: str = "out
         io.BytesIO(zip_bytes),
         media_type="application/zip",
         headers={
-            "Content-Disposition": f'attachment; filename="{zip_filename}"',
+            "Content-Disposition": f'attachment; filename="{_safe_filename(zip_filename)}"',
             "Content-Length": str(len(zip_bytes)),
         }
     )
@@ -134,3 +140,28 @@ def format_bytes(size: int) -> str:
             return f"{size:.2f} {unit}"
         size /= 1024.0
     return f"{size:.2f} TB"
+
+_CONTENT_SIGNATURES = {
+    "application/pdf": ("application/pdf",),
+    "image/jpeg": ("image/jpeg",),
+    "image/png": ("image/png",),
+}
+
+def validate_file_content(file_bytes: bytes, allowed_types: list) -> bool:
+    """File ke asli bytes se type check karo (browser MIME par bharosa mat karo)."""
+    if not file_bytes:
+        return False
+    if magic is None:
+        # Agar magic library available nahi hai, toh content validation skip karo
+        return True
+    try:
+        detected = magic.from_buffer(file_bytes[:2048], mime=True)
+    except Exception:
+        return False
+    return detected in allowed_types
+
+
+def _safe_filename(name: str) -> str:
+    """CR/LF aur quotes hatao taaki header inject na ho sake."""
+    name = re.sub(r'[\r\n"]', "", name or "")
+    return name.strip() or "download"

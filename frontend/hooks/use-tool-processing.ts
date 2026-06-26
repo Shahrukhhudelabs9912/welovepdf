@@ -1,9 +1,21 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useFileContext } from "@/lib/file-context";
 import { toast } from "sonner";
 import { resolveDownloadFilename, triggerDownload, MIME_TO_EXTENSION } from "@/lib/download-utils";
+
+/**
+ * Format a millisecond duration as `M:SS` (or `MM:SS` once over 10 min).
+ * Used by the live elapsed-time counter in tool components so long renders
+ * (e.g. PDF→JPG at 300 DPI) don't look frozen.
+ */
+export function formatElapsed(ms: number): string {
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
 
 interface UseToolProcessingOptions {
   toolName: string;
@@ -19,6 +31,13 @@ interface ProcessingState {
   stage: 'idle' | 'uploading' | 'processing' | 'downloading' | 'completed' | 'error';
   stageMessage: string;
   error: string | null;
+  /**
+   * Wall-clock time elapsed since processing started, in milliseconds.
+   * Updates roughly once per second while `isLoading` is true. Components
+   * use this to render a live "MM:SS" counter so long renders (e.g. 300 DPI
+   * PDF→JPG) don't look frozen.
+   */
+  elapsedMs: number;
 }
 
 export function useToolProcessing({
@@ -43,13 +62,18 @@ export function useToolProcessing({
     stage: 'idle',
     stageMessage: '',
     error: null,
+    elapsedMs: 0,
   });
+  // Track when the current run started so the elapsed timer below can tick
+  // independently of React re-renders. Held in ref to avoid resetting the
+  // timer on every parent re-render.
+  const startedAtRef = useRef<number | null>(null);
 
   // Set selected tool when component mounts and mark for cleanup on unmount
   useEffect(() => {
     console.log(`[useToolProcessing] Setting selected tool: ${toolName}`);
     setSelectedTool(toolName);
-    
+
     return () => {
       console.log(`[useToolProcessing] Component unmounting for tool: ${toolName}`);
       if (autoClearFiles) {
@@ -59,6 +83,20 @@ export function useToolProcessing({
       setSelectedTool(null);
     };
   }, [toolName, setSelectedTool, autoClearFiles, markForCleanup]);
+
+  // Elapsed-time ticker. Runs only while a job is in flight; clears itself
+  // on completion or error. Tick rate is 1s — enough resolution for a
+  // user-facing MM:SS counter without thrashing React.
+  useEffect(() => {
+    if (!state.isLoading || startedAtRef.current === null) return;
+    const id = setInterval(() => {
+      const since = startedAtRef.current;
+      if (since !== null) {
+        setState(prev => ({ ...prev, elapsedMs: Date.now() - since }));
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [state.isLoading]);
 
   // Sync local state with global processing state
   useEffect(() => {
@@ -94,7 +132,10 @@ export function useToolProcessing({
     }
 
     console.log(`[useToolProcessing] Starting processing for ${files.length} files`);
-    
+
+    // Stamp the start time so the elapsed-timer effect ticks from now.
+    startedAtRef.current = Date.now();
+
     try {
       updateState({
         isLoading: true,
@@ -102,6 +143,7 @@ export function useToolProcessing({
         stage: 'uploading',
         stageMessage: 'Preparing files for processing...',
         error: null,
+        elapsedMs: 0,
       });
 
       setProcessingState('processing');
@@ -115,7 +157,10 @@ export function useToolProcessing({
         'pdf-to-word', 'word-to-pdf', 'compress-pdf', 'protect-pdf',
         'page-numbering', 'organize-pdf',
         'fix-scanned-pdf', 'optimize-pdf', 'prepare-print-pdf',
-        'pdf-to-excel', 'excel-to-pdf'
+        'pdf-to-excel', 'excel-to-pdf',
+        'unlock-pdf', 'rotate-pdf', 'extract-pages',
+        'powerpoint-to-pdf', 'pdf-to-powerpoint',
+        'ocr-pdf'
       ];
       
       // Extract the endpoint path from the URL (e.g., 'word-to-pdf' from 'http://127.0.0.1:8000/api/word-to-pdf')
@@ -203,6 +248,16 @@ export function useToolProcessing({
       const blob = await response.blob();
       console.log(`[useToolProcessing] Response blob: ${blob.size} bytes, type=${blob.type}`);
 
+      // Capture all custom X-* response headers so tool-specific clients can
+      // surface backend signals (e.g. X-DPI-Adjusted from pdf-to-jpg). The
+      // hook itself stays generic — interpretation is the caller's job.
+      const customHeaders: Record<string, string> = {};
+      response.headers.forEach((value, key) => {
+        if (key.toLowerCase().startsWith("x-")) {
+          customHeaders[key.toLowerCase()] = value;
+        }
+      });
+
       updateState({
         stage: 'downloading',
         stageMessage: 'Preparing download...',
@@ -227,6 +282,9 @@ export function useToolProcessing({
       setProcessingState('success');
       toast.success("Processing completed successfully!");
 
+      // Stop the elapsed-timer effect — null clears the next tick.
+      startedAtRef.current = null;
+
       // Mark files for cleanup after successful processing
       if (autoClearFiles) {
         console.log(`[useToolProcessing] Marking files for cleanup after successful processing`);
@@ -235,10 +293,10 @@ export function useToolProcessing({
 
       // Call success callback
       if (onSuccess) {
-        onSuccess({ url, filename, blob });
+        onSuccess({ url, filename, blob, headers: customHeaders });
       }
 
-      return { url, filename, blob };
+      return { url, filename, blob, headers: customHeaders };
     } catch (error) {
       console.error(`[useToolProcessing] Error:`, error);
       
@@ -255,6 +313,9 @@ export function useToolProcessing({
       setProcessingState('error');
       toast.error(errorMessage);
 
+      // Stop the elapsed-timer effect — null clears the next tick.
+      startedAtRef.current = null;
+
       // Call error callback
       if (onError) {
         onError(error instanceof Error ? error : new Error(errorMessage));
@@ -266,12 +327,14 @@ export function useToolProcessing({
 
   const reset = useCallback(() => {
     console.log(`[useToolProcessing] Resetting state`);
+    startedAtRef.current = null;
     updateState({
       isLoading: false,
       progress: 0,
       stage: 'idle',
       stageMessage: '',
       error: null,
+      elapsedMs: 0,
     });
     setProcessingState('idle');
   }, [updateState, setProcessingState]);

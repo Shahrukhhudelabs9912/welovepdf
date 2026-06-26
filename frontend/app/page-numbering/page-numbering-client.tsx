@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useToolProcessing } from "@/hooks/use-tool-processing";
 import { downloadBlob } from "@/lib/api-client";
 import { toast } from "sonner";
+import { ButtonLoader } from "@/components/brand-loader";
 import {
   Hash,
   Type,
@@ -18,7 +19,6 @@ import {
   AlignCenter,
   AlignRight,
   Download,
-  Loader2,
   CheckCircle2,
   XCircle,
   RotateCcw,
@@ -448,7 +448,7 @@ export function PageNumberingClient() {
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <ButtonLoader />
                       {t("adding")}
                     </>
                   ) : (

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { formatFileSize } from "@/lib/utils";
 import { uploadFile, downloadBlob, handleApiError } from "@/lib/api-client";
 import { useFileContext } from "@/lib/file-context";
+import { ButtonLoader } from "@/components/brand-loader";
 
 interface PDFFile {
   id: string;
@@ -249,7 +250,7 @@ export function CompressPDFTool() {
             >
               {isProcessing ? (
                 <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <ButtonLoader />
                   {t("compressing")}
                 </>
               ) : (

@@ -37,7 +37,7 @@ export function CTASection() {
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                     <Link
-                      href="/pricing"
+                      href="/about"
                       className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground border-white text-white hover:bg-white/10 h-11 rounded-md px-8"
                     >
                       {t("cta.button2")}
@@ -133,12 +133,6 @@ export function CTASection() {
                         </div>
                       ))}
                     </div>
-                  </div>
-
-                  <div className="mt-8 text-center">
-                    <p className="text-sm text-blue-200">
-                      Trusted by 50,000+ businesses worldwide
-                    </p>
                   </div>
                 </motion.div>
               </div>

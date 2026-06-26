@@ -20,12 +20,18 @@ configure_logging()
 init_sentry()
 
 # Create FastAPI app
+# Swagger UI / ReDoc / raw OpenAPI spec are disabled in production so an
+# anonymous attacker cannot enumerate the API surface (including admin
+# routes). openapi_url MUST also be None — without it the raw spec at
+# /openapi.json stays accessible and Swagger UI can be rebuilt by hand.
+_docs_enabled = not settings.is_production
 app = FastAPI(
     title="WeLovePDF API",
     description="Backend API for PDF processing, AI tools, and user dashboard",
     version="2.0.0",
-    docs_url="/api/docs",
-    redoc_url="/api/redoc",
+    docs_url="/api/docs" if _docs_enabled else None,
+    redoc_url="/api/redoc" if _docs_enabled else None,
+    openapi_url="/api/openapi.json" if _docs_enabled else None,
 )
 
 # Rate limiter — slowapi attaches itself to app.state.limiter so its decorator
@@ -105,6 +111,58 @@ async def startup_db_client():
     """Connect to MongoDB and start the background cleanup sweeper."""
     await connect_to_mongo()
     cleanup_scheduler.start()
+
+
+@app.on_event("startup")
+async def warmup_heavy_imports():
+    """Pre-import the heavy PDF/Office libraries so the first request doesn't
+    pay the import cost. Without this, the first hit to pdf-to-word, pdf-to-jpg,
+    excel-to-pdf, etc. spends 1-3s loading the dependency graph (pdf2docx pulls
+    fitz+lxml, reportlab pulls fonts, ocrmypdf pulls leptonica bindings, etc.).
+
+    Each import is independently guarded so a missing optional dependency
+    (e.g. torch/transformers on the prod Linux image) doesn't fail startup —
+    it just skips that warm-up.
+    """
+    import importlib
+    import time
+    import logging as _logging
+
+    log = _logging.getLogger(__name__)
+
+    # Modules actually used by service layer at request time. Order is by
+    # rough import cost — heaviest first so any partial warm-up still helps.
+    HEAVY = [
+        "pdf2docx",      # pulls fitz, lxml, fonttools — biggest single cost
+        "pdf2image",     # poppler wrapper; touches PIL
+        "fitz",          # pymupdf C extension
+        "pikepdf",       # qpdf C extension
+        "ocrmypdf",      # leptonica / tesseract bindings
+        "pdfplumber",    # pulls pdfminer.six
+        "reportlab.pdfgen.canvas",
+        "PyPDF2",
+        "pypdf",
+        "PIL.Image",
+        "openpyxl",
+        "pandas",
+        "docx",          # python-docx
+        "pptx",          # python-pptx
+        "pytesseract",
+    ]
+
+    t0 = time.perf_counter()
+    warmed, skipped = [], []
+    for mod in HEAVY:
+        try:
+            importlib.import_module(mod)
+            warmed.append(mod)
+        except Exception as exc:  # noqa: BLE001 — skip optional deps silently
+            skipped.append(f"{mod} ({exc.__class__.__name__})")
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+    log.info(
+        "warmup: imported %d modules in %.0fms (skipped %d: %s)",
+        len(warmed), elapsed_ms, len(skipped), ", ".join(skipped) or "none",
+    )
 
 
 @app.on_event("shutdown")

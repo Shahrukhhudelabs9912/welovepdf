@@ -18,6 +18,11 @@ pytesseract>=0.3.10
 # Excel <-> PDF tools
 pandas>=2.0.0
 openpyxl>=3.1.0
+# PowerPoint <-> PDF tools (powerpoint-to-pdf reuses LibreOffice; pdf-to-powerpoint uses python-pptx)
+python-pptx>=1.0.0
+# OCR PDF — adds an invisible text layer so scanned PDFs become searchable.
+# Requires system Ghostscript (gswin64c on Windows; gs on Linux) and Tesseract.
+ocrmypdf>=16.0.0
 # AI tools (PDF text extraction)
 pymupdf>=1.24.0
 # AI tools (summarization, sentiment, title generation).

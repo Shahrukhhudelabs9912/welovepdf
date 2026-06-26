@@ -1,297 +1,155 @@
-"use client";
-
-import { Calendar, User, Tag, ArrowRight, Clock, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { PageMeta } from "@/components/seo-provider";
-import { useTranslations } from "next-intl";
+import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRight, Calendar, Clock, Sparkles, BookOpen } from "lucide-react";
+import { getAllPosts } from "@/lib/blog";
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld";
 
-const blogPosts = [
-  {
-    id: 1,
-    title: "How to Merge PDF Files Without Losing Quality",
-    excerpt: "Learn the best practices for merging multiple PDF documents while maintaining image quality and formatting.",
-    author: "Sarah Johnson",
-    date: "2024-03-15",
-    readTime: "5 min read",
-    category: "Tutorial",
-    tags: ["PDF", "Merge", "Quality"],
-    image: "/api/placeholder/400/250",
-  },
-  {
-    id: 2,
-    title: "Top 10 PDF Security Tips for Businesses",
-    excerpt: "Protect your sensitive documents with these essential PDF security measures every business should implement.",
-    author: "Michael Chen",
-    date: "2024-03-10",
-    readTime: "8 min read",
-    category: "Security",
-    tags: ["Security", "Business", "Protect"],
-    image: "/api/placeholder/400/250",
-  },
-  {
-    id: 3,
-    title: "The Future of PDF Technology: AI and Beyond",
-    excerpt: "Explore how artificial intelligence is revolutionizing PDF processing and what to expect in the coming years.",
-    author: "Alexandra Rivera",
-    date: "2024-03-05",
-    readTime: "6 min read",
-    category: "Technology",
-    tags: ["AI", "Future", "Technology"],
-    image: "/api/placeholder/400/250",
-  },
-  {
-    id: 4,
-    title: "How to Compress PDFs for Faster Email Delivery",
-    excerpt: "Reduce PDF file sizes significantly without compromising quality for quick email attachments and sharing.",
-    author: "David Wilson",
-    date: "2024-02-28",
-    readTime: "4 min read",
-    category: "Tips",
-    tags: ["Compress", "Email", "Optimization"],
-    image: "/api/placeholder/400/250",
-  },
-  {
-    id: 5,
-    title: "Converting PDF to Editable Formats: Word vs Google Docs",
-    excerpt: "Compare different methods for converting PDFs to editable documents and choose the best approach for your needs.",
-    author: "Emma Thompson",
-    date: "2024-02-20",
-    readTime: "7 min read",
-    category: "Comparison",
-    tags: ["Convert", "Word", "Google Docs"],
-    image: "/api/placeholder/400/250",
-  },
-  {
-    id: 6,
-    title: "Accessibility in PDF Documents: Making Content Available to All",
-    excerpt: "Learn how to create accessible PDFs that work with screen readers and meet WCAG guidelines.",
-    author: "James Miller",
-    date: "2024-02-15",
-    readTime: "9 min read",
-    category: "Accessibility",
-    tags: ["Accessibility", "WCAG", "Inclusive"],
-    image: "/api/placeholder/400/250",
-  },
-];
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
 
-const categories = [
-  { name: "All", count: 12 },
-  { name: "Tutorial", count: 4 },
-  { name: "Security", count: 3 },
-  { name: "Technology", count: 2 },
-  { name: "Tips", count: 2 },
-  { name: "Comparison", count: 1 },
-];
+export const metadata: Metadata = {
+  title: "WeLovePDF Blog — PDF Tutorials, Tips & Use Cases",
+  description:
+    "Practical tutorials and tips for merging, splitting, compressing, converting, and managing PDF files. Real-world workflows for students, professionals, and businesses.",
+  keywords:
+    "pdf blog, pdf tutorials, pdf tips, document management, pdf how-to, welovepdf blog",
+  openGraph: {
+    title: "WeLovePDF Blog — PDF Tutorials, Tips & Use Cases",
+    description:
+      "Practical tutorials and tips for working with PDFs — built around our free online tools.",
+    type: "website",
+    url: `${SITE_URL}/blog`,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WeLovePDF Blog — PDF Tutorials, Tips & Use Cases",
+    description:
+      "Practical tutorials and tips for working with PDFs.",
+  },
+  alternates: {
+    canonical: `${SITE_URL}/blog`,
+  },
+};
 
-const popularTags = [
-  "PDF", "Merge", "Compress", "Convert", "Security", "AI", "Quality", "Business", "Accessibility", "Optimization"
-];
+function formatDate(iso: string) {
+  // Stable, locale-agnostic format so SSR and CSR don't disagree.
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
 
 export default function BlogPage() {
-  const t = useTranslations("blog");
+  const posts = getAllPosts();
+  const pageUrl = `${SITE_URL}/blog`;
 
   return (
     <>
-      <PageMeta
-        title="PDF Blog & Tutorials | WeLovePDF"
-        description="Learn about PDF processing, security tips, tutorials, and the latest trends in document technology."
-        keywords="PDF blog, PDF tutorials, document tips, PDF security, PDF technology"
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", url: SITE_URL },
+          { name: "Blog", url: pageUrl },
+        ]}
       />
-      
+
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
-        {/* Hero Section */}
         <section className="px-4 py-16 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
-                {t("hero_heading_part1")} <span className="text-primary">{t("hero_heading_part2")}</span>
+          <div className="mx-auto max-w-6xl">
+            {/* Hero */}
+            <div className="mx-auto max-w-3xl text-center">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
+                <BookOpen className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+                WeLovePDF Blog
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-                {t("hero_subtitle")}
+                Practical tutorials, tips, and use cases for working with PDFs.
+                Every article links to the free tool that gets the job done.
               </p>
-              
-              {/* Search Bar */}
-              <div className="mx-auto mt-10 max-w-md">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                  <Input
-                    type="search"
-                    placeholder={t("search_placeholder")}
-                    className="pl-10 pr-4 py-6 text-base"
-                  />
-                </div>
-              </div>
             </div>
-          </div>
-        </section>
 
-        {/* Main Content */}
-        <section className="px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-              {/* Sidebar */}
-              <div className="lg:col-span-1">
-                <div className="sticky top-24 space-y-8">
-                  {/* Categories */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Tag className="h-5 w-5" />
-                        {t("categories_title")}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {categories.map((category) => (
-                          <div
-                            key={category.name}
-                            className="flex items-center justify-between rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                          >
-                            <span className="font-medium text-gray-700 dark:text-gray-300">
-                              {category.name}
-                            </span>
-                            <Badge variant="secondary">{category.count}</Badge>
-                          </div>
-                        ))}
+            {/* Posts grid */}
+            {posts.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {posts.map((post) => (
+                  <article
+                    key={post.slug}
+                    className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
+                  >
+                    {post.cover ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={post.cover}
+                        alt=""
+                        className="aspect-[16/9] w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                        <BookOpen className="h-10 w-10 opacity-80" />
                       </div>
-                    </CardContent>
-                  </Card>
+                    )}
 
-                  {/* Popular Tags */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>{t("popular_tags_title")}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-2">
-                        {popularTags.map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant="outline"
-                            className="cursor-pointer hover:bg-primary hover:text-white transition-colors"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
+                    <div className="flex flex-1 flex-col p-6">
+                      <div className="mb-3 flex items-center gap-2">
+                        <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                          {post.category}
+                        </span>
                       </div>
-                    </CardContent>
-                  </Card>
 
-                  {/* Newsletter */}
-                  <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-                    <CardHeader>
-                      <CardTitle>{t("newsletter_title")}</CardTitle>
-                      <CardDescription>
-                        {t("newsletter_description")}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <Input placeholder={t("newsletter_placeholder")} />
-                        <Button className="w-full">{t("newsletter_subscribe")}</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              {/* Blog Posts */}
-              <div className="lg:col-span-2">
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                  {blogPosts.map((post) => (
-                    <Card key={post.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                      <div className="h-48 bg-gradient-to-r from-primary/20 to-primary/10" />
-                      <CardHeader>
-                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                          <div className="flex items-center gap-1">
-                            <User className="h-4 w-4" />
-                            <span>{post.author}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4" />
-                            <span>{post.date}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
-                            <span>{post.readTime}</span>
-                          </div>
-                        </div>
-                        <CardTitle className="mt-4 text-xl">{post.title}</CardTitle>
-                        <CardDescription>{post.excerpt}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge>{post.category}</Badge>
-                          {post.tags.map((tag) => (
-                            <Badge key={tag} variant="outline">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Link
-                          href={`/blog/${post.id}`}
-                          className="flex items-center gap-2 text-primary hover:underline"
-                        >
-                          {t("read_article")}
-                          <ArrowRight className="h-4 w-4" />
+                      <h2 className="text-xl font-semibold text-gray-900 transition-colors group-hover:text-primary dark:text-white">
+                        <Link href={`/blog/${post.slug}`} className="after:absolute after:inset-0">
+                          {post.title}
                         </Link>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
+                      </h2>
 
-                {/* Pagination */}
-                <div className="mt-12 flex justify-center">
-                  <nav className="flex items-center gap-2">
-                    <Button variant="outline" size="icon">
-                      {"<"}
-                    </Button>
-                    <Button variant="default" size="icon">
-                      1
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      2
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      3
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      {">"}
-                    </Button>
-                  </nav>
-                </div>
+                      <p className="mt-3 flex-1 text-sm text-gray-600 dark:text-gray-400">
+                        {post.description}
+                      </p>
+
+                      <div className="mt-4 flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <time dateTime={post.date}>{formatDate(post.date)}</time>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="h-3.5 w-3.5" />
+                          <span>{post.readingMinutes} min</span>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                ))}
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="px-4 py-16 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-4xl text-center">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-              {t("cta_heading")}
-            </h2>
-            <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
-              {t("cta_description")}
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="gap-2">
-                {t("cta_submit_article")}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-              <Button size="lg" variant="outline">
-                {t("cta_contact_editors")}
-              </Button>
-            </div>
+            )}
           </div>
         </section>
       </div>
     </>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="mt-16 rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-900">
+      <Sparkles className="mx-auto h-10 w-10 text-blue-600 dark:text-blue-400" />
+      <h2 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">
+        First posts are on the way
+      </h2>
+      <p className="mx-auto mt-2 max-w-md text-sm text-gray-600 dark:text-gray-400">
+        We're publishing the first batch of tutorials. Check back soon — or
+        explore the tools while you wait.
+      </p>
+      <Link
+        href="/"
+        className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+      >
+        Explore PDF tools <ArrowRight className="h-4 w-4" />
+      </Link>
+    </div>
   );
 }

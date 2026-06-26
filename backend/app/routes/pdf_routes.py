@@ -1,6 +1,7 @@
 """
 PDF processing routes for WeLovePDF API.
 """
+import asyncio
 import io
 import os
 import logging
@@ -8,7 +9,7 @@ import traceback
 from pathlib import Path
 from typing import List, Optional
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 
 from app.services.pdf_service import PDFService, ImageToPDFService, PDFToImageService
 from app.services.organize_pdf_service import OrganizePDFService
@@ -21,6 +22,9 @@ from app.utils import (
     validate_uploaded_files,
     handle_pdf_error,
     PDFProcessingError,
+    run_blocking,
+    heavy_job_slot,
+    resolve_libreoffice_path,
 )
 from app.config import settings
 from app.schemas import (
@@ -72,7 +76,7 @@ async def merge_pdf(files: List[UploadFile] = File(...)):
         
         # Merge PDFs
         logger.info(f"Merging {len(pdf_files)} PDF(s)...")
-        merged_pdf = PDFService.merge_pdfs(pdf_files)
+        merged_pdf = await run_blocking(PDFService.merge_pdfs, pdf_files)
         logger.info(f"Merge successful: {len(merged_pdf)} bytes output")
         
         # Return merged PDF
@@ -135,7 +139,8 @@ async def split_pdf(
         pdf_bytes = await read_upload_file(file)
 
         # Split PDF
-        pages = PDFService.split_pdf(
+        pages = await run_blocking(
+            PDFService.split_pdf,
             pdf_bytes,
             split_method=split_method,
             page_range=page_range,
@@ -211,7 +216,7 @@ async def jpg_to_pdf(files: List[UploadFile] = File(...)):
             image_files.append(file_bytes)
         
         # Convert images to PDF
-        pdf_bytes = ImageToPDFService.convert_images_to_pdf(image_files)
+        pdf_bytes = await run_blocking(ImageToPDFService.convert_images_to_pdf, image_files)
         
         # Return PDF
         return create_file_response(
@@ -222,7 +227,7 @@ async def jpg_to_pdf(files: List[UploadFile] = File(...)):
         
     except HTTPException as http_exc:
         # Log the HTTP exception for debugging
-        print(f"[DEBUG] HTTPException in jpg_to_pdf: {http_exc.status_code} - {http_exc.detail}")
+        logger.debug(f"[DEBUG] HTTPException in jpg_to_pdf: {http_exc.status_code} - {http_exc.detail}")
         raise
     except PDFProcessingError as e:
         logger.error(f"JPG to PDF processing error: {str(e)}")
@@ -252,12 +257,12 @@ async def pdf_to_jpg(
     """
     try:
         # Log incoming request details for debugging
-        print(f"[DEBUG] pdf_to_jpg called: filename={file.filename}, page_number={page_number}, quality={quality}, dpi={dpi}")
+        logger.debug(f"[DEBUG] pdf_to_jpg called: filename={file.filename}, page_number={page_number}, quality={quality}, dpi={dpi}")
         
         # Validate file
         if not validate_file_type(file, settings.ALLOWED_PDF_TYPES):
             error_msg = f"File {file.filename} is not a valid PDF. Allowed types: {settings.ALLOWED_PDF_TYPES}, got: {file.content_type}"
-            print(f"[DEBUG] Validation failed: {error_msg}")
+            logger.debug(f"[DEBUG] Validation failed: {error_msg}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=error_msg
@@ -265,7 +270,7 @@ async def pdf_to_jpg(
         
         if not validate_file_size(file):
             error_msg = f"File {file.filename} exceeds maximum size of {settings.MAX_UPLOAD_SIZE} bytes"
-            print(f"[DEBUG] Size validation failed: {error_msg}")
+            logger.debug(f"[DEBUG] Size validation failed: {error_msg}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=error_msg
@@ -273,44 +278,76 @@ async def pdf_to_jpg(
         
         # Read file
         pdf_bytes = await read_upload_file(file)
-        print(f"[DEBUG] Read PDF file: {len(pdf_bytes)} bytes")
-        
+        logger.debug(f"[DEBUG] Read PDF file: {len(pdf_bytes)} bytes")
+
+        # Safety: predict pixel count and cap DPI if needed. Prevents the
+        # Pillow decompression-bomb error on huge/high-DPI renders and keeps
+        # render time bounded.
+        effective_dpi, dpi_was_adjusted = PDFToImageService.safe_dpi(pdf_bytes, dpi)
+        if dpi_was_adjusted:
+            logger.debug(f"[DEBUG] DPI auto-capped {dpi} -> {effective_dpi} for safety")
+        # Header passed through to the client so the UI can show a notice.
+        # Single source of truth — built once and merged into every response.
+        adjust_headers = {
+            "X-DPI-Requested": str(dpi),
+            "X-DPI-Used": str(effective_dpi),
+            "X-DPI-Adjusted": "true" if dpi_was_adjusted else "false",
+        }
+
         # Clean base filename (remove .pdf extension)
         base_name = file.filename.replace(".pdf", "").replace(".PDF", "")
-        
+
+        # Conversion is CPU-bound and synchronous (Poppler subprocess + Pillow
+        # encode). Run it on the thread pool so the FastAPI event loop stays
+        # responsive for other users while this single request is processing.
+        loop = asyncio.get_running_loop()
+
         if page_number == 0:
             # Convert ALL pages → ZIP
-            print(f"[DEBUG] All pages mode: converting all pages to ZIP")
+            logger.debug(f"[DEBUG] All pages mode: converting all pages to ZIP (dpi={effective_dpi})")
             try:
-                zip_bytes, zip_filename = PDFToImageService.convert_pages_to_zip(
-                    pdf_bytes, base_name, quality, dpi
+                zip_bytes, zip_filename = await loop.run_in_executor(
+                    None,
+                    PDFToImageService.convert_pages_to_zip,
+                    pdf_bytes, base_name, quality, effective_dpi,
                 )
-                print(f"[DEBUG] ZIP created: {zip_filename} ({len(zip_bytes)} bytes)")
-                return StreamingResponse(
-                    io.BytesIO(zip_bytes),
+                logger.debug(f"[DEBUG] ZIP created: {zip_filename} ({len(zip_bytes)} bytes)")
+                # Plain Response (not StreamingResponse). Starlette's
+                # BaseHTTPMiddleware buffers streaming bodies chunk-by-chunk
+                # and adds ~600ms per MB on this stack — for 10MB outputs that
+                # was 6+ seconds of pure overhead. The bytes are already in
+                # memory so a single-send Response is strictly faster.
+                return Response(
+                    content=zip_bytes,
                     media_type="application/zip",
                     headers={
                         "Content-Disposition": f'attachment; filename="{zip_filename}"',
                         "Content-Length": str(len(zip_bytes)),
+                        **adjust_headers,
                     }
                 )
             except Exception as zip_err:
-                print(f"[DEBUG] ZIP conversion failed: {zip_err}, falling back to single page")
+                logger.debug(f"[DEBUG] ZIP conversion failed: {zip_err}, falling back to single page")
                 # Fallback: convert only first page
-                image_bytes = PDFToImageService.convert_pdf_to_image(pdf_bytes, 0, quality, dpi)
-                return StreamingResponse(
-                    io.BytesIO(image_bytes),
+                image_bytes = await loop.run_in_executor(
+                    None,
+                    PDFToImageService.convert_pdf_to_image,
+                    pdf_bytes, 0, quality, effective_dpi,
+                )
+                return Response(
+                    content=image_bytes,
                     media_type="image/jpeg",
                     headers={
                         "Content-Disposition": f'attachment; filename="{base_name}_page_1.jpg"',
                         "Content-Length": str(len(image_bytes)),
+                        **adjust_headers,
                     }
                 )
         else:
             # Convert single page
             page_idx = page_number - 1  # Convert from 1-indexed (user-facing) to 0-indexed
-            print(f"[DEBUG] Single page mode: converting page {page_number} (index {page_idx})")
-            
+            logger.debug(f"[DEBUG] Single page mode: converting page {page_number} (index {page_idx})")
+
             # Validate page number
             total_pages = PDFToImageService._get_page_count(pdf_bytes)
             if total_pages > 0 and page_idx >= total_pages:
@@ -318,41 +355,36 @@ async def pdf_to_jpg(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Page number {page_number} out of range. PDF has {total_pages} pages."
                 )
-            
-            image_bytes = PDFToImageService.convert_pdf_to_image(pdf_bytes, page_idx, quality, dpi)
-            print(f"[DEBUG] Conversion successful: {len(image_bytes)} bytes")
-            
-            return StreamingResponse(
-                io.BytesIO(image_bytes),
+
+            image_bytes = await loop.run_in_executor(
+                None,
+                PDFToImageService.convert_pdf_to_image,
+                pdf_bytes, page_idx, quality, effective_dpi,
+            )
+            logger.debug(f"[DEBUG] Conversion successful: {len(image_bytes)} bytes")
+
+            return Response(
+                content=image_bytes,
                 media_type="image/jpeg",
                 headers={
                     "Content-Disposition": f'attachment; filename="{base_name}_page_{page_number}.jpg"',
                     "Content-Length": str(len(image_bytes)),
+                    **adjust_headers,
                 }
             )
         
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[DEBUG] Exception in pdf_to_jpg: {type(e).__name__}: {str(e)}")
-        # Fallback: return a visible placeholder JPEG so the user knows something happened
-        try:
-            import PIL.Image as PILImage
-            img_stream = io.BytesIO()
-            img = PILImage.new('RGB', (1240, 1754), color='white')
-            img.save(img_stream, format="JPEG", quality=quality)
-            placeholder_jpeg = img_stream.getvalue()
-            
-            return StreamingResponse(
-                io.BytesIO(placeholder_jpeg),
-                media_type="image/jpeg",
-                headers={
-                    "Content-Disposition": f'attachment; filename="{file.filename.replace(".pdf", "")}_fallback.jpg"',
-                    "Content-Length": str(len(placeholder_jpeg)),
-                }
-            )
-        except Exception:
-            return handle_pdf_error(e)
+        # No silent placeholder JPEG — that masked real failures (Poppler
+        # missing, OOM, corrupt PDF) behind a "successful" white image and made
+        # support tickets impossible to trace. Surface the error so the UI can
+        # show it and Sentry/logs capture it.
+        logger.error(f"pdf_to_jpg failed for {file.filename}: {type(e).__name__}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"PDF to JPG conversion failed: {str(e)[:200]}",
+        )
 
 
 @router.post("/add-watermark", summary="Add watermark to PDF")
@@ -495,7 +527,8 @@ async def add_watermark(
         
         # Add watermark using enhanced service method
         logger.info(f"Starting watermark processing with parameters: type={watermark_type}, position={position}, opacity={opacity}, rotation={rotation}, pages={pages}, font_size={font_size}, color={color}")
-        watermarked_pdf = PDFService.add_watermark_enhanced(
+        watermarked_pdf = await run_blocking(
+            PDFService.add_watermark_enhanced,
             pdf_bytes=pdf_bytes,
             watermark_type=watermark_type,
             watermark_text=watermark_text.strip() if watermark_text else "",
@@ -590,7 +623,9 @@ async def pdf_to_word(file: UploadFile = File(...)):
             )
         
         # --- STEP 4: Validate PDF integrity ---
-        integrity_ok, integrity_msg = _validate_pdf_integrity(pdf_bytes, file.filename or "unknown")
+        integrity_ok, integrity_msg = await run_blocking(
+            _validate_pdf_integrity, pdf_bytes, file.filename or "unknown"
+        )
         if not integrity_ok:
             conversion_logger.warning(f"PDF integrity check FAILED: {integrity_msg}")
             raise HTTPException(
@@ -598,9 +633,9 @@ async def pdf_to_word(file: UploadFile = File(...)):
                 detail=f"The PDF file appears to be corrupted or invalid: {integrity_msg}"
             )
         conversion_logger.info(f"PDF integrity check PASSED: {integrity_msg}")
-        
+
         # --- STEP 5: Detect if PDF is scanned/image-based ---
-        is_scanned, scan_info = _detect_scanned_pdf(pdf_bytes)
+        is_scanned, scan_info = await run_blocking(_detect_scanned_pdf, pdf_bytes)
         conversion_logger.info(f"Scanned PDF detection: is_scanned={is_scanned}, info={scan_info}")
         
         # --- STEP 6: Convert in temp directory with UUID-based filenames ---
@@ -628,7 +663,10 @@ async def pdf_to_word(file: UploadFile = File(...)):
             if is_scanned:
                 conversion_logger.info(f"PDF appears to be scanned/image-based. Attempting OCR conversion...")
                 try:
-                    ocr_docx = _convert_with_ocr(pdf_bytes, file.filename, pdf_path, docx_path)
+                    async with heavy_job_slot():
+                        ocr_docx = await run_blocking(
+                            _convert_with_ocr, pdf_bytes, file.filename, pdf_path, docx_path
+                        )
                     if ocr_docx and len(ocr_docx) > 1000:
                         conversion_logger.info(f"OCR conversion succeeded: {len(ocr_docx):,} bytes")
                         output_filename = f"{Path(file.filename).stem}_converted.docx"
@@ -645,18 +683,22 @@ async def pdf_to_word(file: UploadFile = File(...)):
             # --- STEP 6b: Primary - pdf2docx (works on all platforms with multi_processing=False) ---
             try:
                 from pdf2docx import Converter
-                
+
                 conversion_logger.info("Attempting pdf2docx conversion (multi_processing=False)...")
-                
-                cv = Converter(str(pdf_path))
-                cv.convert(
-                    str(docx_path),
-                    start=0,
-                    end=None,
-                    multi_processing=False,
-                    debug=False
-                )
-                cv.close()
+
+                # pdf2docx is fully blocking/CPU-bound. Run the whole
+                # create→convert→close cycle in one thread so the Converter
+                # object never crosses thread boundaries, keeping the event
+                # loop free for other requests.
+                def _run_pdf2docx(src: str, dst: str):
+                    cv = Converter(src)
+                    try:
+                        cv.convert(dst, start=0, end=None, multi_processing=False, debug=False)
+                    finally:
+                        cv.close()
+
+                async with heavy_job_slot():
+                    await run_blocking(_run_pdf2docx, str(pdf_path), str(docx_path))
                 
                 conversion_logger.info("pdf2docx Converter finished.")
                 
@@ -706,7 +748,8 @@ async def pdf_to_word(file: UploadFile = File(...)):
             # --- STEP 6c: Fallback - pdfplumber + python-docx ---
             try:
                 conversion_logger.info("Attempting pdfplumber + python-docx conversion...")
-                alt_docx = convert_with_pdfplumber(pdf_bytes, file.filename)
+                async with heavy_job_slot():
+                    alt_docx = await run_blocking(convert_with_pdfplumber, pdf_bytes, file.filename)
                 
                 if alt_docx and len(alt_docx) > 500:
                     conversion_logger.info(f"pdfplumber conversion SUCCESS: {len(alt_docx):,} bytes")
@@ -725,7 +768,7 @@ async def pdf_to_word(file: UploadFile = File(...)):
             # --- STEP 6d: Final fallback - basic text extraction ---
             try:
                 conversion_logger.info("Attempting basic text extraction (final fallback)...")
-                basic_docx = create_basic_word_document(pdf_bytes, file.filename)
+                basic_docx = await run_blocking(create_basic_word_document, pdf_bytes, file.filename)
                 
                 if basic_docx and len(basic_docx) > 200:
                     conversion_logger.info(f"Basic extraction SUCCESS: {len(basic_docx):,} bytes")
@@ -1339,7 +1382,7 @@ async def word_to_pdf(file: UploadFile = File(...)):
     import os
     from pathlib import Path
     
-    print(f"Received Word file: {file.filename}")
+    logger.debug(f"Received Word file: {file.filename}")
     
     try:
         # Validate file type
@@ -1359,50 +1402,59 @@ async def word_to_pdf(file: UploadFile = File(...)):
         
         # Read file content
         file_bytes = await read_upload_file(file)
-        print(f"File size: {len(file_bytes)} bytes")
+        logger.debug(f"File size: {len(file_bytes)} bytes")
         
         # Create temporary directory (auto-cleanup)
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_dir_path = Path(temp_dir)
-            print(f"Created temp directory: {temp_dir}")
+            logger.debug(f"Created temp directory: {temp_dir}")
             
             # Save uploaded file
             input_path = temp_dir_path / file.filename
             with open(input_path, "wb") as f:
                 f.write(file_bytes)
-            print(f"Saved uploaded file to: {input_path}")
+            logger.debug(f"Saved uploaded file to: {input_path}")
             
-            # Convert using LibreOffice
-            libreoffice_path = r"C:\Program Files\LibreOffice\program\soffice.exe"
-            
-            if not os.path.exists(libreoffice_path):
+            # Convert using LibreOffice (path auto-resolved across OSes)
+            libreoffice_path = resolve_libreoffice_path()
+
+            if not libreoffice_path:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="LibreOffice is not installed on the server"
                 )
-            
-            print("Starting LibreOffice conversion...")
+
+            logger.debug("Starting LibreOffice conversion...")
+            # Unique per-request profile dir so parallel LibreOffice runs don't
+            # collide on the shared default user profile lock.
+            import uuid as _uuid
+            profile_dir = temp_dir_path / f"lo_profile_{_uuid.uuid4().hex[:8]}"
             cmd = [
                 libreoffice_path,
                 '--headless',
+                f'-env:UserInstallation=file:///{profile_dir.as_posix().lstrip("/")}',
                 '--convert-to', 'pdf',
                 '--outdir', str(temp_dir_path),
                 str(input_path)
             ]
-            
+
             try:
-                result = subprocess.run(
-                    cmd,
-                    capture_output=True,
-                    text=True,
-                    timeout=60  # 60 second timeout
-                )
+                # Run the blocking subprocess off the event loop, and bound how
+                # many heavy LibreOffice jobs run at once.
+                async with heavy_job_slot():
+                    result = await run_blocking(
+                        subprocess.run,
+                        cmd,
+                        capture_output=True,
+                        text=True,
+                        timeout=60,  # 60 second timeout
+                    )
                 
-                print(f"LibreOffice return code: {result.returncode}")
-                print(f"LibreOffice stdout: {result.stdout}")
+                logger.debug(f"LibreOffice return code: {result.returncode}")
+                logger.debug(f"LibreOffice stdout: {result.stdout}")
                 
                 if result.returncode != 0:
-                    print(f"LibreOffice stderr: {result.stderr}")
+                    logger.debug(f"LibreOffice stderr: {result.stderr}")
                     raise HTTPException(
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                         detail=f"PDF conversion failed: {result.stderr[:200]}"
@@ -1423,20 +1475,20 @@ async def word_to_pdf(file: UploadFile = File(...)):
                 )
             
             pdf_file = pdf_files[0]
-            print(f"Converted PDF: {pdf_file}")
+            logger.debug(f"Converted PDF: {pdf_file}")
             
             # Read PDF file
             with open(pdf_file, "rb") as f:
                 pdf_bytes = f.read()
             
-            print(f"PDF size: {len(pdf_bytes)} bytes")
+            logger.debug(f"PDF size: {len(pdf_bytes)} bytes")
             
             # Generate output filename
             original_name = Path(file.filename).stem
             output_filename = f"{original_name}_converted.pdf"
             
-            print(f"Returning PDF: {output_filename}")
-            print("Cleaning up temporary files...")
+            logger.debug(f"Returning PDF: {output_filename}")
+            logger.debug("Cleaning up temporary files...")
             
             # Return PDF file (temp files auto-deleted when context exits)
             return create_file_response(
@@ -1496,7 +1548,7 @@ async def compress_pdf(
         )
 
         # Delegate to the service layer (uses temp files, handles latin-1 fallback)
-        compressed_bytes = PDFService.compress_pdf(file_bytes, compressionLevel)
+        compressed_bytes = await run_blocking(PDFService.compress_pdf, file_bytes, compressionLevel)
 
         compressed_size = len(compressed_bytes)
         reduction_pct = (1 - compressed_size / max(original_size, 1)) * 100
@@ -1561,8 +1613,8 @@ async def fix_scanned_pdf(file: UploadFile = File(...)):
         
         # Process PDF using PDFOptimizationService
         from app.services.pdf_service import PDFOptimizationService
-        processed_bytes = PDFOptimizationService.fix_scanned_pdf(file_bytes)
-        
+        processed_bytes = await run_blocking(PDFOptimizationService.fix_scanned_pdf, file_bytes)
+
         # Create filename
         original_filename = file.filename or "document.pdf"
         output_filename = f"fixed_{original_filename}"
@@ -1608,7 +1660,7 @@ async def optimize_pdf(file: UploadFile = File(...)):
         
         # Process PDF using PDFOptimizationService
         from app.services.pdf_service import PDFOptimizationService
-        processed_bytes = PDFOptimizationService.optimize_for_viewing(file_bytes)
+        processed_bytes = await run_blocking(PDFOptimizationService.optimize_for_viewing, file_bytes)
         
         # Create filename
         original_filename = file.filename or "document.pdf"
@@ -1655,7 +1707,7 @@ async def prepare_print_pdf(file: UploadFile = File(...)):
         
         # Process PDF using PDFOptimizationService
         from app.services.pdf_service import PDFOptimizationService
-        processed_bytes = PDFOptimizationService.prepare_for_printing(file_bytes)
+        processed_bytes = await run_blocking(PDFOptimizationService.prepare_for_printing, file_bytes)
         
         # Create filename
         original_filename = file.filename or "document.pdf"
@@ -1715,12 +1767,13 @@ async def protect_pdf(
                 detail="Password must be at least 4 characters long.",
             )
 
-        print(f"[protect_pdf] Encrypting PDF: {file.filename} "
-              f"(printing={allow_printing}, copying={allow_copying}, "
-              f"editing={allow_editing}, annotating={allow_annotating})")
+        logger.debug(f"[protect_pdf] Encrypting PDF: {file.filename} "
+                     f"(printing={allow_printing}, copying={allow_copying}, "
+                     f"editing={allow_editing}, annotating={allow_annotating})")
 
         # Encrypt the PDF
-        encrypted_pdf = PDFService.protect_pdf(
+        encrypted_pdf = await run_blocking(
+            PDFService.protect_pdf,
             pdf_bytes=pdf_bytes,
             password=password,
             allow_printing=allow_printing,
@@ -1733,8 +1786,8 @@ async def protect_pdf(
         base_name = os.path.splitext(file.filename)[0]
         output_filename = f"{base_name}_protected.pdf"
 
-        print(f"[protect_pdf] Successfully encrypted PDF, returning "
-              f"{len(encrypted_pdf)} bytes as '{output_filename}'")
+        logger.debug(f"[protect_pdf] Successfully encrypted PDF, returning "
+                     f"{len(encrypted_pdf)} bytes as '{output_filename}'")
 
         return StreamingResponse(
             io.BytesIO(encrypted_pdf),
@@ -1749,17 +1802,119 @@ async def protect_pdf(
     except HTTPException:
         raise
     except PDFProcessingError as e:
-        print(f"[protect_pdf] PDFProcessingError: {e.message}")
+        logger.debug(f"[protect_pdf] PDFProcessingError: {e.message}")
         raise HTTPException(
             status_code=500,
             detail=f"PDF protection failed: {e.message}",
         )
     except Exception as e:
-        print(f"[protect_pdf] Unexpected error: {type(e).__name__}: {e}")
+        logger.debug(f"[protect_pdf] Unexpected error: {type(e).__name__}: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"An unexpected error occurred while protecting the PDF.",
         )
+
+
+@router.post("/unlock-pdf", summary="Remove password from a PDF")
+async def unlock_pdf(
+    file: UploadFile = File(...),
+    password: str = Form(..., description="Password used to open the PDF"),
+):
+    """Decrypt an AES/RC4-encrypted PDF and return the unlocked file."""
+    try:
+        pdf_bytes = await file.read()
+        if not file.filename or not file.filename.lower().endswith(".pdf"):
+            raise HTTPException(status_code=400, detail="Invalid file type. Please upload a PDF file.")
+        if len(pdf_bytes) == 0:
+            raise HTTPException(status_code=400, detail="The uploaded PDF file is empty.")
+
+        unlocked = await run_blocking(PDFService.unlock_pdf, pdf_bytes=pdf_bytes, password=password)
+        base = os.path.splitext(file.filename)[0]
+        output_filename = f"{base}_unlocked.pdf"
+        return StreamingResponse(
+            io.BytesIO(unlocked),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{output_filename}"',
+                "Content-Length": str(len(unlocked)),
+            },
+        )
+    except HTTPException:
+        raise
+    except PDFProcessingError as e:
+        # Wrong password is a 400, not a 500
+        status_code = 400 if "password" in e.message.lower() else 500
+        raise HTTPException(status_code=status_code, detail=e.message)
+    except Exception as e:
+        logger.exception("[unlock_pdf] unexpected error")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred while unlocking the PDF.")
+
+
+@router.post("/rotate-pdf", summary="Rotate pages in a PDF")
+async def rotate_pdf(
+    file: UploadFile = File(...),
+    angle: int = Form(90, description="Rotation angle: 90, 180, or 270"),
+    page_range: str = Form("all", description='Pages to rotate: "all" or "1,3,5-7"'),
+):
+    """Rotate selected pages of a PDF by 90/180/270 degrees."""
+    try:
+        pdf_bytes = await file.read()
+        if not file.filename or not file.filename.lower().endswith(".pdf"):
+            raise HTTPException(status_code=400, detail="Invalid file type. Please upload a PDF file.")
+        if len(pdf_bytes) == 0:
+            raise HTTPException(status_code=400, detail="The uploaded PDF file is empty.")
+
+        rotated = await run_blocking(PDFService.rotate_pdf, pdf_bytes=pdf_bytes, angle=angle, page_range=page_range)
+        base = os.path.splitext(file.filename)[0]
+        output_filename = f"{base}_rotated.pdf"
+        return StreamingResponse(
+            io.BytesIO(rotated),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{output_filename}"',
+                "Content-Length": str(len(rotated)),
+            },
+        )
+    except HTTPException:
+        raise
+    except PDFProcessingError as e:
+        raise HTTPException(status_code=400, detail=e.message)
+    except Exception as e:
+        logger.exception("[rotate_pdf] unexpected error")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred while rotating the PDF.")
+
+
+@router.post("/extract-pages", summary="Extract selected pages into a new PDF")
+async def extract_pages(
+    file: UploadFile = File(...),
+    pages: str = Form(..., description='Pages to extract, e.g. "1,3,5-7"'),
+):
+    """Pull selected pages from a PDF into a single new PDF."""
+    try:
+        pdf_bytes = await file.read()
+        if not file.filename or not file.filename.lower().endswith(".pdf"):
+            raise HTTPException(status_code=400, detail="Invalid file type. Please upload a PDF file.")
+        if len(pdf_bytes) == 0:
+            raise HTTPException(status_code=400, detail="The uploaded PDF file is empty.")
+
+        extracted = await run_blocking(PDFService.extract_pages, pdf_bytes=pdf_bytes, pages=pages)
+        base = os.path.splitext(file.filename)[0]
+        output_filename = f"{base}_extracted.pdf"
+        return StreamingResponse(
+            io.BytesIO(extracted),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{output_filename}"',
+                "Content-Length": str(len(extracted)),
+            },
+        )
+    except HTTPException:
+        raise
+    except PDFProcessingError as e:
+        raise HTTPException(status_code=400, detail=e.message)
+    except Exception as e:
+        logger.exception("[extract_pages] unexpected error")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred while extracting pages.")
 
 
 @router.post("/page-numbering", summary="Add page numbers to PDF")
@@ -1803,12 +1958,13 @@ async def page_numbering(
         if not font_color.startswith("#") or len(font_color) != 7:
             font_color = "#000000"
 
-        print(f"[page_numbering] Processing PDF: {file.filename} "
-              f"(format={number_format}, position={position}, range={page_range}, "
-              f"font_size={font_size}, color={font_color})")
+        logger.debug(f"[page_numbering] Processing PDF: {file.filename} "
+                     f"(format={number_format}, position={position}, range={page_range}, "
+                     f"font_size={font_size}, color={font_color})")
 
         # Apply page numbering
-        numbered_pdf = PDFService.page_numbering(
+        numbered_pdf = await run_blocking(
+            PDFService.page_numbering,
             pdf_bytes=pdf_bytes,
             number_format=number_format,
             starting_number=starting_number,
@@ -1827,8 +1983,8 @@ async def page_numbering(
         base_name = os.path.splitext(file.filename)[0]
         output_filename = f"{base_name}_numbered.pdf"
 
-        print(f"[page_numbering] Successfully added page numbers, returning "
-              f"{len(numbered_pdf)} bytes as '{output_filename}'")
+        logger.debug(f"[page_numbering] Successfully added page numbers, returning "
+                     f"{len(numbered_pdf)} bytes as '{output_filename}'")
 
         return StreamingResponse(
             io.BytesIO(numbered_pdf),
@@ -1842,13 +1998,13 @@ async def page_numbering(
     except HTTPException:
         raise
     except PDFProcessingError as e:
-        print(f"[page_numbering] PDFProcessingError: {e.message}")
+        logger.debug(f"[page_numbering] PDFProcessingError: {e.message}")
         raise HTTPException(
             status_code=500,
             detail=f"Page numbering failed: {e.message}",
         )
     except Exception as e:
-        print(f"[page_numbering] Unexpected error: {type(e).__name__}: {e}")
+        logger.debug(f"[page_numbering] Unexpected error: {type(e).__name__}: {e}")
         raise HTTPException(
             status_code=500,
             detail="An unexpected error occurred while adding page numbers.",
@@ -1868,7 +2024,7 @@ async def organize_pdf(
     Returns the reorganized PDF as a download.
     """
     try:
-        print(f"[organize_pdf] Processing: {file.filename}, page_order={page_order}, deleted_pages={deleted_pages}")
+        logger.debug(f"[organize_pdf] Processing: {file.filename}, page_order={page_order}, deleted_pages={deleted_pages}")
 
         # Validate file
         if not file.filename:
@@ -1890,7 +2046,7 @@ async def organize_pdf(
                 parsed_page_order = json.loads(page_order)
                 if not isinstance(parsed_page_order, list) or not all(isinstance(p, int) for p in parsed_page_order):
                     raise ValueError("page_order must be a JSON array of integers")
-                print(f"[organize_pdf] Parsed page_order: {parsed_page_order}")
+                logger.debug(f"[organize_pdf] Parsed page_order: {parsed_page_order}")
             except (json.JSONDecodeError, ValueError) as e:
                 raise HTTPException(status_code=400, detail=f"Invalid page_order: {str(e)}")
 
@@ -1902,19 +2058,20 @@ async def organize_pdf(
                 parsed_deleted_pages = json.loads(deleted_pages)
                 if not isinstance(parsed_deleted_pages, list) or not all(isinstance(p, int) for p in parsed_deleted_pages):
                     raise ValueError("deleted_pages must be a JSON array of integers")
-                print(f"[organize_pdf] Parsed deleted_pages: {parsed_deleted_pages}")
+                logger.debug(f"[organize_pdf] Parsed deleted_pages: {parsed_deleted_pages}")
             except (json.JSONDecodeError, ValueError) as e:
                 raise HTTPException(status_code=400, detail=f"Invalid deleted_pages: {str(e)}")
 
         # Process via service
-        output_bytes = OrganizePDFService.organize_pdf(
+        output_bytes = await run_blocking(
+            OrganizePDFService.organize_pdf,
             pdf_bytes=content,
             page_order=parsed_page_order,
             deleted_pages=parsed_deleted_pages,
         )
 
         output_filename = f"{file.filename.rsplit('.', 1)[0]}_organized.pdf"
-        print(f"[organize_pdf] Successfully organized, returning {len(output_bytes)} bytes as '{output_filename}'")
+        logger.debug(f"[organize_pdf] Successfully organized, returning {len(output_bytes)} bytes as '{output_filename}'")
 
         return StreamingResponse(
             io.BytesIO(output_bytes),
@@ -1926,10 +2083,10 @@ async def organize_pdf(
         )
 
     except ValueError as ve:
-        print(f"[organize_pdf] Validation error: {ve}")
+        logger.debug(f"[organize_pdf] Validation error: {ve}")
         raise HTTPException(status_code=400, detail=str(ve))
     except PDFProcessingError as e:
-        print(f"[organize_pdf] Processing error: {e.message}")
+        logger.debug(f"[organize_pdf] Processing error: {e.message}")
         raise HTTPException(
             status_code=500,
             detail=f"PDF organization failed: {e.message}",
@@ -1937,7 +2094,7 @@ async def organize_pdf(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[organize_pdf] Unexpected error: {type(e).__name__}: {e}")
+        logger.debug(f"[organize_pdf] Unexpected error: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
         raise HTTPException(
@@ -1958,7 +2115,7 @@ async def ai_tools_analyze(file: UploadFile = File(...)):
 
     Returns JSON with full analysis results.
     """
-    print("[ai-tools] Endpoint called")
+    logger.debug("[ai-tools] Endpoint called")
     try:
         # Validate file
         if not file.filename:
@@ -1974,13 +2131,14 @@ async def ai_tools_analyze(file: UploadFile = File(...)):
         if not pdf_bytes:
             raise HTTPException(status_code=400, detail="Empty file uploaded")
 
-        print(f"[ai-tools] Processing: {file.filename} ({len(pdf_bytes)} bytes)")
+        logger.debug(f"[ai-tools] Processing: {file.filename} ({len(pdf_bytes)} bytes)")
 
         # Run AI analysis
         from app.services.ai_tools_service import analyze_pdf
-        result = analyze_pdf(pdf_bytes)
+        async with heavy_job_slot():
+            result = await run_blocking(analyze_pdf, pdf_bytes)
 
-        print(f"[ai-tools] Analysis complete: summary={len(result['summary'])} chars, "
+        logger.debug(f"[ai-tools] Analysis complete: summary={len(result['summary'])} chars, "
               f"keyPoints={len(result['keyPoints'])}, sentiment={result['sentiment']}")
 
         return result
@@ -1988,7 +2146,7 @@ async def ai_tools_analyze(file: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[ai-tools] Error: {type(e).__name__}: {e}")
+        logger.debug(f"[ai-tools] Error: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
         raise HTTPException(
@@ -2004,7 +2162,7 @@ async def ai_tools_report(file: UploadFile = File(...)):
 
     Returns a .docx file with the complete AI analysis report.
     """
-    print("[ai-tools/report] Endpoint called")
+    logger.debug("[ai-tools/report] Endpoint called")
     try:
         # Validate file
         if not file.filename:
@@ -2020,20 +2178,21 @@ async def ai_tools_report(file: UploadFile = File(...)):
         if not pdf_bytes:
             raise HTTPException(status_code=400, detail="Empty file uploaded")
 
-        print(f"[ai-tools/report] Processing: {file.filename} ({len(pdf_bytes)} bytes)")
+        logger.debug(f"[ai-tools/report] Processing: {file.filename} ({len(pdf_bytes)} bytes)")
 
         # Run AI analysis
         from app.services.ai_tools_service import analyze_pdf, generate_report
-        result = analyze_pdf(pdf_bytes)
+        async with heavy_job_slot():
+            result = await run_blocking(analyze_pdf, pdf_bytes)
 
-        # Generate DOCX report
-        report_bytes = generate_report(result, original_filename=file.filename)
+            # Generate DOCX report
+            report_bytes = await run_blocking(generate_report, result, original_filename=file.filename)
 
         # Determine output filename
         base_name = file.filename.rsplit('.', 1)[0] if '.' in file.filename else file.filename
         download_filename = f"{base_name}_ai_report.docx"
 
-        print(f"[ai-tools/report] Report generated: {download_filename} ({len(report_bytes)} bytes)")
+        logger.debug(f"[ai-tools/report] Report generated: {download_filename} ({len(report_bytes)} bytes)")
 
         return StreamingResponse(
             io.BytesIO(report_bytes),
@@ -2047,7 +2206,7 @@ async def ai_tools_report(file: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[ai-tools/report] Error: {type(e).__name__}: {e}")
+        logger.debug(f"[ai-tools/report] Error: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
         raise HTTPException(
@@ -2062,7 +2221,7 @@ async def ai_tools_report(file: UploadFile = File(...)):
 @router.post('/pdf-to-excel', summary='Convert PDF to Excel spreadsheet')
 async def pdf_to_excel(file: UploadFile = File(...)):
     """Convert PDF to Excel spreadsheet by extracting tables."""
-    print('[pdf-to-excel] Endpoint called')
+    logger.debug('[pdf-to-excel] Endpoint called')
     if not file:
         raise HTTPException(status_code=400, detail='No file provided')
 
@@ -2087,15 +2246,18 @@ async def pdf_to_excel(file: UploadFile = File(...)):
         if file_size > 100 * 1024 * 1024:
             raise HTTPException(status_code=413, detail='File exceeds 100MB limit')
 
-        print(f'[pdf-to-excel] File received: {file.filename} ({file_size} bytes)')
+        logger.debug(f'[pdf-to-excel] File received: {file.filename} ({file_size} bytes)')
 
         from app.services.pdf_to_excel_service import PdfToExcelService
 
         service = PdfToExcelService()
-        excel_bytes, _ = service.convert_to_excel(file_bytes, file.filename or 'document.pdf')
+        async with heavy_job_slot():
+            excel_bytes, _ = await run_blocking(
+                service.convert_to_excel, file_bytes, file.filename or 'document.pdf'
+            )
 
         output_filename = Path(file.filename or 'document').stem + '.xlsx'
-        print(f'[pdf-to-excel] Conversion complete. Output size: {len(excel_bytes)} bytes')
+        logger.debug(f'[pdf-to-excel] Conversion complete. Output size: {len(excel_bytes)} bytes')
 
         return create_file_response(
             file_bytes=excel_bytes,
@@ -2106,10 +2268,10 @@ async def pdf_to_excel(file: UploadFile = File(...)):
     except HTTPException:
         raise
     except ValueError as e:
-        print(f'[pdf-to-excel] ValueError: {e}')
+        logger.debug(f'[pdf-to-excel] ValueError: {e}')
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
-        print(f'[pdf-to-excel] Error: {type(e).__name__}: {e}')
+        logger.debug(f'[pdf-to-excel] Error: {type(e).__name__}: {e}')
         import traceback
         traceback.print_exc()
         raise HTTPException(
@@ -2124,7 +2286,7 @@ async def pdf_to_excel(file: UploadFile = File(...)):
 @router.post('/excel-to-pdf', summary='Convert Excel spreadsheet to PDF')
 async def excel_to_pdf(file: UploadFile = File(...)):
     """Convert Excel spreadsheet (.xlsx/.xls) to PDF."""
-    print('[excel-to-pdf] Endpoint called')
+    logger.debug('[excel-to-pdf] Endpoint called')
     if not file:
         raise HTTPException(status_code=400, detail='No file provided')
 
@@ -2155,15 +2317,18 @@ async def excel_to_pdf(file: UploadFile = File(...)):
         if file_size > 100 * 1024 * 1024:
             raise HTTPException(status_code=413, detail='File exceeds 100MB limit')
 
-        print(f'[excel-to-pdf] File received: {file.filename} ({file_size} bytes)')
+        logger.debug(f'[excel-to-pdf] File received: {file.filename} ({file_size} bytes)')
 
         from app.services.excel_to_pdf_service import ExcelToPdfService
 
         service = ExcelToPdfService()
-        pdf_bytes, _ = service.convert_to_pdf(file_bytes, file.filename or 'spreadsheet.xlsx')
+        async with heavy_job_slot():
+            pdf_bytes, _ = await run_blocking(
+                service.convert_to_pdf, file_bytes, file.filename or 'spreadsheet.xlsx'
+            )
 
         output_filename = Path(file.filename or 'spreadsheet').stem + '.pdf'
-        print(f'[excel-to-pdf] Conversion complete. Output size: {len(pdf_bytes)} bytes')
+        logger.debug(f'[excel-to-pdf] Conversion complete. Output size: {len(pdf_bytes)} bytes')
 
         return create_file_response(
             file_bytes=pdf_bytes,
@@ -2174,13 +2339,192 @@ async def excel_to_pdf(file: UploadFile = File(...)):
     except HTTPException:
         raise
     except ValueError as e:
-        print(f'[excel-to-pdf] ValueError: {e}')
+        logger.debug(f'[excel-to-pdf] ValueError: {e}')
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
-        print(f'[excel-to-pdf] Error: {type(e).__name__}: {e}')
+        logger.debug(f'[excel-to-pdf] Error: {type(e).__name__}: {e}')
         import traceback
         traceback.print_exc()
         raise HTTPException(
             status_code=500,
             detail=f'Excel-to-PDF conversion failed: {str(e)}',
         )
+
+
+@router.post("/powerpoint-to-pdf", summary="Convert PowerPoint to PDF")
+async def powerpoint_to_pdf(file: UploadFile = File(...)):
+    """Convert .ppt/.pptx to PDF using LibreOffice (same engine as word-to-pdf)."""
+    from app.services.pptx_service import PptxService
+
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="File must have a filename.")
+    name_lower = file.filename.lower()
+    if not (name_lower.endswith(".ppt") or name_lower.endswith(".pptx")):
+        raise HTTPException(
+            status_code=415,
+            detail="File must be a PowerPoint document (.ppt or .pptx).",
+        )
+
+    try:
+        ppt_bytes = await read_upload_file(file)
+        if not ppt_bytes:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+        async with heavy_job_slot():
+            pdf_bytes = await run_blocking(PptxService.pptx_to_pdf, ppt_bytes, file.filename)
+        base = os.path.splitext(file.filename)[0]
+        return create_file_response(pdf_bytes, f"{base}_converted.pdf", media_type="application/pdf")
+    except HTTPException:
+        raise
+    except PDFProcessingError as e:
+        raise HTTPException(status_code=500, detail=e.message)
+    except Exception as e:
+        logger.exception("[powerpoint_to_pdf] unexpected error")
+        raise HTTPException(status_code=500, detail=f"PowerPoint to PDF failed: {e}")
+
+
+@router.post("/pdf-to-powerpoint", summary="Convert PDF to PowerPoint")
+async def pdf_to_powerpoint(file: UploadFile = File(...)):
+    """Convert PDF to .pptx by rendering each page as a slide-sized image."""
+    from app.services.pptx_service import PptxService
+
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Invalid file type. Please upload a PDF file.")
+
+    try:
+        pdf_bytes = await file.read()
+        if not pdf_bytes:
+            raise HTTPException(status_code=400, detail="Uploaded PDF is empty.")
+
+        async with heavy_job_slot():
+            pptx_bytes = await run_blocking(PptxService.pdf_to_pptx, pdf_bytes)
+        base = os.path.splitext(file.filename)[0]
+        return create_file_response(
+            pptx_bytes,
+            f"{base}_converted.pptx",
+            media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        )
+    except HTTPException:
+        raise
+    except PDFProcessingError as e:
+        raise HTTPException(status_code=400, detail=e.message)
+    except Exception as e:
+        logger.exception("[pdf_to_powerpoint] unexpected error")
+        raise HTTPException(status_code=500, detail=f"PDF to PowerPoint failed: {e}")
+
+
+@router.post("/ocr-pdf", summary="Make a scanned PDF searchable with OCR")
+async def ocr_pdf(
+    file: UploadFile = File(...),
+    language: str = Form("eng", description="OCR language code (eng or hin)"),
+):
+    """Add an invisible text layer to a scanned PDF using ocrmypdf."""
+    from app.services.ocr_pdf_service import OcrPdfService
+
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Invalid file type. Please upload a PDF file.")
+
+    try:
+        pdf_bytes = await file.read()
+        if not pdf_bytes:
+            raise HTTPException(status_code=400, detail="Uploaded PDF is empty.")
+
+        async with heavy_job_slot():
+            searchable = await OcrPdfService.ocr_pdf(pdf_bytes, language=language)
+        base = os.path.splitext(file.filename)[0]
+        return create_file_response(
+            searchable,
+            f"{base}_searchable.pdf",
+            media_type="application/pdf",
+        )
+    except HTTPException:
+        raise
+    except PDFProcessingError as e:
+        # Ghostscript missing / language unsupported is a 400, not 500.
+        raise HTTPException(status_code=400, detail=e.message)
+    except Exception as e:
+        logger.exception("[ocr_pdf] unexpected error")
+        raise HTTPException(status_code=500, detail=f"OCR failed: {e}")
+
+
+@router.post("/sign-pdf", summary="Stamp a signature image onto one or more PDF positions")
+async def sign_pdf(
+    file: UploadFile = File(..., description="PDF to sign"),
+    signature: UploadFile = File(..., description="Signature image (PNG/JPG)"),
+    placements: Optional[str] = Form(
+        None,
+        description='JSON array of {"page_index","x","y","width","height"} objects (ratios 0..1)',
+    ),
+    page_index: Optional[int] = Form(None, ge=0, description="Legacy: single placement page index"),
+    x: Optional[float] = Form(None, description="Legacy: single placement x ratio"),
+    y: Optional[float] = Form(None, description="Legacy: single placement y ratio"),
+    width: Optional[float] = Form(None, description="Legacy: single placement width ratio"),
+    height: Optional[float] = Form(None, description="Legacy: single placement height ratio"),
+):
+    """Stamp a signature image at one or more positions across the PDF.
+
+    Prefer the `placements` JSON array. The flat form fields are kept for
+    backward compatibility with the original single-placement clients.
+    """
+    import json
+
+    from app.services.sign_pdf_service import SignPdfService
+
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Invalid file type. Please upload a PDF file.")
+
+    try:
+        pdf_bytes = await file.read()
+        sig_bytes = await signature.read()
+        if not pdf_bytes:
+            raise HTTPException(status_code=400, detail="Uploaded PDF is empty.")
+        if not sig_bytes:
+            raise HTTPException(status_code=400, detail="Signature image is empty.")
+
+        parsed: list[tuple[int, float, float, float, float]] = []
+        if placements:
+            try:
+                raw = json.loads(placements)
+            except json.JSONDecodeError as e:
+                raise HTTPException(status_code=400, detail=f"placements is not valid JSON: {e}")
+            if not isinstance(raw, list) or not raw:
+                raise HTTPException(status_code=400, detail="placements must be a non-empty array.")
+            for i, item in enumerate(raw):
+                if not isinstance(item, dict):
+                    raise HTTPException(status_code=400, detail=f"placements[{i}] must be an object.")
+                try:
+                    parsed.append((
+                        int(item["page_index"]),
+                        float(item["x"]),
+                        float(item["y"]),
+                        float(item["width"]),
+                        float(item["height"]),
+                    ))
+                except (KeyError, TypeError, ValueError) as e:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"placements[{i}] missing/invalid field: {e}",
+                    )
+        else:
+            if None in (page_index, x, y, width, height):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Provide either `placements` JSON or all of page_index/x/y/width/height.",
+                )
+            parsed.append((int(page_index), float(x), float(y), float(width), float(height)))
+
+        signed = await run_blocking(
+            SignPdfService.sign_pdf,
+            pdf_bytes=pdf_bytes,
+            signature_png_bytes=sig_bytes,
+            placements=parsed,
+        )
+        base = os.path.splitext(file.filename)[0]
+        return create_file_response(signed, f"{base}_signed.pdf", media_type="application/pdf")
+    except HTTPException:
+        raise
+    except PDFProcessingError as e:
+        raise HTTPException(status_code=400, detail=e.message)
+    except Exception as e:
+        logger.exception("[sign_pdf] unexpected error")
+        raise HTTPException(status_code=500, detail=f"Signing failed: {e}")

@@ -8,6 +8,7 @@ import { FileText, Download, Sparkles, Loader2, Trash2, AlertCircle, CheckCircle
 import { toast } from "sonner";
 import { useToolProcessing } from "@/hooks/use-tool-processing";
 import { useState, useEffect } from "react";
+import { ButtonLoader } from "@/components/brand-loader";
 
 export function WordToPDFClient() {
   const t = useTranslations("word_to_pdf");
@@ -156,7 +157,7 @@ export function WordToPDFClient() {
           {isLoading && (
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
               <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                <ButtonLoader />
                 <div>
                   <p className="font-medium">{t("converting")}</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{stageMessage || tp("processing_progress")}</p>
@@ -233,7 +234,7 @@ export function WordToPDFClient() {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <ButtonLoader />
                   {t("converting")}
                 </>
               ) : (

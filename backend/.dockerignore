@@ -1,0 +1,21 @@
+# Keep the build context small and avoid leaking local state into the image.
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+env/
+*.log
+uvicorn.log
+.env
+.env.*
+!.env.production.example
+data/
+temp/
+*.pdf
+*.docx
+*.xlsx
+*.pptx
+.git
+.gitignore

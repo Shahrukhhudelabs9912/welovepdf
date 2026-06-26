@@ -11,15 +11,13 @@ export interface ApiResponse<T = any> {
 }
 
 // Configuration
-const USE_PYTHON_BACKEND = process.env.NEXT_PUBLIC_USE_PYTHON_BACKEND === 'true';
-const PYTHON_API_BASE = process.env.NEXT_PUBLIC_PYTHON_API_BASE || 'http://localhost:8000/api';
+// All client-side requests go through Next.js server-side proxy routes at
+// /api/* (defined in app/api/*/route.ts). This keeps the Python backend URL
+// out of the browser bundle so it's never exposed to end users.
 const NEXT_API_BASE = '/api';
 
 // Get the appropriate API base URL
 function getApiBase(endpoint: string): string {
-  if (USE_PYTHON_BACKEND) {
-    return `${PYTHON_API_BASE}${endpoint}`;
-  }
   return `${NEXT_API_BASE}${endpoint}`;
 }
 

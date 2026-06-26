@@ -15,6 +15,11 @@ from app.utils.error_handlers import (
     validate_uploaded_files,
     create_error_response,
 )
+from app.utils.concurrency import (
+    run_blocking,
+    heavy_job_slot,
+    resolve_libreoffice_path,
+)
 
 __all__ = [
     "validate_file_type",
@@ -27,4 +32,7 @@ __all__ = [
     "handle_pdf_error",
     "validate_uploaded_files",
     "create_error_response",
+    "run_blocking",
+    "heavy_job_slot",
+    "resolve_libreoffice_path",
 ]

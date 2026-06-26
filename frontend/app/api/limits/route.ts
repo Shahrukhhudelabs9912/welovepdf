@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const PYTHON_API_BASE =
-  process.env.NEXT_PUBLIC_PYTHON_API_BASE || "http://localhost:8000/api";
+  process.env.PYTHON_API_BASE || "http://localhost:8000/api";
 
 /**
  * Proxy /api/limits to the Python backend, forwarding the user's

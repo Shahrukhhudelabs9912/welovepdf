@@ -1,4 +1,5 @@
 """Application configuration settings."""
+import logging
 from pydantic_settings import BaseSettings
 from pydantic_settings.sources import (
     DotEnvSettingsSource,
@@ -100,6 +101,18 @@ class Settings(BaseSettings):
     # PDF processing settings
     POPPLER_PATH: Optional[str] = None
 
+    # LibreOffice headless binary (Word/PowerPoint/Excel -> PDF). When unset,
+    # the resolver auto-detects `soffice`/`libreoffice` on PATH (Linux/macOS)
+    # or the Windows default install dir. Set explicitly on a VPS if the
+    # binary lives somewhere non-standard, e.g.
+    #   LIBREOFFICE_PATH=/usr/bin/soffice
+    LIBREOFFICE_PATH: Optional[str] = None
+
+    # Max heavy jobs (AI / OCR / LibreOffice) running at once per worker.
+    # Bounds RAM/CPU so a burst of expensive requests can't exhaust the box.
+    # Stop-gap until a real task queue (Celery/RQ) is added.
+    HEAVY_JOB_CONCURRENCY: int = 4
+
     # MongoDB settings
     MONGO_URL: str = "mongodb://localhost:27017"
     MONGO_DB_NAME: str = "welovepdf"
@@ -120,6 +133,13 @@ class Settings(BaseSettings):
 
     # User data storage (legacy)
     USERS_FILE: str = "data/users.json"
+
+    # Force dnspython to use Google DNS (8.8.8.8) for mongodb+srv:// SRV
+    # lookups when the host's default DNS doesn't return SRV records (common
+    # on Windows + ISP DNS). Off by default — when on, every dnspython lookup
+    # in the process uses Google DNS, which can break Sentry/SMTP on corporate
+    # networks that block public DNS egress.
+    FORCE_PUBLIC_DNS: bool = False
 
     class Config:
         env_file = ".env"
@@ -168,6 +188,7 @@ def _validate_production_safety(s: Settings) -> None:
 
 settings = Settings()
 _validate_production_safety(settings)
-print(f"[Settings] ENVIRONMENT = {settings.ENVIRONMENT}")
-print(f"[Settings] POPPLER_PATH = {settings.POPPLER_PATH}")
-print("[Settings] Environment file loaded from: .env")
+logger = logging.getLogger(__name__)
+logger.info(f"[Settings] ENVIRONMENT = {settings.ENVIRONMENT}")
+logger.info(f"[Settings] POPPLER_PATH = {settings.POPPLER_PATH}")
+logger.info("[Settings] Environment file loaded from: .env")

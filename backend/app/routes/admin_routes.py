@@ -14,7 +14,7 @@ This is good enough for a single-operator side project. If multiple admins
 join, swap this for a proper auth scheme (JWT roles, OAuth, etc.).
 """
 from __future__ import annotations
-
+import secrets
 import shutil
 import tempfile
 
@@ -35,7 +35,8 @@ def require_admin_token(authorization: str | None = Header(default=None)) -> Non
             detail="Admin endpoints disabled. Set ADMIN_TOKEN to enable.",
         )
     expected = f"Bearer {settings.ADMIN_TOKEN}"
-    if authorization != expected:
+    # if authorization != expected:
+    if not authorization or not secrets.compare_digest(authorization, expected):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or missing admin token.",

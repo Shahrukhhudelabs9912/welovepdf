@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { FullPageLoader } from "@/components/brand-loader";
 
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg";
@@ -48,12 +49,5 @@ export function LoadingSpinner({ size = "md", className, label }: LoadingSpinner
  * Full-page loading overlay for route transitions
  */
 export function PageLoader() {
-  return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <LoadingSpinner size="lg" />
-        <p className="text-sm text-gray-500 dark:text-gray-400">Loading...</p>
-      </div>
-    </div>
-  );
+  return <FullPageLoader label="Loading..." />;
 }

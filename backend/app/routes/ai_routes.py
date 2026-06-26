@@ -16,6 +16,7 @@ from app.services.auth_service import (
 )
 from app.utils.db_utils import get_database
 from app.utils.rate_limit import limiter
+from app.utils import run_blocking, heavy_job_slot
 from app.config import settings
 
 logger = logging.getLogger("ai_routes")
@@ -132,8 +133,9 @@ async def analyze_pdf_endpoint(
                     detail="Daily analysis limit reached. Upgrade to Pro for unlimited access.",
                 )
 
-        # Run analysis (synchronous CPU-bound call — consider run_in_executor for large files)
-        result = analyze_pdf(pdf_bytes)
+        # Run analysis off the event loop (CPU-bound: torch/transformers).
+        async with heavy_job_slot():
+            result = await run_blocking(analyze_pdf, pdf_bytes)
         result["filename"] = file.filename
 
         # Increment usage counter for authenticated users
@@ -205,7 +207,7 @@ async def generate_report_endpoint(
                     detail="Daily report export limit reached. Upgrade to Pro for unlimited reports.",
                 )
 
-        docx_bytes = generate_report(analysis_result, file.filename or "document.pdf")
+        docx_bytes = await run_blocking(generate_report, analysis_result, file.filename or "document.pdf")
 
         # Increment usage counter for authenticated users
         if current_user:

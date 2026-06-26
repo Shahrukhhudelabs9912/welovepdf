@@ -67,7 +67,7 @@ export default function DashboardReportsPage() {
       formData.append("wordCount", String(item.word_count));
       formData.append("pageCount", String(item.page_count));
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/ai-tools/report`, {
+      const res = await fetch("/api/ai-tools/report", {
         method: "POST",
         headers: { Authorization: `Bearer ${tokens.access_token}` },
         body: formData,

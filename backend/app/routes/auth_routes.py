@@ -3,6 +3,7 @@
 Provides: signup, login, logout, forgot-password, reset-password, me (user info),
 and token refresh endpoints. All endpoints use JSON request/response bodies.
 """
+import logging
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Response, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -42,6 +43,7 @@ from app.utils.rate_limit import limiter
 
 router = APIRouter(tags=["Authentication"])
 security = HTTPBearer(auto_error=False)
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -175,7 +177,7 @@ async def signup(request: Request, body: SignupRequest):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[auth/signup] Error: {type(e).__name__}: {e}")
+        logger.debug(f"[auth/signup] Error: {type(e).__name__}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred during signup.",
@@ -211,7 +213,7 @@ async def login(request: Request, body: LoginRequest):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[auth/login] Error: {type(e).__name__}: {e}")
+        logger.debug(f"[auth/login] Error: {type(e).__name__}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred during login.",
@@ -262,7 +264,7 @@ async def forgot_password(request: ForgotPasswordRequest):
 
         return response
     except Exception as e:
-        print(f"[auth/forgot-password] Error: {type(e).__name__}: {e}")
+        logger.debug(f"[auth/forgot-password] Error: {type(e).__name__}: {e}")
         # Always return the same message regardless of whether the email exists
         return ForgotPasswordResponse()
 
@@ -288,7 +290,7 @@ async def reset_password(request: ResetPasswordRequest):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[auth/reset-password] Error: {type(e).__name__}: {e}")
+        logger.debug(f"[auth/reset-password] Error: {type(e).__name__}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred during password reset.",
@@ -322,7 +324,7 @@ async def refresh_token(request: RefreshTokenRequest):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[auth/refresh] Error: {type(e).__name__}: {e}")
+        logger.debug(f"[auth/refresh] Error: {type(e).__name__}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred during token refresh.",

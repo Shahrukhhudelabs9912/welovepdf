@@ -8,6 +8,7 @@ import { Scissors, Download, Settings, File, X, Check } from "lucide-react";
 import { toast } from "sonner";
 import { processFiles } from "@/lib/api-client";
 import { useFileContext } from "@/lib/file-context";
+import { ButtonLoader } from "@/components/brand-loader";
 
 export function SplitPDFClient() {
   const t = useTranslations("split_pdf");
@@ -320,7 +321,7 @@ export function SplitPDFClient() {
         >
           {isProcessing ? (
             <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <ButtonLoader />
               {t("splitting")}
             </>
           ) : (

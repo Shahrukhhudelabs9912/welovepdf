@@ -1,7 +1,7 @@
 "use client";
 
-import { Skeleton, ToolPageSkeleton } from "@/components/skeleton-loader";
+import { FullPageLoader } from "@/components/brand-loader";
 
 export default function Loading() {
-  return <ToolPageSkeleton />;
+  return <FullPageLoader label="Loading…" />;
 }

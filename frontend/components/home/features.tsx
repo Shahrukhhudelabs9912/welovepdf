@@ -92,17 +92,17 @@ export function FeaturesSection() {
               </p>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold">50M+</div>
-              <div className="mt-2 text-lg">{t("features.stats.processed")}</div>
-              <p className="mt-2 text-blue-100">
-                {t("features.stats.processed_desc")}
-              </p>
-            </div>
-            <div className="text-center lg:text-right">
               <div className="text-4xl font-bold">{"<2s"}</div>
               <div className="mt-2 text-lg">{t("features.stats.avg_time")}</div>
               <p className="mt-2 text-blue-100">
                 {t("features.stats.avg_time_desc")}
+              </p>
+            </div>
+            <div className="text-center lg:text-right">
+              <div className="text-4xl font-bold">24/7</div>
+              <div className="mt-2 text-lg">{t("features.stats.available")}</div>
+              <p className="mt-2 text-blue-100">
+                {t("features.stats.available_desc")}
               </p>
             </div>
           </div>

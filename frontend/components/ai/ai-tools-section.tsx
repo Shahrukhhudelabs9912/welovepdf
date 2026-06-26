@@ -16,13 +16,13 @@ import {
   X,
   Upload,
   AlertCircle,
-  Loader2,
   BarChart,
   Share2,
 } from "lucide-react";
 import { cn, formatFileSize } from "@/lib/utils";
 import { triggerDownload } from "@/lib/download-utils";
 import { useTranslations } from "next-intl";
+import { ButtonLoader, AIProcessingLoader } from "@/components/brand-loader";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -409,7 +409,7 @@ export function AIToolsSection() {
                   >
                     {(status === "uploading" || status === "processing") ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <ButtonLoader />
                         {t("analyzing")}
                       </>
                     ) : status === "idle" ? (
@@ -494,7 +494,7 @@ export function AIToolsSection() {
               <div className="text-center py-12">
                 <div className="inline-flex items-center justify-center p-4 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
                   {status === "uploading" || status === "processing" ? (
-                    <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+                    <ButtonLoader />
                   ) : status === "error" ? (
                     <AlertCircle className="h-8 w-8 text-red-400" />
                   ) : (
@@ -677,7 +677,7 @@ export function AIToolsSection() {
                     >
                       {isDownloading ? (
                         <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <ButtonLoader />
                           {t("generating_report")}
                         </>
                       ) : (

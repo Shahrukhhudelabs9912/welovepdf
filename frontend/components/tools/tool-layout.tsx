@@ -2,7 +2,10 @@
 
 import { ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 import { FileText, Shield, Zap, Globe, Check } from "lucide-react";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
 
 interface ToolLayoutProps {
   title: string;
@@ -30,6 +33,7 @@ export function ToolLayout({
   seoContent,
 }: ToolLayoutProps) {
   const t = useTranslations("tool_pages");
+  const pathname = usePathname();
   // Read tool-specific translations when toolKey is provided
   const tt = toolKey ? useTranslations(toolKey as any) : null;
   const displayTitle = tt?.("title" as any) || title;

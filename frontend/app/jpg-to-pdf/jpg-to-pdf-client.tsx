@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
+import { ButtonLoader } from "@/components/brand-loader";
 import { Image, Download, FileImage, Settings, X, Check } from "lucide-react";
 import { toast } from "sonner";
 import { processFiles } from "@/lib/api-client";
@@ -308,7 +309,7 @@ export function JPGToPDFClient() {
         >
           {isProcessing ? (
             <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <ButtonLoader />
               {t("converting")}
             </>
           ) : (

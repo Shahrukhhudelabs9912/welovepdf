@@ -1,12 +1,23 @@
 """
 Excel to PDF conversion service for WeLovePDF.
-Uses pandas/openpyxl for Excel reading and reportlab for PDF generation.
+
+Primary path: render the *actual* spreadsheet to PDF with LibreOffice headless
+(the same engine word-to-pdf / powerpoint-to-pdf already use). This preserves
+the real Excel layout — fonts, colours, merged cells, column widths, number
+formats — and matches what iLovePDF / SmallPDF produce. Before handing the
+file to LibreOffice we force every sheet to "fit all columns on one page" so
+wide, data-heavy sheets scale down to the page instead of being cut off.
+
+Fallback path: if LibreOffice is unavailable, rebuild a basic table with
+pandas + reportlab (lower fidelity, but better than failing).
 """
 import io
 import uuid
 import logging
 import os
+import subprocess
 import tempfile
+from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
@@ -30,6 +41,10 @@ from reportlab.platypus import (
 from reportlab.platypus.flowables import HRFlowable
 
 logger = logging.getLogger(__name__)
+
+# LibreOffice binary is resolved at runtime via resolve_libreoffice_path()
+# (env LIBREOFFICE_PATH → PATH → OS default), shared with Word/PowerPoint.
+from app.utils.concurrency import resolve_libreoffice_path
 
 
 class ExcelToPdfService:
@@ -160,17 +175,176 @@ class ExcelToPdfService:
         """
         Convert an Excel file to a PDF document.
 
-        Args:
-            excel_bytes: Raw Excel file content.
-            original_filename: Original filename for deriving output name.
+        Tries LibreOffice headless first (high-fidelity, matches the real
+        spreadsheet layout like iLovePDF / SmallPDF). Falls back to the
+        reportlab table renderer if LibreOffice isn't available or fails.
 
         Returns:
             Tuple of (pdf_bytes, output_filename).
+        """
+        logger.info(f"Starting Excel to PDF conversion for: {original_filename}")
+        base_filename = os.path.splitext(original_filename)[0]
+        output_filename = f"{base_filename}.pdf"
+
+        # Primary: LibreOffice headless — same engine as word/powerpoint-to-pdf.
+        if resolve_libreoffice_path():
+            try:
+                pdf_bytes = ExcelToPdfService._convert_with_libreoffice(
+                    excel_bytes, original_filename
+                )
+                logger.info(
+                    f"Excel to PDF (LibreOffice) complete: {len(pdf_bytes)} bytes"
+                )
+                return pdf_bytes, output_filename
+            except Exception as e:
+                logger.warning(
+                    f"LibreOffice Excel-to-PDF failed ({e}); "
+                    "falling back to reportlab renderer."
+                )
+        else:
+            logger.warning(
+                "LibreOffice not found; using reportlab fallback for Excel-to-PDF."
+            )
+
+        # Fallback: rebuild a basic table with pandas + reportlab.
+        return ExcelToPdfService._convert_with_reportlab(excel_bytes, original_filename)
+
+    @staticmethod
+    def _prepare_workbook_for_print(input_path: Path) -> None:
+        """
+        Force every sheet to scale all columns onto a single page width (and
+        landscape for wide sheets). This is what stops large, many-column
+        spreadsheets from being clipped at the right edge — LibreOffice honours
+        these print settings when it exports to PDF.
+
+        Best-effort: skipped silently for non-.xlsx inputs.
+        """
+        if input_path.suffix.lower() not in (".xlsx", ".xlsm"):
+            return
+        try:
+            wb = load_workbook(input_path)
+        except Exception as e:
+            logger.info(f"Could not open workbook to set print scaling: {e}")
+            return
+
+        try:
+            from openpyxl.worksheet.properties import PageSetupProperties
+        except Exception:
+            PageSetupProperties = None
+
+        # Up to this many columns: safe to fit on one portrait page.
+        NARROW_FIT_COLS = 6
+        # Up to this many columns: still fit on one page, but in landscape.
+        LANDSCAPE_FIT_COLS = 12
+        # Mild zoom-out for wide sheets — keeps more columns per page while
+        # staying legible (LibreOffice paginates the rest onto extra pages).
+        WIDE_SHEET_SCALE = 75  # percent
+
+        for ws in wb.worksheets:
+            try:
+                max_col = ws.max_column or 1
+
+                ws.page_margins.left = 0.3
+                ws.page_margins.right = 0.3
+                ws.page_margins.top = 0.5
+                ws.page_margins.bottom = 0.5
+
+                if max_col <= NARROW_FIT_COLS:
+                    # Narrow sheet: one page wide, portrait, font stays large.
+                    ws.page_setup.orientation = "portrait"
+                    ws.page_setup.fitToWidth = 1
+                    ws.page_setup.fitToHeight = 0
+                    if PageSetupProperties is not None:
+                        ws.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
+                elif max_col <= LANDSCAPE_FIT_COLS:
+                    # Medium sheet: one page wide but landscape for legibility.
+                    ws.page_setup.orientation = "landscape"
+                    ws.page_setup.fitToWidth = 1
+                    ws.page_setup.fitToHeight = 0
+                    if PageSetupProperties is not None:
+                        ws.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
+                else:
+                    # Wide sheet: do NOT crush everything onto one page (that is
+                    # what made the font unreadable). Keep cells legible and let
+                    # the extra columns flow onto additional pages.
+                    ws.page_setup.orientation = "landscape"
+                    ws.page_setup.fitToWidth = 0
+                    ws.page_setup.fitToHeight = 0
+                    if PageSetupProperties is not None:
+                        ws.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=False)
+                    ws.page_setup.scale = WIDE_SHEET_SCALE
+
+                # Repeat the header row on every page so multi-page output stays usable.
+                if ws.max_row and ws.max_row > 1:
+                    ws.print_title_rows = "1:1"
+            except Exception as e:
+                logger.info(f"Print-setup tweak skipped for a sheet: {e}")
+
+        wb.save(input_path)
+
+    @staticmethod
+    def _convert_with_libreoffice(excel_bytes: bytes, original_filename: str) -> bytes:
+        """Render the real spreadsheet to PDF via LibreOffice headless."""
+        safe_name = os.path.basename(original_filename) or "spreadsheet.xlsx"
+        if not os.path.splitext(safe_name)[1]:
+            safe_name += ".xlsx"
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            input_path = tmp_path / safe_name
+            input_path.write_bytes(excel_bytes)
+
+            # Force fit-to-width / landscape before exporting so data-heavy
+            # sheets scale to the page instead of being cut off.
+            ExcelToPdfService._prepare_workbook_for_print(input_path)
+
+            libreoffice_path = resolve_libreoffice_path()
+            if not libreoffice_path:
+                raise RuntimeError("LibreOffice is not installed on the server.")
+
+            # Unique profile dir so parallel LibreOffice runs don't collide.
+            profile_dir = tmp_path / f"lo_profile_{uuid.uuid4().hex[:8]}"
+            cmd = [
+                libreoffice_path,
+                "--headless",
+                f"-env:UserInstallation=file:///{profile_dir.as_posix().lstrip('/')}",
+                "--convert-to",
+                "pdf:calc_pdf_Export",
+                "--outdir",
+                str(tmp_path),
+                str(input_path),
+            ]
+            try:
+                result = subprocess.run(
+                    cmd, capture_output=True, text=True, timeout=180
+                )
+            except subprocess.TimeoutExpired:
+                raise RuntimeError("Excel to PDF conversion timed out.")
+
+            if result.returncode != 0:
+                raise RuntimeError(
+                    f"LibreOffice failed: {result.stderr[:200] or 'unknown error'}"
+                )
+
+            pdfs = list(tmp_path.glob("*.pdf"))
+            if not pdfs:
+                raise RuntimeError("Conversion completed but no PDF was generated.")
+            return pdfs[0].read_bytes()
+
+    @staticmethod
+    def _convert_with_reportlab(
+        excel_bytes: bytes,
+        original_filename: str = "document.xlsx",
+    ) -> tuple[bytes, str]:
+        """
+        Lower-fidelity fallback: read the data with pandas and rebuild a
+        styled table with reportlab. Used only when LibreOffice is missing
+        or errors out.
 
         Raises:
             ValueError: If conversion fails.
         """
-        logger.info(f"Starting Excel to PDF conversion for: {original_filename}")
+        logger.info(f"Starting Excel to PDF (reportlab fallback) for: {original_filename}")
 
         try:
             # Step 1: Read Excel sheets with engine auto-detection

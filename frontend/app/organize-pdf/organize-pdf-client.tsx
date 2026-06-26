@@ -2,9 +2,10 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
+import { ButtonLoader } from "@/components/brand-loader";
 import {
   ListOrdered, SortAsc, SortDesc, Grid, Columns,
-  Download, Loader2, RefreshCw, AlertCircle, CheckCircle2
+  Download, RefreshCw, AlertCircle, CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FileUpload } from "@/components/file-upload";
@@ -37,9 +38,7 @@ const SortablePageThumbnail = dynamic(
   { ssr: false }
 );
 
-const ORGANIZE_PDF_ENDPOINT = process.env.NEXT_PUBLIC_USE_PYTHON_BACKEND === "true"
-  ? `${process.env.NEXT_PUBLIC_PYTHON_API_BASE || "http://localhost:8000/api"}/organize-pdf`
-  : "/api/organize-pdf";
+const ORGANIZE_PDF_ENDPOINT = "/api/organize-pdf";
 
 interface PageItem {
   id: string;
@@ -314,7 +313,7 @@ export function OrganizePDFClient() {
         {/* Page Detection Status */}
         {hasFiles && isDetecting && (
           <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 flex items-center gap-3">
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            <ButtonLoader />
             <p className="text-gray-600 dark:text-gray-400">{t("detecting_pages")}</p>
           </div>
         )}
@@ -482,7 +481,7 @@ export function OrganizePDFClient() {
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <ButtonLoader />
                       {t("organizing_button")}
                     </>
                   ) : (

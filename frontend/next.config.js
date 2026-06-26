@@ -3,6 +3,11 @@ const withNextIntl = createNextIntlPlugin();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Produce a self-contained server bundle (.next/standalone) for a small
+  // production Docker image — only the files actually needed are copied and
+  // node_modules is pruned. See frontend/Dockerfile.
+  output: "standalone",
+
   // Transpile ESM-only packages (pdfjs-dist@5.x) so Next.js webpack handles them correctly
   transpilePackages: ["pdfjs-dist", "react-pdf"],
 
@@ -64,7 +69,7 @@ const nextConfig = {
         cacheGroups: {
           ...config.optimization.splitChunks?.cacheGroups,
           vendor: {
-            test: /[\\/]node_modules[\\/](framer-motion|@dnd-kit|pdfjs-dist|react-pdf|axios|sonner)[\\/]/,
+            test: /[\\/]node_modules[\\/](framer-motion|@dnd-kit|axios|sonner)[\\/]/,
             name: "vendor-heavy",
             priority: 10,
             chunks: "all",

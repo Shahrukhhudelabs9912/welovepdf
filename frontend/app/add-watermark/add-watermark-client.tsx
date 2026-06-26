@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { processFiles } from "@/lib/api-client";
 import { useFileContext } from "@/lib/file-context";
 import { useTranslations } from "next-intl";
+import { ButtonLoader } from "@/components/brand-loader";
 
 // We'll use a simple iframe for PDF preview instead of react-pdf to avoid SSR issues
 
@@ -507,7 +508,7 @@ export function AddWatermarkClient() {
         >
           {loading ? (
             <>
-              <RotateCw className="h-4 w-4 animate-spin" />
+              <ButtonLoader />
               {t("adding")}
             </>
           ) : (

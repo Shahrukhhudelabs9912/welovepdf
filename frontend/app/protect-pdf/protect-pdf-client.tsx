@@ -13,9 +13,7 @@ import { downloadBlob } from "@/lib/api-client";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
-const PROTECT_PDF_ENDPOINT = process.env.NEXT_PUBLIC_USE_PYTHON_BACKEND === "true"
-  ? `${process.env.NEXT_PUBLIC_PYTHON_API_BASE || "http://localhost:8000/api"}/protect-pdf`
-  : "/api/protect-pdf";
+const PROTECT_PDF_ENDPOINT = "/api/protect-pdf";
 
 export function ProtectPDFClient() {
   const t = useTranslations("protect_pdf");
