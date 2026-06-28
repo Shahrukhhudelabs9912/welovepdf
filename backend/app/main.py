@@ -5,7 +5,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 import uvicorn
 
-from app.routes import pdf_routes, auth_routes, ai_routes, dashboard_routes, admin_routes
+from app.routes import pdf_routes, auth_routes, ai_routes, dashboard_routes, admin_routes, contact_routes
 from app.config import settings
 from app.utils.db_utils import connect_to_mongo, close_mongo_connection
 from app.services.cleanup_service import CleanupScheduler
@@ -62,6 +62,7 @@ app.include_router(auth_routes.router, prefix="/api", tags=["Authentication"])
 app.include_router(ai_routes.router, prefix="/api", tags=["AI Tools"])
 app.include_router(dashboard_routes.router, prefix="/api", tags=["Dashboard"])
 app.include_router(admin_routes.router, prefix="/api/admin", tags=["Admin"])
+app.include_router(contact_routes.router, prefix="/api", tags=["Contact"])
 
 # Background file cleanup scheduler. Lifecycle is bound to app startup/shutdown.
 cleanup_scheduler = CleanupScheduler()

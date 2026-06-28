@@ -48,3 +48,7 @@ motor==3.7.0
 slowapi>=0.1.9
 # Sentry error tracking. No-op until SENTRY_DSN is set in .env.
 sentry-sdk[fastapi]>=2.0.0
+# Async HTTP client — used by the Resend transactional email integration.
+# FastAPI already pulls httpx in transitively but we declare it so deploys
+# never break if starlette upgrades to a different transport.
+httpx>=0.27.0

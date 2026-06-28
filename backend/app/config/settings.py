@@ -131,6 +131,11 @@ class Settings(BaseSettings):
     SMTP_FROM_EMAIL: str = "noreply@welovepdf.com"
     RESEND_API_KEY: str = ""
 
+    # Contact form destination — where the website contact form delivers messages.
+    # Leave blank to skip email delivery (submissions still land in MongoDB).
+    CONTACT_TO_EMAIL: str = ""
+    CONTACT_FROM_EMAIL: str = "noreply@welovepdf.app"
+
     # User data storage (legacy)
     USERS_FILE: str = "data/users.json"
 

@@ -76,6 +76,10 @@ async def connect_to_mongo() -> None:
         [("user_id", 1), ("action", 1), ("timestamp", -1)], background=True
     )
 
+    # Contact form submissions — sort by recency, and let support search by email.
+    await _db.contact_submissions.create_index([("submitted_at", -1)], background=True)
+    await _db.contact_submissions.create_index("email", background=True)
+
     # Ping to verify connectivity
     await _client.admin.command("ping")
     # Log the DB name only — never the full MONGO_URL, which contains the
