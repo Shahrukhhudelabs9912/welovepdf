@@ -79,7 +79,7 @@ class Settings(BaseSettings):
 
     # Admin token gates manual cleanup/admin endpoints. Required in production.
     ADMIN_TOKEN: str = ""
-    ADMIN_PASSWORD: str = "987456321aA@"  # simple password for admin login UI
+    ADMIN_PASSWORD: str = ""
 
     # ── Rate limiting ─────────────────────────────────────────────────
     RATE_LIMIT_ENABLED: bool = True
@@ -185,6 +185,8 @@ def _validate_production_safety(s: Settings) -> None:
         errors.append("JWT_SECRET must be set to a strong (>=32 char) value in production.")
     if not s.ADMIN_TOKEN or len(s.ADMIN_TOKEN) < 24:
         errors.append("ADMIN_TOKEN must be set to a strong (>=24 char) value in production.")
+    if not s.ADMIN_PASSWORD or len(s.ADMIN_PASSWORD) < 8:
+        errors.append("ADMIN_PASSWORD must be set to a strong (>=8 char) value in production.")
     bad_origins = [o for o in s.CORS_ORIGINS if "localhost" in o or "127.0.0.1" in o or o == "*"]
     if bad_origins:
         errors.append(f"CORS_ORIGINS must not contain localhost/wildcard in production: {bad_origins}")
