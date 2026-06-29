@@ -10,20 +10,20 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 export const metadata: Metadata = {
-  title: "Unlock PDF Online Free - Remove PDF Password | WeLovePDF",
+  title: "Unlock PDF Online Free - Remove PDF Password | PDFOrca",
   description: "Unlock password-protected PDFs online for free. Remove the open password using the original password and download the unlocked PDF. Secure and private.",
   keywords: "unlock pdf, remove pdf password, pdf password remover, decrypt pdf, unlock pdf online, pdf unlocker",
   openGraph: {
-    title: "Unlock PDF Online Free - Remove PDF Password | WeLovePDF",
+    title: "Unlock PDF Online Free - Remove PDF Password | PDFOrca",
     description: "Unlock password-protected PDFs online for free.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Unlock PDF Online Free - Remove PDF Password | WeLovePDF",
+    title: "Unlock PDF Online Free - Remove PDF Password | PDFOrca",
     description: "Unlock password-protected PDFs online for free.",
   },
   alternates: {

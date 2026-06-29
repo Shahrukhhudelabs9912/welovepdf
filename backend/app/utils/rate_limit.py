@@ -79,7 +79,8 @@ def rate_limit_handler(request: Request, exc: RateLimitExceeded):
         content={
             "detail": (
                 f"Rate limit exceeded ({exc.detail}). "
-                "Slow down or upgrade to Pro for higher limits."
+                # [Phase 3] Restore: "Slow down or upgrade to Pro for higher limits."
+                "Please try again later."
             )
         },
         headers={"Retry-After": str(retry_after)},
@@ -115,7 +116,8 @@ def limit_processing(request: Request):
         except RateLimitExceeded as exc:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Too many processing requests this hour. Upgrade to Pro for higher limits.",
+                # [Phase 3] Restore: "Too many processing requests this hour. Upgrade to Pro for higher limits."
+                detail="Too many processing requests this hour. Please try again later.",
                 headers={"Retry-After": "3600"},
             ) from exc
 
@@ -128,6 +130,7 @@ def limit_ai(request: Request):
         except RateLimitExceeded as exc:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="AI quota exceeded for this hour. Upgrade to Pro for higher limits.",
+                # [Phase 3] Restore: "AI quota exceeded for this hour. Upgrade to Pro for higher limits."
+                detail="AI quota exceeded for this hour. Please try again later.",
                 headers={"Retry-After": "3600"},
             ) from exc

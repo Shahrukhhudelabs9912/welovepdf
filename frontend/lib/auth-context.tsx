@@ -51,8 +51,8 @@ function getApiUrl(path: string): string {
 // Token storage helpers
 // ---------------------------------------------------------------------------
 
-const TOKEN_KEY = "welovepdf_auth_tokens";
-const USER_KEY = "welovepdf_auth_user";
+const TOKEN_KEY = "pdforca_auth_tokens";
+const USER_KEY = "pdforca_auth_user";
 
 function saveTokens(tokens: AuthTokens): void {
   if (typeof window === "undefined") return;

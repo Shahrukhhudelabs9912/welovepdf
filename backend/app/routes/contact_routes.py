@@ -44,7 +44,7 @@ class ContactRequest(BaseModel):
     # blindly fill every input. Named "website" because that's a common
     # phishing target for scrapers and looks legitimate enough that
     # naïve bots don't skip it.
-    website: Optional[str] = Field(default="", max_length=200)
+    fax_number: Optional[str] = Field(default="", max_length=200)
     # Image captcha fields
     captcha_id: str = Field(..., min_length=1, max_length=100)
     captcha_selected: list[int] = Field(..., min_length=1, max_length=9)
@@ -74,10 +74,10 @@ async def submit_contact(request: Request, body: ContactRequest) -> ContactRespo
     - Honeypot hit (silently dropped — we don't tell the bot it failed).
     """
     # Honeypot — silent success so spam tooling doesn't learn to skip it.
-    if body.website:
+    if body.fax_number:
         logger.info(
             "Contact form honeypot triggered",
-            extra={"ip": get_remote_address(request), "honeypot": body.website[:50]},
+            extra={"ip": get_remote_address(request), "honeypot": body.fax_number[:50]},
         )
         return ContactResponse()
 

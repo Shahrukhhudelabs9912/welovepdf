@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
 import { cookies } from 'next/headers';
@@ -25,12 +26,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "WeLovePDF - Fast, Secure & AI-Powered PDF Tools",
+  title: "PDFOrca - Fast, Secure & AI-Powered PDF Tools",
   description: "Merge, split, compress, convert PDF files online for free. Fast, secure, and AI-powered PDF tools with privacy-first approach.",
   keywords: "PDF tools, merge PDF, split PDF, compress PDF, PDF to Word, Word to PDF, PDF converter, AI PDF summarization",
-  authors: [{ name: "WeLovePDF" }],
+  authors: [{ name: "PDFOrca" }],
   robots: "index, follow",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com"),
   alternates: {
     canonical: "/",
     languages: {
@@ -41,14 +42,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://welovepdf.com",
-    title: "WeLovePDF - Fast, Secure & AI-Powered PDF Tools",
+    url: "https://pdforca.com",
+    title: "PDFOrca - Fast, Secure & AI-Powered PDF Tools",
     description: "Merge, split, compress, convert PDF files online for free. Fast, secure, and AI-powered PDF tools.",
-    siteName: "WeLovePDF",
+    siteName: "PDFOrca",
   },
   twitter: {
     card: "summary_large_image",
-    title: "WeLovePDF - Fast, Secure & AI-Powered PDF Tools",
+    title: "PDFOrca - Fast, Secure & AI-Powered PDF Tools",
     description: "Merge, split, compress, convert PDF files online for free.",
   },
 };
@@ -79,8 +80,19 @@ export default async function RootLayout({
   // For 'system' or 'light', the server renders without a dark class;
   // next-themes' blocking script adds it before hydration if needed.
   const ssrThemeClass = themeCookie === 'dark' ? 'dark' : '';
+  const adsenseId = process.env.NEXT_PUBLIC_ADSENSE_ID;
   return (
     <html lang={locale} className={ssrThemeClass} suppressHydrationWarning>
+      {adsenseId && (
+        <head>
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        </head>
+      )}
       <body className={`min-h-screen flex flex-col ${inter.className}`} suppressHydrationWarning>
         <OrganizationJsonLd />
         <WebSiteJsonLd />

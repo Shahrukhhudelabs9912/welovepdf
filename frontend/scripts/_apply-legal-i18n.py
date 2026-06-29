@@ -18,7 +18,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 # ── PRIVACY ────────────────────────────────────────────────────────────
 PRIVACY_EN = {
     "title": "Privacy Policy",
-    "subtitle": "How WeLovePDF protects your files and personal data.",
+    "subtitle": "How PDFOrca protects your files and personal data.",
     "last_updated_label": "Last updated: {date}",
     "trust_1_title": "1-hour deletion",
     "trust_1_desc": "Auto-deleted within 1 hour",
@@ -28,7 +28,7 @@ PRIVACY_EN = {
     "trust_3_desc": "TLS 1.2+ end to end",
 
     "s1_title": "1. Who we are",
-    "s1_p1": "WeLovePDF (\"we\", \"our\", \"us\") is a free online toolkit for PDF processing operated from India. This policy explains what data we collect, why we collect it, and how we protect it. We comply with India's Digital Personal Data Protection Act, 2023 (DPDP Act) and align with global standards including the EU's General Data Protection Regulation (GDPR).",
+    "s1_p1": "PDFOrca (\"we\", \"our\", \"us\") is a free online toolkit for PDF processing operated from India. This policy explains what data we collect, why we collect it, and how we protect it. We comply with India's Digital Personal Data Protection Act, 2023 (DPDP Act) and align with global standards including the EU's General Data Protection Regulation (GDPR).",
 
     "s2_title": "2. Files you upload",
     "s2_p1_label": "Processing only:",
@@ -72,7 +72,7 @@ PRIVACY_EN = {
     "s6_p2": "Each of these providers has their own privacy commitments. We choose providers that don't resell data and offer GDPR-compliant data processing agreements.",
 
     "s7_title": "7. Children",
-    "s7_p1": "WeLovePDF is not intended for users under 18 in jurisdictions where minors require parental consent. Under India's DPDP Act, processing children's personal data requires verifiable parental consent. If you believe a child has created an account, contact us and we will remove it.",
+    "s7_p1": "PDFOrca is not intended for users under 18 in jurisdictions where minors require parental consent. Under India's DPDP Act, processing children's personal data requires verifiable parental consent. If you believe a child has created an account, contact us and we will remove it.",
 
     "s8_title": "8. Your rights",
     "s8_p1": "You have the right to:",
@@ -102,7 +102,7 @@ PRIVACY_EN = {
 
 PRIVACY_HI = {
     "title": "गोपनीयता नीति",
-    "subtitle": "WeLovePDF आपकी फ़ाइलों और व्यक्तिगत डेटा की सुरक्षा कैसे करता है।",
+    "subtitle": "PDFOrca आपकी फ़ाइलों और व्यक्तिगत डेटा की सुरक्षा कैसे करता है।",
     "last_updated_label": "अंतिम अपडेट: {date}",
     "trust_1_title": "1-घंटे में डिलीट",
     "trust_1_desc": "1 घंटे के अंदर अपने आप डिलीट",
@@ -112,7 +112,7 @@ PRIVACY_HI = {
     "trust_3_desc": "TLS 1.2+ एंड-टू-एंड",
 
     "s1_title": "1. हम कौन हैं",
-    "s1_p1": "WeLovePDF (\"हम\", \"हमारा\") एक मुफ़्त ऑनलाइन PDF प्रोसेसिंग टूलकिट है जो भारत से संचालित होता है। यह नीति बताती है कि हम कौन-सा डेटा एकत्र करते हैं, क्यों करते हैं, और उसकी सुरक्षा कैसे करते हैं। हम भारत के डिजिटल पर्सनल डेटा प्रोटेक्शन अधिनियम, 2023 (DPDP Act) का पालन करते हैं और EU के GDPR सहित वैश्विक मानकों के अनुरूप हैं।",
+    "s1_p1": "PDFOrca (\"हम\", \"हमारा\") एक मुफ़्त ऑनलाइन PDF प्रोसेसिंग टूलकिट है जो भारत से संचालित होता है। यह नीति बताती है कि हम कौन-सा डेटा एकत्र करते हैं, क्यों करते हैं, और उसकी सुरक्षा कैसे करते हैं। हम भारत के डिजिटल पर्सनल डेटा प्रोटेक्शन अधिनियम, 2023 (DPDP Act) का पालन करते हैं और EU के GDPR सहित वैश्विक मानकों के अनुरूप हैं।",
 
     "s2_title": "2. आपकी अपलोड की गई फ़ाइलें",
     "s2_p1_label": "केवल प्रोसेसिंग:",
@@ -156,7 +156,7 @@ PRIVACY_HI = {
     "s6_p2": "इन सभी प्रोवाइडर्स की अपनी प्राइवेसी प्रतिबद्धताएँ हैं। हम ऐसे प्रोवाइडर्स चुनते हैं जो डेटा रीसेल नहीं करते और GDPR-अनुपालन डेटा प्रोसेसिंग एग्रीमेंट देते हैं।",
 
     "s7_title": "7. बच्चे",
-    "s7_p1": "WeLovePDF उन क्षेत्राधिकारों में 18 साल से कम उम्र के यूज़र्स के लिए नहीं है जहाँ नाबालिगों को माता-पिता की सहमति की ज़रूरत होती है। भारत के DPDP एक्ट के तहत, बच्चों के व्यक्तिगत डेटा की प्रोसेसिंग के लिए सत्यापन योग्य माता-पिता की सहमति चाहिए। अगर आपको लगता है कि किसी बच्चे ने अकाउंट बनाया है, तो हमसे संपर्क करें, हम उसे हटा देंगे।",
+    "s7_p1": "PDFOrca उन क्षेत्राधिकारों में 18 साल से कम उम्र के यूज़र्स के लिए नहीं है जहाँ नाबालिगों को माता-पिता की सहमति की ज़रूरत होती है। भारत के DPDP एक्ट के तहत, बच्चों के व्यक्तिगत डेटा की प्रोसेसिंग के लिए सत्यापन योग्य माता-पिता की सहमति चाहिए। अगर आपको लगता है कि किसी बच्चे ने अकाउंट बनाया है, तो हमसे संपर्क करें, हम उसे हटा देंगे।",
 
     "s8_title": "8. आपके अधिकार",
     "s8_p1": "आपके पास अधिकार है:",

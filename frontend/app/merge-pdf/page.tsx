@@ -9,7 +9,7 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 const ToolComponent = dynamic(
   () => import("@/components/tools/tool-component").then((mod) => ({ default: mod.ToolComponent })),
@@ -17,17 +17,17 @@ const ToolComponent = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Merge PDF Online Free - Combine Multiple PDF Files | WeLovePDF",
+  title: "Merge PDF Online Free - Combine Multiple PDF Files | PDFOrca",
   description: "Merge multiple PDF files into a single document online for free. Combine PDFs quickly and securely with our easy-to-use tool. No registration required.",
   keywords: "merge pdf, combine pdf, merge pdf online, merge pdf free, join pdf, pdf merger, merge multiple pdf",
   openGraph: {
-    title: "Merge PDF Online Free - Combine Multiple PDF Files | WeLovePDF",
+    title: "Merge PDF Online Free - Combine Multiple PDF Files | PDFOrca",
     description: "Merge multiple PDF files into a single document online for free.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Merge PDF Online Free - Combine Multiple PDF Files | WeLovePDF",
+    title: "Merge PDF Online Free - Combine Multiple PDF Files | PDFOrca",
     description: "Merge multiple PDF files into a single document online for free.",
   },
   alternates: {

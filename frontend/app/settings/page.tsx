@@ -16,7 +16,7 @@ import { ButtonLoader } from "@/components/brand-loader";
 // API helpers (all calls go through Next.js /api/auth/* proxy)
 // ---------------------------------------------------------------------------
 
-const TOKEN_KEY = "welovepdf_auth_tokens";
+const TOKEN_KEY = "pdforca_auth_tokens";
 
 function getApiUrl(path: string): string {
   return `/api${path}`;
@@ -37,7 +37,7 @@ function loadAccessToken(): string | null {
 function saveUserToLocal(user: { id: string; email: string; full_name: string; is_active: boolean; is_verified: boolean; created_at: string | null }) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem("welovepdf_auth_user", JSON.stringify(user));
+    localStorage.setItem("pdforca_auth_user", JSON.stringify(user));
   } catch {
     // localStorage may be unavailable
   }

@@ -1,19 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Fragment } from "react";
 import { ArrowRight, Calendar, Clock, Sparkles, BookOpen } from "lucide-react";
 import { getAllPosts } from "@/lib/blog";
 import { BreadcrumbJsonLd } from "@/components/seo/json-ld";
+import { AdBanner } from "@/components/ad-banner";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 export const metadata: Metadata = {
-  title: "WeLovePDF Blog — PDF Tutorials, Tips & Use Cases",
+  title: "PDFOrca Blog — PDF Tutorials, Tips & Use Cases",
   description:
     "Practical tutorials and tips for merging, splitting, compressing, converting, and managing PDF files. Real-world workflows for students, professionals, and businesses.",
   keywords:
-    "pdf blog, pdf tutorials, pdf tips, document management, pdf how-to, welovepdf blog",
+    "pdf blog, pdf tutorials, pdf tips, document management, pdf how-to, pdforca blog",
   openGraph: {
-    title: "WeLovePDF Blog — PDF Tutorials, Tips & Use Cases",
+    title: "PDFOrca Blog — PDF Tutorials, Tips & Use Cases",
     description:
       "Practical tutorials and tips for working with PDFs — built around our free online tools.",
     type: "website",
@@ -21,7 +23,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "WeLovePDF Blog — PDF Tutorials, Tips & Use Cases",
+    title: "PDFOrca Blog — PDF Tutorials, Tips & Use Cases",
     description:
       "Practical tutorials and tips for working with PDFs.",
   },
@@ -63,7 +65,7 @@ export default function BlogPage() {
                 <BookOpen className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               </div>
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-                WeLovePDF Blog
+                PDFOrca Blog
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
                 Practical tutorials, tips, and use cases for working with PDFs.
@@ -76,9 +78,14 @@ export default function BlogPage() {
               <EmptyState />
             ) : (
               <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {posts.map((post) => (
-                  <article
-                    key={post.slug}
+                {posts.map((post, index) => (
+                  <Fragment key={post.slug}>
+                    {index === 3 && (
+                      <div className="sm:col-span-2 lg:col-span-3">
+                        <AdBanner slot="BLOG_MID" format="horizontal" />
+                      </div>
+                    )}
+                    <article
                     className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
                   >
                     {post.cover ? (
@@ -123,6 +130,7 @@ export default function BlogPage() {
                       </div>
                     </div>
                   </article>
+                  </Fragment>
                 ))}
               </div>
             )}

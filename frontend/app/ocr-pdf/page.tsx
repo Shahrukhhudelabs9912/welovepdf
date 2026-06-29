@@ -10,20 +10,20 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 export const metadata: Metadata = {
-  title: "OCR PDF Online Free - Make Scanned PDFs Searchable | WeLovePDF",
+  title: "OCR PDF Online Free - Make Scanned PDFs Searchable | PDFOrca",
   description: "Convert scanned PDFs into searchable, selectable text with OCR. Free online tool — supports English and Hindi. Adds an invisible text layer, original look preserved.",
   keywords: "ocr pdf, pdf ocr online, scanned pdf to text, searchable pdf, ocr scanned pdf, hindi ocr pdf, pdf text recognition",
   openGraph: {
-    title: "OCR PDF Online Free - Make Scanned PDFs Searchable | WeLovePDF",
+    title: "OCR PDF Online Free - Make Scanned PDFs Searchable | PDFOrca",
     description: "Convert scanned PDFs into searchable, selectable text with OCR.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "OCR PDF Online Free - Make Scanned PDFs Searchable | WeLovePDF",
+    title: "OCR PDF Online Free - Make Scanned PDFs Searchable | PDFOrca",
     description: "Convert scanned PDFs into searchable, selectable text with OCR.",
   },
   alternates: {

@@ -130,7 +130,8 @@ async def analyze_pdf_endpoint(
             if not can_proceed:
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail="Daily analysis limit reached. Upgrade to Pro for unlimited access.",
+                    # [Phase 3] Restore: "Daily analysis limit reached. Upgrade to Pro for unlimited access."
+                    detail="Daily analysis limit reached. Please try again tomorrow.",
                 )
 
         # Run analysis off the event loop (CPU-bound: torch/transformers).
@@ -204,7 +205,8 @@ async def generate_report_endpoint(
             if not can_proceed:
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail="Daily report export limit reached. Upgrade to Pro for unlimited reports.",
+                    # [Phase 3] Restore: "Daily report export limit reached. Upgrade to Pro for unlimited reports."
+                    detail="Daily report export limit reached. Please try again tomorrow.",
                 )
 
         docx_bytes = await run_blocking(generate_report, analysis_result, file.filename or "document.pdf")

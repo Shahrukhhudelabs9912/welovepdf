@@ -3,7 +3,7 @@ title: "How to Merge Aadhaar Front and Back into a Single PDF (Free, 2 Minutes)"
 description: "Step-by-step guide to combine your Aadhaar card front and back images into one PDF for online applications, KYC forms, and government uploads — without installing anything."
 date: "2026-06-20"
 category: "Tutorial"
-author: "WeLovePDF Team"
+author: "PDFOrca Team"
 relatedTool: "merge-pdf"
 keywords:
   - merge aadhaar front and back
@@ -86,7 +86,7 @@ After merging, run the file through the [Compress PDF tool](/compress-pdf) and p
 
 ## Privacy: Is It Safe to Upload Aadhaar?
 
-Fair question — your Aadhaar is sensitive ID. Here's how WeLovePDF handles it:
+Fair question — your Aadhaar is sensitive ID. Here's how PDFOrca handles it:
 
 - Files are uploaded over HTTPS (encrypted in transit)
 - Processing happens on our server and the file is **automatically deleted after 1 hour**

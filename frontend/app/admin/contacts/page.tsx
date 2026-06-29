@@ -54,8 +54,9 @@ const STATUS_CONFIG = {
 export default function AdminContactsPage() {
   const [token, setToken] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
-  const [tokenInput, setTokenInput] = useState("");
-  const [tokenError, setTokenError] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [loggingIn, setLoggingIn] = useState(false);
 
   const [data, setData] = useState<SubmissionsResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -88,7 +89,7 @@ export default function AdminContactsPage() {
       if (res.status === 401) {
         setAuthenticated(false);
         sessionStorage.removeItem("admin_token");
-        setTokenError("Invalid admin token.");
+        setLoginError("Session expired. Please log in again.");
         return;
       }
       const json = await res.json();
@@ -105,14 +106,33 @@ export default function AdminContactsPage() {
   }, [authenticated, fetchSubmissions]);
 
   const handleLogin = async () => {
-    if (!tokenInput.trim()) {
-      setTokenError("Please enter the admin token.");
+    const pwd = passwordInput.trim();
+    if (!pwd) {
+      setLoginError("Please enter your password.");
       return;
     }
-    setToken(tokenInput.trim());
-    sessionStorage.setItem("admin_token", tokenInput.trim());
-    setAuthenticated(true);
-    setTokenError("");
+    setLoggingIn(true);
+    setLoginError("");
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pwd }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setLoginError(data?.detail || "Login failed.");
+        return;
+      }
+      const adminToken = data.token;
+      setToken(adminToken);
+      sessionStorage.setItem("admin_token", adminToken);
+      setAuthenticated(true);
+    } catch {
+      setLoginError("Could not reach the server.");
+    } finally {
+      setLoggingIn(false);
+    }
   };
 
   const handleLogout = () => {
@@ -198,23 +218,24 @@ export default function AdminContactsPage() {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
               <Mail className="h-7 w-7 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold">Admin Access</h1>
-            <p className="text-sm text-muted-foreground mt-1">Enter your admin token to manage contact submissions</p>
+            <h1 className="text-2xl font-bold">Admin Login</h1>
+            <p className="text-sm text-muted-foreground mt-1">Enter your admin password to continue</p>
           </div>
           <div className="space-y-4">
             <div>
               <Input
                 type="password"
-                placeholder="Admin token"
-                value={tokenInput}
-                onChange={(e) => { setTokenInput(e.target.value); setTokenError(""); }}
+                placeholder="Password"
+                value={passwordInput}
+                onChange={(e) => { setPasswordInput(e.target.value); setLoginError(""); }}
                 onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                className={tokenError ? "border-red-500" : ""}
+                className={loginError ? "border-red-500" : ""}
+                disabled={loggingIn}
               />
-              {tokenError && <p className="mt-1 text-xs text-red-500">{tokenError}</p>}
+              {loginError && <p className="mt-1 text-xs text-red-500">{loginError}</p>}
             </div>
-            <Button className="w-full" onClick={handleLogin}>
-              Sign In
+            <Button className="w-full" onClick={handleLogin} disabled={loggingIn}>
+              {loggingIn ? "Signing in..." : "Sign In"}
             </Button>
           </div>
         </Card>

@@ -10,20 +10,20 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 export const metadata: Metadata = {
-  title: "Convert PDF to PowerPoint Online Free | WeLovePDF",
+  title: "Convert PDF to PowerPoint Online Free | PDFOrca",
   description: "Convert PDF documents into PowerPoint (.pptx) presentations online for free. Each PDF page becomes a 16:9 widescreen slide. No registration required.",
   keywords: "pdf to powerpoint, pdf to pptx, convert pdf to ppt, pdf to slides, pdf to powerpoint converter, pdf to pptx online",
   openGraph: {
-    title: "Convert PDF to PowerPoint Online Free | WeLovePDF",
+    title: "Convert PDF to PowerPoint Online Free | PDFOrca",
     description: "Convert PDF documents into PowerPoint (.pptx) presentations.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Convert PDF to PowerPoint Online Free | WeLovePDF",
+    title: "Convert PDF to PowerPoint Online Free | PDFOrca",
     description: "Convert PDF documents into PowerPoint (.pptx) presentations.",
   },
   alternates: {

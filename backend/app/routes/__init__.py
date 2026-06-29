@@ -1,4 +1,4 @@
-"""Routes module for WeLovePDF API."""
+"""Routes module for PDFOrca API."""
 from app.routes.pdf_routes import router
 from app.routes.auth_routes import router as auth_router
 from app.routes.ai_routes import router as ai_router

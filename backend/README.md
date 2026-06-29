@@ -1,6 +1,6 @@
-# WeLovePDF Backend API
+# PDFOrca Backend API
 
-A production-ready Python backend for the WeLovePDF SaaS application, built with FastAPI. This backend provides PDF processing capabilities including merging, splitting, rotating, converting, and watermarking PDF files.
+A production-ready Python backend for the PDFOrca SaaS application, built with FastAPI. This backend provides PDF processing capabilities including merging, splitting, rotating, converting, and watermarking PDF files.
 
 ## Features
 
@@ -194,7 +194,7 @@ if (response.ok) {
 
 ## Frontend Integration
 
-The backend is configured to work with the WeLovePDF Next.js frontend running on `localhost:3000`. CORS is enabled for the following origins:
+The backend is configured to work with the PDFOrca Next.js frontend running on `localhost:3000`. CORS is enabled for the following origins:
 
 - `http://localhost:3000`
 - `http://localhost:3001`
@@ -296,8 +296,8 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 Build and run:
 
 ```bash
-docker build -t welovepdf-backend .
-docker run -p 8000:8000 welovepdf-backend
+docker build -t pdforca-backend .
+docker run -p 8000:8000 pdforca-backend
 ```
 
 ### Environment Variables
@@ -327,7 +327,7 @@ MAX_UPLOAD_SIZE=104857600  # 100MB in bytes
 
 ## License
 
-This project is part of the WeLovePDF SaaS application.
+This project is part of the PDFOrca SaaS application.
 
 ## Support
 

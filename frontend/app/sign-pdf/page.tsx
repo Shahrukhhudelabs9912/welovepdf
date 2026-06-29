@@ -11,20 +11,20 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 export const metadata: Metadata = {
-  title: "Sign PDF Online Free - Add Signature to PDF | WeLovePDF",
+  title: "Sign PDF Online Free - Add Signature to PDF | PDFOrca",
   description: "Sign PDF documents online for free. Type your signature or upload an image, then place it anywhere on the page. Download the signed PDF instantly.",
   keywords: "sign pdf, pdf signature, e-sign pdf, electronic signature pdf, add signature to pdf, pdf signer online",
   openGraph: {
-    title: "Sign PDF Online Free - Add Signature to PDF | WeLovePDF",
+    title: "Sign PDF Online Free - Add Signature to PDF | PDFOrca",
     description: "Sign PDF documents online for free.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sign PDF Online Free - Add Signature to PDF | WeLovePDF",
+    title: "Sign PDF Online Free - Add Signature to PDF | PDFOrca",
     description: "Sign PDF documents online for free.",
   },
   alternates: {

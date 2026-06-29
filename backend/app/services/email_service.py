@@ -164,7 +164,7 @@ def render_auto_reply_email(*, first_name: str, subject: str) -> tuple[str, str]
     If your issue is urgent, feel free to reply to this email directly.
   </p>
   <p style="margin-top: 24px; color: #666;">
-    &mdash; The WeLovePDF Team
+    &mdash; The PDFOrca Team
   </p>
 </div>
 """.strip()
@@ -174,6 +174,6 @@ def render_auto_reply_email(*, first_name: str, subject: str) -> tuple[str, str]
         f"Thanks for reaching out! We received your message regarding "
         f"\"{subject}\" and will get back to you within 1-2 business days.\n\n"
         f"If your issue is urgent, feel free to reply to this email directly.\n\n"
-        f"— The WeLovePDF Team\n"
+        f"— The PDFOrca Team\n"
     )
     return html_body, text_body

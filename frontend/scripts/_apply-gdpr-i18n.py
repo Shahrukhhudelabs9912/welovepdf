@@ -22,7 +22,7 @@ EN = {
     "right_6_desc": "Withdraw consent for non-essential processing (e.g., product update emails) at any time.",
 
     "s1_title": "1. Who this applies to",
-    "s1_p1": "This page describes how WeLovePDF complies with two major data-protection regimes:",
+    "s1_p1": "This page describes how PDFOrca complies with two major data-protection regimes:",
     "s1_li1_label": "GDPR",
     "s1_li1": " — applicable if you reside in the European Economic Area (EEA), United Kingdom, or Switzerland.",
     "s1_li2_label": "DPDP Act 2023",
@@ -32,14 +32,14 @@ EN = {
     "s2_title": "2. Our role under each regime",
     "s2_p1_pre": "Under ",
     "s2_p1_gdpr": "GDPR",
-    "s2_p1_mid": ", WeLovePDF acts as a ",
+    "s2_p1_mid": ", PDFOrca acts as a ",
     "s2_p1_controller": "Data Controller",
     "s2_p1_mid2": " for account information (email, profile, activity history) and as a ",
     "s2_p1_processor": "Processor",
     "s2_p1_post": " for files you upload (held transiently and deleted within 1 hour).",
     "s2_p2_pre": "Under the ",
     "s2_p2_dpdp": "DPDP Act 2023",
-    "s2_p2_mid": ", WeLovePDF is a ",
+    "s2_p2_mid": ", PDFOrca is a ",
     "s2_p2_fiduciary": "Data Fiduciary",
     "s2_p2_post": " with respect to personal data we determine the purposes and means of processing.",
 
@@ -74,7 +74,7 @@ EN = {
     "s6_li4": " retained for 90 days, then auto-purged.",
 
     "s7_title": "7. Children",
-    "s7_p1": "WeLovePDF is not directed at children. Under the DPDP Act, processing personal data of a child (anyone under 18) requires verifiable parental consent. We do not knowingly collect data from children. Parents who believe their child has created an account should email us for immediate removal.",
+    "s7_p1": "PDFOrca is not directed at children. Under the DPDP Act, processing personal data of a child (anyone under 18) requires verifiable parental consent. We do not knowingly collect data from children. Parents who believe their child has created an account should email us for immediate removal.",
 
     "s8_title": "8. Right to lodge a complaint",
     "s8_p1": "If you believe we have not handled your data properly, you have the right to complain to a supervisory authority:",
@@ -109,7 +109,7 @@ HI = {
     "right_6_desc": "किसी भी समय गैर-आवश्यक प्रोसेसिंग (जैसे उत्पाद अपडेट ईमेल) की सहमति वापस लें।",
 
     "s1_title": "1. यह किस पर लागू होता है",
-    "s1_p1": "यह पेज बताता है कि WeLovePDF दो प्रमुख डेटा सुरक्षा शासनों का पालन कैसे करता है:",
+    "s1_p1": "यह पेज बताता है कि PDFOrca दो प्रमुख डेटा सुरक्षा शासनों का पालन कैसे करता है:",
     "s1_li1_label": "GDPR",
     "s1_li1": " — लागू अगर आप यूरोपीय आर्थिक क्षेत्र (EEA), यूनाइटेड किंगडम, या स्विट्ज़रलैंड में रहते हैं।",
     "s1_li2_label": "DPDP अधिनियम 2023",
@@ -119,14 +119,14 @@ HI = {
     "s2_title": "2. प्रत्येक शासन के तहत हमारी भूमिका",
     "s2_p1_pre": "",
     "s2_p1_gdpr": "GDPR",
-    "s2_p1_mid": " के तहत, WeLovePDF अकाउंट जानकारी (ईमेल, प्रोफ़ाइल, गतिविधि इतिहास) के लिए ",
+    "s2_p1_mid": " के तहत, PDFOrca अकाउंट जानकारी (ईमेल, प्रोफ़ाइल, गतिविधि इतिहास) के लिए ",
     "s2_p1_controller": "डेटा कंट्रोलर",
     "s2_p1_mid2": " के रूप में कार्य करता है और आपकी अपलोड की गई फ़ाइलों के लिए ",
     "s2_p1_processor": "प्रोसेसर",
     "s2_p1_post": " के रूप में (क्षणिक रूप से रखी जाती हैं और 1 घंटे के अंदर डिलीट हो जाती हैं)।",
     "s2_p2_pre": "",
     "s2_p2_dpdp": "DPDP अधिनियम 2023",
-    "s2_p2_mid": " के तहत, WeLovePDF उस व्यक्तिगत डेटा के सम्बंध में ",
+    "s2_p2_mid": " के तहत, PDFOrca उस व्यक्तिगत डेटा के सम्बंध में ",
     "s2_p2_fiduciary": "डेटा फ़िड्यूशियरी",
     "s2_p2_post": " है जिसके प्रोसेसिंग के उद्देश्य और साधन हम तय करते हैं।",
 
@@ -161,7 +161,7 @@ HI = {
     "s6_li4": " 90 दिन तक रखी जाती हैं, फिर ऑटो-पर्ज।",
 
     "s7_title": "7. बच्चे",
-    "s7_p1": "WeLovePDF बच्चों के लिए निर्देशित नहीं है। DPDP अधिनियम के तहत, बच्चे (18 साल से कम उम्र के किसी भी व्यक्ति) के व्यक्तिगत डेटा की प्रोसेसिंग के लिए सत्यापन योग्य माता-पिता की सहमति चाहिए। हम जानबूझकर बच्चों से डेटा एकत्र नहीं करते। माता-पिता जो मानते हैं कि उनके बच्चे ने अकाउंट बनाया है, उन्हें तत्काल हटाने के लिए हमें ईमेल करना चाहिए।",
+    "s7_p1": "PDFOrca बच्चों के लिए निर्देशित नहीं है। DPDP अधिनियम के तहत, बच्चे (18 साल से कम उम्र के किसी भी व्यक्ति) के व्यक्तिगत डेटा की प्रोसेसिंग के लिए सत्यापन योग्य माता-पिता की सहमति चाहिए। हम जानबूझकर बच्चों से डेटा एकत्र नहीं करते। माता-पिता जो मानते हैं कि उनके बच्चे ने अकाउंट बनाया है, उन्हें तत्काल हटाने के लिए हमें ईमेल करना चाहिए।",
 
     "s8_title": "8. शिकायत दर्ज करने का अधिकार",
     "s8_p1": "अगर आप मानते हैं कि हमने आपके डेटा को ठीक से नहीं संभाला है, तो आपको पर्यवेक्षण प्राधिकरण के पास शिकायत करने का अधिकार है:",

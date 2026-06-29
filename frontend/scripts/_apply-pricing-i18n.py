@@ -4,7 +4,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 EN = {
     "title": "Pricing",
-    "description": "WeLovePDF is free today. Pro plans launching soon — every essential tool stays free, always.",
+    "description": "PDFOrca is free today. Pro plans launching soon — every essential tool stays free, always.",
     "badge": "Coming soon",
     "hero_heading": "Free today, fair Pro plans tomorrow",
     "hero_description": "Every core PDF tool is currently free for everyone with sensible limits. We're building a Pro tier for people who need bigger files and priority processing — but the essentials will always stay free.",
@@ -28,7 +28,7 @@ EN = {
 
 HI = {
     "title": "मूल्य निर्धारण",
-    "description": "WeLovePDF आज मुफ़्त है। Pro प्लान जल्द लॉन्च होंगे — हर ज़रूरी टूल हमेशा मुफ़्त रहेगा।",
+    "description": "PDFOrca आज मुफ़्त है। Pro प्लान जल्द लॉन्च होंगे — हर ज़रूरी टूल हमेशा मुफ़्त रहेगा।",
     "badge": "जल्द आ रहा है",
     "hero_heading": "आज मुफ़्त, कल फ़ेयर Pro प्लान",
     "hero_description": "हर ज़रूरी PDF टूल अभी सभी के लिए मुफ़्त है, उचित सीमाओं के साथ। हम उन लोगों के लिए Pro टियर बना रहे हैं जिन्हें बड़ी फ़ाइलें और प्रायोरिटी प्रोसेसिंग चाहिए — लेकिन ज़रूरी सब हमेशा मुफ़्त रहेगा।",

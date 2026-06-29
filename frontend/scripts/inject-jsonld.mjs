@@ -224,7 +224,7 @@ const TOOLS = [
     clientImport: './pdf-to-word-client',
     clientExport: 'PDFToWordClient',
     pageFunc: 'PDFToWordPage',
-    metaTitle: "Convert PDF to Word Online Free | WeLovePDF",
+    metaTitle: "Convert PDF to Word Online Free | PDFOrca",
     metaDescription:
       "Convert PDF documents to editable Word (.docx) files online for free. Preserve layout, text, and images. No registration required.",
     metaKeywords:
@@ -254,7 +254,7 @@ const TOOLS = [
     clientImport: './word-to-pdf-client',
     clientExport: 'WordToPDFClient',
     pageFunc: 'WordToPDFPage',
-    metaTitle: "Convert Word to PDF Online Free | WeLovePDF",
+    metaTitle: "Convert Word to PDF Online Free | PDFOrca",
     metaDescription:
       "Convert Word documents (.doc, .docx) to PDF online for free. Preserve formatting, fonts, and images. No registration required.",
     metaKeywords:
@@ -284,7 +284,7 @@ const TOOLS = [
     clientImport: './excel-to-pdf-client',
     clientExport: 'ExcelToPDFClient',
     pageFunc: 'ExcelToPDFPage',
-    metaTitle: "Convert Excel to PDF Online Free | WeLovePDF",
+    metaTitle: "Convert Excel to PDF Online Free | PDFOrca",
     metaDescription:
       "Convert Excel spreadsheets (.xls, .xlsx) to PDF online for free. Preserve formatting, formulas, and charts. No registration required.",
     metaKeywords:
@@ -314,7 +314,7 @@ const TOOLS = [
     clientImport: './pdf-to-excel-client',
     clientExport: 'PDFToExcelClient',
     pageFunc: 'PDFToExcelPage',
-    metaTitle: "Convert PDF to Excel Online Free | WeLovePDF",
+    metaTitle: "Convert PDF to Excel Online Free | PDFOrca",
     metaDescription:
       "Convert PDF documents to editable Excel (.xlsx) spreadsheets online for free. Extract tables and data from PDFs.",
     metaKeywords:
@@ -344,7 +344,7 @@ const TOOLS = [
     clientImport: './organize-pdf-client',
     clientExport: 'OrganizePDFClient',
     pageFunc: 'OrganizePDFPage',
-    metaTitle: "Organize PDF Pages Online Free - Reorder, Rotate, Delete | WeLovePDF",
+    metaTitle: "Organize PDF Pages Online Free - Reorder, Rotate, Delete | PDFOrca",
     metaDescription:
       "Reorder, rotate, and delete pages in a PDF online for free. Drag-and-drop interface, no registration required.",
     metaKeywords:
@@ -375,7 +375,7 @@ const TOOLS = [
     clientImport: './protect-pdf-client',
     clientExport: 'ProtectPDFClient',
     pageFunc: 'ProtectPDFPage',
-    metaTitle: "Password Protect PDF Online Free - Encrypt PDF Files | WeLovePDF",
+    metaTitle: "Password Protect PDF Online Free - Encrypt PDF Files | PDFOrca",
     metaDescription:
       "Add password protection to PDF files online for free. AES encryption, no registration required.",
     metaKeywords:
@@ -405,7 +405,7 @@ const TOOLS = [
     clientImport: './page-numbering-client',
     clientExport: 'PageNumberingClient',
     pageFunc: 'PageNumberingPage',
-    metaTitle: "Add Page Numbers to PDF Online Free | WeLovePDF",
+    metaTitle: "Add Page Numbers to PDF Online Free | PDFOrca",
     metaDescription:
       "Add page numbers to a PDF document online for free. Customize position, format, and starting number. No registration required.",
     metaKeywords:
@@ -430,7 +430,7 @@ const TOOLS = [
   },
 ];
 
-const SITE_URL_CONST = `const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";`;
+const SITE_URL_CONST = `const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";`;
 
 const JSONLD_IMPORT = `import {
   SoftwareApplicationJsonLd,
@@ -599,10 +599,10 @@ export const metadata: Metadata = {
     description: ${JSON.stringify(tool.metaDescription)},
   },
   alternates: {
-    canonical: \`\${process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com"}/${tool.slug}\`,
+    canonical: \`\${process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com"}/${tool.slug}\`,
     languages: {
-      en: \`\${process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com"}/${tool.slug}\`,
-      hi: \`\${process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com"}/hi/${tool.slug}\`,
+      en: \`\${process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com"}/${tool.slug}\`,
+      hi: \`\${process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com"}/hi/${tool.slug}\`,
     },
   },
 };

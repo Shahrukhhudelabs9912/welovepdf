@@ -8,20 +8,20 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 export const metadata: Metadata = {
-  title: "Convert PowerPoint to PDF Online Free | WeLovePDF",
+  title: "Convert PowerPoint to PDF Online Free | PDFOrca",
   description: "Convert PowerPoint (.ppt, .pptx) presentations to PDF online for free. Layout, fonts, and images preserved. No registration required.",
   keywords: "powerpoint to pdf, ppt to pdf, pptx to pdf, convert powerpoint to pdf, ppt to pdf converter, ppt to pdf online",
   openGraph: {
-    title: "Convert PowerPoint to PDF Online Free | WeLovePDF",
+    title: "Convert PowerPoint to PDF Online Free | PDFOrca",
     description: "Convert PowerPoint (.ppt, .pptx) presentations to PDF online for free.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Convert PowerPoint to PDF Online Free | WeLovePDF",
+    title: "Convert PowerPoint to PDF Online Free | PDFOrca",
     description: "Convert PowerPoint (.ppt, .pptx) presentations to PDF online for free.",
   },
   alternates: {

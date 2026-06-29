@@ -6,7 +6,7 @@ import { PageContainer } from "@/components/ui/page-container";
 import { PageHero } from "@/components/ui/page-hero";
 
 const LAST_UPDATED = "June 16, 2026";
-const PRIVACY_EMAIL = "privacy@welovepdf.app";
+const PRIVACY_EMAIL = "privacy@pdforca.com";
 
 export default function PrivacyPage() {
   const t = useTranslations("privacy");
@@ -111,6 +111,10 @@ export default function PrivacyPage() {
             <li>
               <strong>{t("s6_li6_label")}</strong>
               {t("s6_li6")}
+            </li>
+            <li>
+              <strong>{t("s6_li7_label")}</strong>
+              {t("s6_li7")}
             </li>
           </ul>
           <p>{t("s6_p2")}</p>

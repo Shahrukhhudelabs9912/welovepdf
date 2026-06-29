@@ -35,6 +35,26 @@ from app.services.email_service import send_email
 router = APIRouter()
 
 
+class AdminLoginRequest(BaseModel):
+    password: str = Field(..., min_length=1)
+
+
+@router.post("/login")
+async def admin_login(body: AdminLoginRequest) -> dict:
+    """Validate admin password and return the bearer token for API calls."""
+    if not settings.ADMIN_PASSWORD or not settings.ADMIN_TOKEN:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Admin login not configured.",
+        )
+    if not secrets.compare_digest(body.password, settings.ADMIN_PASSWORD):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Wrong password.",
+        )
+    return {"token": settings.ADMIN_TOKEN}
+
+
 def require_admin_token(authorization: str | None = Header(default=None)) -> None:
     """Reject the request unless a valid admin bearer token is supplied."""
     if not settings.ADMIN_TOKEN:
@@ -188,11 +208,11 @@ async def reply_to_submission(submission_id: str, body: ReplyBody) -> dict:
 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto;">
   <p style="color: #333; line-height: 1.6;">Hi {html_mod.escape(doc['first_name'])},</p>
   <div style="color: #333; line-height: 1.6;">{safe_message}</div>
-  <p style="margin-top: 24px; color: #666;">&mdash; The WeLovePDF Team</p>
+  <p style="margin-top: 24px; color: #666;">&mdash; The PDFOrca Team</p>
 </div>
 """.strip()
 
-    text_body = f"Hi {doc['first_name']},\n\n{body.message}\n\n— The WeLovePDF Team\n"
+    text_body = f"Hi {doc['first_name']},\n\n{body.message}\n\n— The PDFOrca Team\n"
     reply_subject = body.subject or f"Re: {doc['subject']}"
 
     sent = await send_email(

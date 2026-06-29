@@ -1,4 +1,4 @@
-# Linux/production requirements for the WeLovePDF backend Docker image.
+# Linux/production requirements for the PDFOrca backend Docker image.
 #
 # Differences from requirements.txt (the Windows dev list):
 #   - python-magic-bin REMOVED: it ships Windows DLLs only. On Linux the

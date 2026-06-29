@@ -59,12 +59,13 @@ export function FileUpload({
       const oversize = acceptedFiles.find((f) => f.size > effectiveMaxSize);
       if (oversize) {
         const limitMb = (effectiveMaxSize / (1024 * 1024)).toFixed(0);
-        const upgradeHint =
-          tierLimit.tier === "pro"
-            ? ""
-            : ` Upgrade to Pro for ${tierLimit.proTierMb} MB uploads.`;
+        // [Phase 3] Restore upgrade hint when freemium is enabled:
+        // const upgradeHint =
+        //   tierLimit.tier === "pro"
+        //     ? ""
+        //     : ` Upgrade to Pro for ${tierLimit.proTierMb} MB uploads.`;
         toast.error(
-          `"${oversize.name}" exceeds your ${limitMb} MB limit.${upgradeHint}`
+          `"${oversize.name}" exceeds the ${limitMb} MB limit.`
         );
         return;
       }

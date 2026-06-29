@@ -1,4 +1,4 @@
-# WeLovePDF frontend (Next.js 14.2 standalone) production image.
+# PDFOrca frontend (Next.js 14.2 standalone) production image.
 # Multi-stage: install deps -> build standalone -> run on slim node.
 
 # ── Stage 1: dependencies ─────────────────────────────────────────────

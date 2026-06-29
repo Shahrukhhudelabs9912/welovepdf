@@ -1,4 +1,4 @@
-# Task 1 — Loading Experience Audit (WeLovePDF Frontend)
+# Task 1 — Loading Experience Audit (PDFOrca Frontend)
 
 _Analysis only. No code changed. Date: 2026-06-20._
 
@@ -68,7 +68,7 @@ Only **one** `loading.tsx` exists — at the app root (`app/loading.tsx`). There
 2. **Two spinner sources:** custom SVG in `LoadingSpinner`/login page vs. `Loader2` from lucide-react used inline in most clients. No single branded spinner.
 3. **Skeletons are inconsistent:** shared `Skeleton`/`ToolPageSkeleton` exist, but dashboard & settings hand-roll their own `bg-gray-200 animate-pulse` blocks instead of using them.
 4. **Root `loading.tsx` is tool-shaped** and shown for every route, including non-tool routes.
-5. **No branded identity:** all loaders are generic blue/gray; nothing reflects a WeLovePDF logo/brand mark.
+5. **No branded identity:** all loaders are generic blue/gray; nothing reflects a PDFOrca logo/brand mark.
 
 ## 5. Areas where the user may think the app is stuck 🚨
 
@@ -94,7 +94,7 @@ Only **one** `loading.tsx` exists — at the app root (`app/loading.tsx`). There
 
 ## 7. Recommended scope for Task 2 & 3 (preview)
 
-- **Task 2:** Build a branded `WeLovePDFLoader` (logo mark + animation) and a small set of wrappers — `FullPageLoader`, `ToolProcessingLoader`, `FileUploadLoader`, `AIProcessingLoader`, `ButtonLoader` — then (a) swap the generic spinner inside existing infra, (b) add per-route `loading.tsx` (correct skeleton per route group), (c) **fix the language-switch no-feedback gap**, (d) verify double-click guards everywhere.
+- **Task 2:** Build a branded `PDFOrcaLoader` (logo mark + animation) and a small set of wrappers — `FullPageLoader`, `ToolProcessingLoader`, `FileUploadLoader`, `AIProcessingLoader`, `ButtonLoader` — then (a) swap the generic spinner inside existing infra, (b) add per-route `loading.tsx` (correct skeleton per route group), (c) **fix the language-switch no-feedback gap**, (d) verify double-click guards everywhere.
 - **Task 3:** Standardize on the `notify` helper (or a thin wrapper), give it Success/Error/Warning/Info/Processing variants with `description` ("what happened / why / what next"), replace the `window.confirm` with a branded dialog, and migrate the ~109 direct `toast.*` calls.
 
 ---

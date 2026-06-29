@@ -1,5 +1,5 @@
 """
-Excel to PDF conversion service for WeLovePDF.
+Excel to PDF conversion service for PDFOrca.
 
 Primary path: render the *actual* spreadsheet to PDF with LibreOffice headless
 (the same engine word-to-pdf / powerpoint-to-pdf already use). This preserves
@@ -365,7 +365,7 @@ class ExcelToPdfService:
                 leftMargin=0.4 * inch,
                 rightMargin=0.4 * inch,
                 title=f"Excel to PDF: {original_filename}",
-                author="WeLovePDF",
+                author="PDFOrca",
             )
 
             styles = getSampleStyleSheet()

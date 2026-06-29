@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────
-// BrandLoader — the single source of truth for WeLovePDF's branded loading
+// BrandLoader — the single source of truth for PDFOrca's branded loading
 // animation. It renders the brand mark (a PDF document on a blue→purple
 // gradient, matching public/icon-source.svg and the header lockup) with the
 // three document "text" lines drawing in/out in a staggered loop to read as
@@ -38,7 +38,7 @@ const labelSizeMap: Record<BrandLoaderSize, string> = {
 };
 
 /**
- * The animated WeLovePDF mark on its own (no label). Use this when you only
+ * The animated PDFOrca mark on its own (no label). Use this when you only
  * need the glyph (e.g. inside a button). For a labelled, centered block use
  * `BrandLoader`.
  */

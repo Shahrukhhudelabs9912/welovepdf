@@ -8,7 +8,7 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 const OrganizePDFClient = dynamic(
   () => import("./organize-pdf-client").then((mod) => ({ default: mod.OrganizePDFClient })),
@@ -16,17 +16,17 @@ const OrganizePDFClient = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Organize PDF Pages Online Free - Reorder, Rotate, Delete | WeLovePDF",
+  title: "Organize PDF Pages Online Free - Reorder, Rotate, Delete | PDFOrca",
   description: "Reorder, rotate, and delete pages in a PDF online for free. Drag-and-drop interface, no registration required.",
   keywords: "organize pdf, reorder pdf pages, rearrange pdf, delete pdf pages, rotate pdf pages, pdf organizer",
   openGraph: {
-    title: "Organize PDF Pages Online Free - Reorder, Rotate, Delete | WeLovePDF",
+    title: "Organize PDF Pages Online Free - Reorder, Rotate, Delete | PDFOrca",
     description: "Reorder, rotate, and delete pages in a PDF online for free. Drag-and-drop interface, no registration required.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Organize PDF Pages Online Free - Reorder, Rotate, Delete | WeLovePDF",
+    title: "Organize PDF Pages Online Free - Reorder, Rotate, Delete | PDFOrca",
     description: "Reorder, rotate, and delete pages in a PDF online for free. Drag-and-drop interface, no registration required.",
   },
   alternates: {

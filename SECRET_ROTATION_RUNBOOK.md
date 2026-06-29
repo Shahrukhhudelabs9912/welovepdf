@@ -29,14 +29,14 @@ python -c "import secrets; print('ADMIN_TOKEN=' + secrets.token_urlsafe(32))"
 Yeh **aapko khud karna hoga** MongoDB Atlas dashboard se:
 
 1. **Login** karo: https://cloud.mongodb.com
-2. **Database Access** (left sidebar) → user `welovepdf9912_db_user` find karo
+2. **Database Access** (left sidebar) → user `pdforca9912_db_user` find karo
 3. **Edit** click karo → **Edit Password** → **Autogenerate Secure Password** → **Update User**
 4. Naya password copy karo (ek baar hi dikhega)
 5. **Network Access** (left sidebar) → confirm karo aapka VPS IP whitelist mein hai (ya `0.0.0.0/0` for testing — production mein VPS IP only)
 6. Production `.env` mein update karo:
 
 ```env
-MONGO_URL=mongodb+srv://welovepdf9912_db_user:NEW_PASSWORD_HERE@welovepdf.hqeuskn.mongodb.net/?appName=welovepdf
+MONGO_URL=mongodb+srv://pdforca9912_db_user:NEW_PASSWORD_HERE@pdforca.hqeuskn.mongodb.net/?appName=pdforca
 ```
 
 **⚠️ Old password permanently invalidated — kisi aur jagah use mat karna.**
@@ -83,7 +83,7 @@ NEXT_PUBLIC_SENTRY_ENVIRONMENT=production
 `.gitignore` already update ho chuki hai. Ab tracked `.env` ko git history se untrack karna hai:
 
 ```bash
-cd C:/shahrukh/welovepdf
+cd C:/shahrukh/pdforca
 
 # Verify which env files are currently tracked
 git ls-files | grep -E "\.env$"
@@ -106,9 +106,9 @@ git push origin main
 ```bash
 # Install git-filter-repo: pip install git-filter-repo
 # Backup the repo first!
-cp -r C:/shahrukh/welovepdf C:/shahrukh/welovepdf.backup
+cp -r C:/shahrukh/pdforca C:/shahrukh/pdforca.backup
 
-cd C:/shahrukh/welovepdf
+cd C:/shahrukh/pdforca
 git filter-repo --invert-paths --path backend/.env
 
 # Force push (DESTRUCTIVE — coordinate with anyone who has cloned)
@@ -125,7 +125,7 @@ VPS pe `.env` securely banao:
 
 ```bash
 # On the VPS:
-cd /path/to/welovepdf/backend
+cd /path/to/pdforca/backend
 cp .env.example .env
 nano .env  # paste real production values
 chmod 600 .env  # only owner can read
@@ -151,6 +151,6 @@ Tick mark karo har step ke baad:
 - [ ] `.gitignore` covers all secret files
 - [ ] VPS `.env` chmod 600 (or stricter)
 - [ ] App boots cleanly on VPS with `ENVIRONMENT=production`
-- [ ] Health check returns 200: `curl https://api.welovepdf.com/health`
+- [ ] Health check returns 200: `curl https://api.pdforca.com/health`
 
 Agar saare ✅ ho gaye, public deploy ke liye safe hai.

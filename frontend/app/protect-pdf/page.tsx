@@ -8,7 +8,7 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 const ProtectPDFClient = dynamic(
   () => import("./protect-pdf-client").then((mod) => ({ default: mod.ProtectPDFClient })),
@@ -16,17 +16,17 @@ const ProtectPDFClient = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Password Protect PDF Online Free - Encrypt PDF Files | WeLovePDF",
+  title: "Password Protect PDF Online Free - Encrypt PDF Files | PDFOrca",
   description: "Add password protection to PDF files online for free. AES encryption, no registration required.",
   keywords: "protect pdf, password protect pdf, encrypt pdf, secure pdf, pdf password, lock pdf, add password to pdf",
   openGraph: {
-    title: "Password Protect PDF Online Free - Encrypt PDF Files | WeLovePDF",
+    title: "Password Protect PDF Online Free - Encrypt PDF Files | PDFOrca",
     description: "Add password protection to PDF files online for free. AES encryption, no registration required.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Password Protect PDF Online Free - Encrypt PDF Files | WeLovePDF",
+    title: "Password Protect PDF Online Free - Encrypt PDF Files | PDFOrca",
     description: "Add password protection to PDF files online for free. AES encryption, no registration required.",
   },
   alternates: {

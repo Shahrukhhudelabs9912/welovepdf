@@ -82,11 +82,11 @@ export default function FeaturesPage() {
   ];
 
   const comparisons = [
-    { feature: t("compare_size"), welovepdf: "100 MB", competitor: "50 MB" },
-    { feature: t("compare_speed"), welovepdf: t("compare_speed_us"), competitor: t("compare_speed_them") },
-    { feature: t("compare_privacy"), welovepdf: t("compare_privacy_us"), competitor: t("compare_privacy_them") },
-    { feature: t("compare_free"), welovepdf: t("compare_free_us"), competitor: t("compare_free_them") },
-    { feature: t("compare_ai"), welovepdf: t("compare_ai_us"), competitor: t("compare_ai_them") },
+    { feature: t("compare_size"), pdforca: "100 MB", competitor: "50 MB" },
+    { feature: t("compare_speed"), pdforca: t("compare_speed_us"), competitor: t("compare_speed_them") },
+    { feature: t("compare_privacy"), pdforca: t("compare_privacy_us"), competitor: t("compare_privacy_them") },
+    { feature: t("compare_free"), pdforca: t("compare_free_us"), competitor: t("compare_free_them") },
+    { feature: t("compare_ai"), pdforca: t("compare_ai_us"), competitor: t("compare_ai_them") },
   ];
 
   return (
@@ -212,7 +212,7 @@ export default function FeaturesPage() {
                     >
                       <td className="px-6 py-4 font-medium">{item.feature}</td>
                       <td className="px-6 py-4">
-                        <span className="font-semibold text-primary">{item.welovepdf}</span>
+                        <span className="font-semibold text-primary">{item.pdforca}</span>
                       </td>
                       <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{item.competitor}</td>
                       <td className="px-6 py-4">

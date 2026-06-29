@@ -49,7 +49,7 @@
     "error_reload": "Reload Page"
   },
   "header": {
-    "title": "WeLovePDF",
+    "title": "PDFOrca",
     "subtitle": "Your All-in-One PDF Solution",
     "nav": {
       "all_tools": "All Tools",
@@ -174,7 +174,7 @@
     }
   },
   "features": {
-    "title": "Why Choose WeLovePDF?",
+    "title": "Why Choose PDFOrca?",
     "subtitle": "We combine cutting-edge technology with user-centric design to deliver the best PDF processing experience.",
     "security": {
       "title": "Military-Grade Security",
@@ -219,7 +219,7 @@
   },
   "testimonials": {
     "title": "Trusted by Millions Worldwide",
-    "subtitle": "See what our users have to say about their experience with WeLovePDF.",
+    "subtitle": "See what our users have to say about their experience with PDFOrca.",
     "user1": {
       "name": "Rajesh Kumar",
       "role": "Business Owner",
@@ -231,14 +231,14 @@
       "name": "Priya Sharma",
       "role": "Marketing Manager",
       "company": "TechCorp India",
-      "text": "WeLovePDF has revolutionized how our team handles documents. The AI summarization feature saves us hours every week.",
+      "text": "PDFOrca has revolutionized how our team handles documents. The AI summarization feature saves us hours every week.",
       "rating": 5
     },
     "user3": {
       "name": "Amit Patel",
       "role": "Freelance Designer",
       "company": "Self-Employed",
-      "text": "I use multiple PDF tools daily, and WeLovePDF is by far the fastest and most reliable.",
+      "text": "I use multiple PDF tools daily, and PDFOrca is by far the fastest and most reliable.",
       "rating": 5
     },
     "user4": {
@@ -252,7 +252,7 @@
       "name": "Sofia Rodriguez",
       "role": "Legal Assistant",
       "company": "Law Partners LLC",
-      "text": "Password protection and watermark features are essential for our legal documents. WeLovePDF handles everything securely.",
+      "text": "Password protection and watermark features are essential for our legal documents. PDFOrca handles everything securely.",
       "rating": 5
     },
     "user6": {
@@ -277,7 +277,7 @@
   "faq": {
     "title": "Frequently Asked Questions",
     "q1": {
-      "question": "Is WeLovePDF free to use?",
+      "question": "Is PDFOrca free to use?",
       "answer": "Yes! All basic PDF tools are completely free. We offer premium features for advanced needs."
     },
     "q2": {
@@ -290,7 +290,7 @@
     },
     "q4": {
       "question": "Do I need to install any software?",
-      "answer": "No installation required. WeLovePDF works entirely in your browser."
+      "answer": "No installation required. PDFOrca works entirely in your browser."
     },
     "q5": {
       "question": "Can I use it on mobile?",
@@ -308,14 +308,14 @@
       "question": "Do you have an API for developers?",
       "answer": "Yes, we offer a comprehensive REST API for developers. You can integrate our PDF processing capabilities directly into your applications with detailed documentation and SDKs."
     },
-    "subtitle": "Get answers to common questions about WeLovePDF.",
+    "subtitle": "Get answers to common questions about PDFOrca.",
     "contact_text": "Still have questions?",
     "contact_link": "Contact our support team",
     "contact_suffix": "— we're here to help!"
   },
   "cta": {
     "title": "Ready to Transform Your PDF Workflow?",
-    "subtitle": "Join 2 million+ users who trust WeLovePDF for their document needs.",
+    "subtitle": "Join 2 million+ users who trust PDFOrca for their document needs.",
     "button1": "Get Started Free",
     "button2": "View All Tools"
   },
@@ -327,7 +327,7 @@
     "features": "Features",
     "resources": "Resources",
     "legal": "Legal",
-    "copyright": "© {year} WeLovePDF. All rights reserved. Made with ❤️ for PDF lovers worldwide.",
+    "copyright": "© {year} PDFOrca. All rights reserved. Made with ❤️ for PDF lovers worldwide.",
     "auto_delete": "Files are automatically deleted after processing. We never store your documents.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
@@ -341,7 +341,7 @@
     "secure_badge": "100% Secure",
     "fast_badge": "Fast Processing",
     "multi_lang_badge": "Multi-language",
-    "supported_formats": "WeLovePDF supports: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, JPG, PNG, TIFF, and more. Maximum file size: 100MB per file.",
+    "supported_formats": "PDFOrca supports: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, and JPG. Maximum file size: 100MB per file.",
     "https_notice": "This service uses secure HTTPS encryption. All processing happens in secure environments.",
     "footer_links": {
       "merge_pdf": "Merge PDF",
@@ -1040,7 +1040,7 @@
     "upload_title": "Upload PDF",
     "settings_title": "Watermark Settings",
     "text_watermark_label": "Text Watermark",
-    "text_watermark_placeholder": "Enter watermark text (e.g., We Love PDF)",
+    "text_watermark_placeholder": "Enter watermark text (e.g., PDFOrca)",
     "position_label": "Position",
     "diagonal_repeated": "Diagonal (Repeated)",
     "opacity_label": "Opacity",
@@ -1306,12 +1306,12 @@
     "cta_contact_editors": "Contact our editors"
   },
   "about": {
-    "title": "About WeLovePDF",
+    "title": "About PDFOrca",
     "description": "Learn about our mission, team, and commitment to providing the best PDF tools.",
     "badge": "Our Story",
     "hero_heading_part1": "We Believe in",
     "hero_heading_part2": "Simplicity & Security",
-    "hero_description": "WeLovePDF was founded with a simple mission: to make PDF processing accessible, secure, and effortless for everyone. No complicated software, no privacy concerns, just powerful tools that work right in your browser.",
+    "hero_description": "PDFOrca was founded with a simple mission: to make PDF processing accessible, secure, and effortless for everyone. No complicated software, no privacy concerns, just powerful tools that work right in your browser.",
     "mission_title": "Our Mission",
     "mission_subtitle": "What drives us every day",
     "mission_text": "To democratize PDF processing by providing free, high-quality tools that anyone can use regardless of technical expertise. We believe everyone deserves access to professional-grade document tools without cost barriers.",
@@ -1433,7 +1433,7 @@
     "faq_6_q": "Is my data secure?",
     "faq_6_a": "Absolutely. All files are encrypted in transit and at rest. We automatically delete files after the retention period, and we never share your data with third parties.",
     "cta_heading": "Ready to Transform Your PDF Workflow?",
-    "cta_description": "Join thousands of professionals who trust WeLovePDF for their document needs.",
+    "cta_description": "Join thousands of professionals who trust PDFOrca for their document needs.",
     "cta_trial": "Start Free Trial",
     "cta_footer": "No credit card required • 14-day free trial • Cancel anytime",
     "per_month": "/month",
@@ -1450,7 +1450,7 @@
     "hero_description": "Have questions, feedback, or need support? We're here to help you with all your PDF needs. Our team is ready to assist you.",
     "email_support_title": "Email Support",
     "email_support_desc": "For general inquiries and support",
-    "email_support_details": "support@welovepdf.com",
+    "email_support_details": "support@pdforca.com",
     "email_support_action": "Send Email",
     "live_chat_title": "Live Chat",
     "live_chat_desc": "Available during business hours",
@@ -1476,8 +1476,8 @@
     "subject_placeholder": "How can we help you?",
     "message_label": "Message",
     "message_placeholder": "Please describe your inquiry in detail...",
-    "about_title": "About WeLovePDF",
-    "about_text": "WeLovePDF is a leading online PDF solution trusted by millions of users worldwide. Our mission is to make PDF processing simple, secure, and accessible to everyone.",
+    "about_title": "About PDFOrca",
+    "about_text": "PDFOrca is a leading online PDF solution trusted by millions of users worldwide. Our mission is to make PDF processing simple, secure, and accessible to everyone.",
     "business_hours_label": "Business Hours",
     "business_hours_value": "Monday - Friday: 9:00 AM - 6:00 PM (UTC)",
     "response_time_label": "Response Time",

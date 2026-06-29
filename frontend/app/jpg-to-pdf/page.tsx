@@ -10,7 +10,7 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 const HOW_TO_STEPS = [
   { name: "Upload images", text: "Drop or select JPG, PNG, GIF, WebP, BMP or TIFF files." },
@@ -44,17 +44,17 @@ const JPGToPDFClient = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "JPG to PDF Converter Online Free - Convert Images to PDF | WeLovePDF",
+  title: "JPG to PDF Converter Online Free - Convert Images to PDF | PDFOrca",
   description: "Convert JPG images to PDF files online for free. Combine multiple images into a single PDF document. No registration required.",
   keywords: "jpg to pdf, image to pdf, convert jpg to pdf, jpg to pdf converter, images to pdf, photo to pdf",
   openGraph: {
-    title: "JPG to PDF Converter Online Free - Convert Images to PDF | WeLovePDF",
+    title: "JPG to PDF Converter Online Free - Convert Images to PDF | PDFOrca",
     description: "Convert JPG images to PDF files online for free.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "JPG to PDF Converter Online Free - Convert Images to PDF | WeLovePDF",
+    title: "JPG to PDF Converter Online Free - Convert Images to PDF | PDFOrca",
     description: "Convert JPG images to PDF files online for free.",
   },
   alternates: {

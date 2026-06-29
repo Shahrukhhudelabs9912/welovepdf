@@ -1,4 +1,4 @@
-"""Services module for WeLovePDF API."""
+"""Services module for PDFOrca API."""
 from app.services.pdf_service import PDFService, ImageToPDFService, PDFToImageService
 from app.services.auth_service import (
     create_user,

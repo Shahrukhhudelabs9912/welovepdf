@@ -10,7 +10,7 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 const HOW_TO_STEPS = [
   { name: "Upload your PDF", text: "Click upload or drop your PDF into the tool area." },
@@ -44,17 +44,17 @@ const CompressPDFTool = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Compress PDF Online Free - Reduce PDF File Size | WeLovePDF",
+  title: "Compress PDF Online Free - Reduce PDF File Size | PDFOrca",
   description: "Compress PDF files to reduce file size without losing quality. Optimize PDFs for email, web, or storage. No registration required.",
   keywords: "compress pdf, reduce pdf size, pdf compressor, shrink pdf, optimize pdf, pdf size reducer, compress pdf online",
   openGraph: {
-    title: "Compress PDF Online Free - Reduce PDF File Size | WeLovePDF",
+    title: "Compress PDF Online Free - Reduce PDF File Size | PDFOrca",
     description: "Compress PDF files to reduce file size without losing quality.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Compress PDF Online Free - Reduce PDF File Size | WeLovePDF",
+    title: "Compress PDF Online Free - Reduce PDF File Size | PDFOrca",
     description: "Compress PDF files to reduce file size without losing quality.",
   },
   alternates: {

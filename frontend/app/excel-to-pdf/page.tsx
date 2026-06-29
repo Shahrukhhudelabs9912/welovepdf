@@ -8,7 +8,7 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 const ExcelToPDFClient = dynamic(
   () => import("./excel-to-pdf-client").then((mod) => ({ default: mod.ExcelToPDFClient })),
@@ -16,17 +16,17 @@ const ExcelToPDFClient = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Convert Excel to PDF Online Free | WeLovePDF",
+  title: "Convert Excel to PDF Online Free | PDFOrca",
   description: "Convert Excel spreadsheets (.xls, .xlsx) to PDF online for free. Preserve formatting, formulas, and charts. No registration required.",
   keywords: "excel to pdf, convert excel to pdf, xls to pdf, xlsx to pdf, excel to pdf converter, free excel to pdf",
   openGraph: {
-    title: "Convert Excel to PDF Online Free | WeLovePDF",
+    title: "Convert Excel to PDF Online Free | PDFOrca",
     description: "Convert Excel spreadsheets (.xls, .xlsx) to PDF online for free. Preserve formatting, formulas, and charts. No registration required.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Convert Excel to PDF Online Free | WeLovePDF",
+    title: "Convert Excel to PDF Online Free | PDFOrca",
     description: "Convert Excel spreadsheets (.xls, .xlsx) to PDF online for free. Preserve formatting, formulas, and charts. No registration required.",
   },
   alternates: {

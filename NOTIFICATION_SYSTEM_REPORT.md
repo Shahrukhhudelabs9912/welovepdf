@@ -4,7 +4,7 @@ _Generated: 2026-06-21_
 
 ## Summary
 
-WeLovePDF uses **Sonner** (`import { toast } from "sonner"`) as the single, app-wide toast/notification system. Every PDF tool surfaces user feedback — upload confirmations, success, errors, and informational hints — through `toast`, keeping notification behaviour consistent across the app.
+PDFOrca uses **Sonner** (`import { toast } from "sonner"`) as the single, app-wide toast/notification system. Every PDF tool surfaces user feedback — upload confirmations, success, errors, and informational hints — through `toast`, keeping notification behaviour consistent across the app.
 
 ## The library
 

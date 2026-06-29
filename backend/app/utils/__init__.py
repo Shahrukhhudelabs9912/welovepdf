@@ -1,5 +1,5 @@
 """
-Utility functions for the WeLovePDF backend.
+Utility functions for the PDFOrca backend.
 """
 from app.utils.file_utils import (
     validate_file_type,

@@ -66,7 +66,7 @@ def test_placeholder_endpoints():
 def main():
     """Run all tests."""
     print("=" * 60)
-    print("Testing WeLovePDF FastAPI Backend")
+    print("Testing PDFOrca FastAPI Backend")
     print("=" * 60)
     
     # Check if server is running

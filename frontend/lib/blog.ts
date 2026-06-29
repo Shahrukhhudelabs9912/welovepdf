@@ -57,7 +57,7 @@ export function getAllPosts(): PostMeta[] {
           description: String(data.description ?? ""),
           date: String(data.date ?? "1970-01-01"),
           category: String(data.category ?? "General"),
-          author: String(data.author ?? "WeLovePDF Team"),
+          author: String(data.author ?? "PDFOrca Team"),
           cover: data.cover ? String(data.cover) : undefined,
           relatedTool: data.relatedTool ? String(data.relatedTool) : undefined,
           keywords: Array.isArray(data.keywords)
@@ -101,7 +101,7 @@ export function getPostBySlug(slug: string): Post | null {
     description: String(data.description ?? ""),
     date: String(data.date ?? "1970-01-01"),
     category: String(data.category ?? "General"),
-    author: String(data.author ?? "WeLovePDF Team"),
+    author: String(data.author ?? "PDFOrca Team"),
     cover: data.cover ? String(data.cover) : undefined,
     relatedTool: data.relatedTool ? String(data.relatedTool) : undefined,
     keywords: Array.isArray(data.keywords)

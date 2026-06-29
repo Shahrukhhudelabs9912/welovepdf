@@ -1,5 +1,5 @@
 """
-PDF to Excel conversion service for WeLovePDF.
+PDF to Excel conversion service for PDFOrca.
 Uses pdfplumber for table extraction and pandas/openpyxl for Excel generation.
 """
 import io

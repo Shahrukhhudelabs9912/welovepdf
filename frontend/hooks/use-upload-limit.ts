@@ -23,9 +23,9 @@ export interface UploadLimit {
 }
 
 const FALLBACK: UploadLimit = {
-  maxBytes: 25 * 1024 * 1024,
-  maxMb: 25,
-  freeTierMb: 25,
+  maxBytes: 100 * 1024 * 1024,
+  maxMb: 100,
+  freeTierMb: 100,  // [Phase 3] Restore to 25 when freemium is enabled
   proTierMb: 100,
   tier: "free",
   loaded: false,
@@ -35,7 +35,7 @@ function readAuthToken(): string | null {
   if (typeof window === "undefined") return null;
   // Match whatever your auth-context uses — adjust if your storage key differs.
   return (
-    localStorage.getItem("welovepdf_access_token") ||
+    localStorage.getItem("pdforca_access_token") ||
     localStorage.getItem("access_token") ||
     null
   );

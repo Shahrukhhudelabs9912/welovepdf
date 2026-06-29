@@ -85,15 +85,16 @@ def enforce_upload_limit(file: UploadFile, limit: int) -> None:
         # If we can't tell, let the actual read attempt fail downstream.
         return
     if size > limit:
-        is_pro_limit = limit == settings.PRO_MAX_UPLOAD_SIZE
-        upgrade_hint = (
-            "" if is_pro_limit
-            else f" Upgrade to Pro for {_format_mb(settings.PRO_MAX_UPLOAD_SIZE)} uploads."
-        )
+        # [Phase 3] Restore upgrade hint when freemium tiers are enabled:
+        # is_pro_limit = limit == settings.PRO_MAX_UPLOAD_SIZE
+        # upgrade_hint = (
+        #     "" if is_pro_limit
+        #     else f" Upgrade to Pro for {_format_mb(settings.PRO_MAX_UPLOAD_SIZE)} uploads."
+        # )
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=(
-                f"File '{file.filename}' is {_format_mb(size)}, exceeds your "
-                f"{_format_mb(limit)} limit.{upgrade_hint}"
+                f"File '{file.filename}' is {_format_mb(size)}, exceeds the "
+                f"{_format_mb(limit)} limit."
             ),
         )

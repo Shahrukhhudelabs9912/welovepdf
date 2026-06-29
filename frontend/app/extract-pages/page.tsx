@@ -10,20 +10,20 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 export const metadata: Metadata = {
-  title: "Extract Pages from PDF Online Free | WeLovePDF",
+  title: "Extract Pages from PDF Online Free | PDFOrca",
   description: "Extract specific pages from a PDF into a new document. Pick single pages or ranges (e.g. 1,3,5-7) and download the new PDF instantly. Free, no signup.",
   keywords: "extract pdf pages, pdf page extractor, extract pages from pdf, pdf page picker, select pdf pages, get pages from pdf",
   openGraph: {
-    title: "Extract Pages from PDF Online Free | WeLovePDF",
+    title: "Extract Pages from PDF Online Free | PDFOrca",
     description: "Extract specific pages from a PDF into a new document.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Extract Pages from PDF Online Free | WeLovePDF",
+    title: "Extract Pages from PDF Online Free | PDFOrca",
     description: "Extract specific pages from a PDF into a new document.",
   },
   alternates: {

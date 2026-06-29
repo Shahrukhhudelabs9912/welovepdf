@@ -10,7 +10,7 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 const HOW_TO_STEPS = [
   { name: "Upload your PDF", text: "Click upload or drop the PDF you want to convert." },
@@ -44,17 +44,17 @@ const PDFToJPGClient = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Convert PDF to JPG Online Free | WeLovePDF",
+  title: "Convert PDF to JPG Online Free | PDFOrca",
   description: "Convert PDF pages to high-quality JPG images online for free. Extract images from PDF or convert entire pages to JPG format.",
   keywords: "convert pdf to jpg, pdf to image, pdf to jpg online, extract images from pdf, pdf to jpg converter",
   openGraph: {
-    title: "Convert PDF to JPG Online Free | WeLovePDF",
+    title: "Convert PDF to JPG Online Free | PDFOrca",
     description: "Convert PDF pages to high-quality JPG images online for free.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Convert PDF to JPG Online Free | WeLovePDF",
+    title: "Convert PDF to JPG Online Free | PDFOrca",
     description: "Convert PDF pages to high-quality JPG images online for free.",
   },
   alternates: {

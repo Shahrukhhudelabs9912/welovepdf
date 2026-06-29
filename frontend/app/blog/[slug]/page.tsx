@@ -6,7 +6,7 @@ import { getAllPostSlugs, getPostBySlug } from "@/lib/blog";
 import { BlogPostBody } from "@/components/blog/blog-post-body";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 type Params = { slug: string };
 
@@ -19,7 +19,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
   const post = getPostBySlug(slug);
-  if (!post) return { title: "Post not found | WeLovePDF Blog" };
+  if (!post) return { title: "Post not found | PDFOrca Blog" };
 
   const url = `${SITE_URL}/blog/${slug}`;
   const ogImage = post.cover
@@ -27,7 +27,7 @@ export async function generateMetadata(
     : `${SITE_URL}/icon-512.png`;
 
   return {
-    title: `${post.title} | WeLovePDF Blog`,
+    title: `${post.title} | PDFOrca Blog`,
     description: post.description,
     keywords: post.keywords?.join(", "),
     authors: [{ name: post.author }],

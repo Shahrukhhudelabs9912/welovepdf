@@ -4,8 +4,9 @@ import { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { FileText, Shield, Zap, Globe, Check } from "lucide-react";
+import { AdBanner } from "@/components/ad-banner";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 interface ToolLayoutProps {
   title: string;
@@ -105,6 +106,8 @@ export function ToolLayout({
               {children}
             </div>
 
+            <AdBanner slot="TOOL_BELOW" format="horizontal" className="mt-6" />
+
             {seoContent && (
               <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
                 <div className="prose prose-lg dark:prose-invert max-w-none">
@@ -172,6 +175,8 @@ export function ToolLayout({
                 ))}
               </div>
             </div>
+
+            <AdBanner slot="TOOL_SIDEBAR" format="rectangle" className="mt-2" />
           </div>
         </div>
       </div>

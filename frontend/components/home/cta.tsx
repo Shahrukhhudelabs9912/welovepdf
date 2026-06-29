@@ -38,7 +38,7 @@ export function CTASection() {
                     </Link>
                     <Link
                       href="/about"
-                      className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground border-white text-white hover:bg-white/10 h-11 rounded-md px-8"
+                      className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 border border-white/60 bg-white/10 text-white hover:bg-white/20 h-11 px-8"
                     >
                       {t("cta.button2")}
                     </Link>
@@ -85,7 +85,7 @@ export function CTASection() {
                 >
                   <h3 className="text-2xl font-bold text-white">{t("cta.button1")}</h3>
                   <p className="mt-2 text-blue-100">
-                    Drag & drop your first PDF to experience the power of WeLovePDF.
+                    Drag & drop your first PDF to experience the power of PDFOrca.
                   </p>
 
                   <div className="mt-8 space-y-4">

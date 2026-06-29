@@ -3,7 +3,7 @@ title: "How to Compress a PDF Without Losing Quality (2026 Guide)"
 description: "Learn how to reduce PDF file size without ruining text or image quality. Free step-by-step methods for email limits, web uploads, and online forms — no software to install."
 date: "2026-06-21"
 category: "Tutorial"
-author: "WeLovePDF Team"
+author: "PDFOrca Team"
 relatedTool: "compress-pdf"
 keywords:
   - compress pdf without losing quality
@@ -90,7 +90,7 @@ Compression isn't the only lever. Depending on your file:
 
 ## Is It Safe to Compress Confidential PDFs Online?
 
-A fair concern for contracts, IDs, and financial documents. With WeLovePDF:
+A fair concern for contracts, IDs, and financial documents. With PDFOrca:
 
 - Files are uploaded over **HTTPS** (encrypted in transit)
 - Processing happens on the server and the file is **deleted automatically after one hour**

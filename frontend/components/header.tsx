@@ -5,21 +5,23 @@ import { Link as LocaleLink } from "@/routing";
 import { motion } from "framer-motion";
 import {
   FileText, Menu, X, Moon, Sun, ChevronDown,
-  LogOut, Settings, LayoutDashboard, Combine, Scissors,
+  // [Phase 3] Restore: LogOut, Settings, LayoutDashboard,
+  Combine, Scissors,
   ArrowRightLeft, Shrink, Lock, Pencil,
   Paintbrush, Hash, Image as ImageIcon
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+// [Phase 3] Restore dropdown imports when freemium is enabled
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuSeparator,
+//   DropdownMenuTrigger,
+// } from "@/components/ui/dropdown-menu";
 import { useTranslations } from "next-intl";
-import { useAuth } from "@/lib/auth-context";
+// [Phase 3] Restore: import { useAuth } from "@/lib/auth-context";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 
 const toolCategories = [
@@ -82,7 +84,7 @@ export function Header() {
   const popularTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { theme, setTheme } = useTheme();
   const t = useTranslations();
-  const { user, isAuthenticated, logout } = useAuth();
+  // [Phase 3] Restore: const { user, isAuthenticated, logout } = useAuth();
 
   const hoverHandlers = (
     timerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
@@ -98,15 +100,16 @@ export function Header() {
     },
   });
 
-  const getUserInitials = (): string => {
-    if (!user?.full_name) return "?";
-    return user.full_name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  // [Phase 3] Restore getUserInitials when freemium is enabled
+  // const getUserInitials = (): string => {
+  //   if (!user?.full_name) return "?";
+  //   return user.full_name
+  //     .split(" ")
+  //     .map((n) => n[0])
+  //     .join("")
+  //     .toUpperCase()
+  //     .slice(0, 2);
+  // };
 
   useEffect(() => {
     setMounted(true);
@@ -129,7 +132,7 @@ export function Header() {
                 <FileText className="h-5 w-5 text-white" />
               </div>
               <span className="text-xl font-bold tracking-tight">
-                We<span className="text-blue-600">Love</span>PDF
+                PDF<span className="text-blue-600">Orca</span>
               </span>
             </LocaleLink>
 
@@ -237,6 +240,7 @@ export function Header() {
 
               <LocaleSwitcher />
 
+              {/* [Phase 3] Restore login/signup buttons when freemium is enabled
               {isAuthenticated ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -294,6 +298,7 @@ export function Header() {
                   </LocaleLink>
                 </>
               )}
+              */}
             </div>
 
             <Button
@@ -377,6 +382,7 @@ export function Header() {
                 </Button>
               </div>
 
+              {/* [Phase 3] Restore login/signup buttons when freemium is enabled
               <div className="flex gap-2 pt-2">
                 {isAuthenticated ? (
                   <>
@@ -417,6 +423,7 @@ export function Header() {
                   </>
                 )}
               </div>
+              */}
             </div>
           </div>
         </motion.div>

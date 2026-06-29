@@ -10,7 +10,7 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 const HOW_TO_STEPS = [
   { name: "Upload your PDF", text: "Drop the PDF you want to watermark into the tool." },
@@ -44,17 +44,17 @@ const AddWatermarkClient = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Add Watermark to PDF Online Free | WeLovePDF",
+  title: "Add Watermark to PDF Online Free | PDFOrca",
   description: "Add text or image watermarks to your PDF documents online for free. Customize position, opacity, and size of watermarks. No registration required.",
   keywords: "add watermark to pdf, pdf watermark, watermark pdf, text watermark, image watermark, protect pdf, pdf security",
   openGraph: {
-    title: "Add Watermark to PDF Online Free | WeLovePDF",
+    title: "Add Watermark to PDF Online Free | PDFOrca",
     description: "Add text or image watermarks to your PDF documents online for free.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Add Watermark to PDF Online Free | WeLovePDF",
+    title: "Add Watermark to PDF Online Free | PDFOrca",
     description: "Add text or image watermarks to your PDF documents online for free.",
   },
   alternates: {

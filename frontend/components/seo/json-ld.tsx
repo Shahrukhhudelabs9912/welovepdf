@@ -1,6 +1,6 @@
 import Script from "next/script";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 type JsonLdProps = { id: string; data: Record<string, unknown> };
 
@@ -22,12 +22,12 @@ export function OrganizationJsonLd() {
       data={{
         "@context": "https://schema.org",
         "@type": "Organization",
-        name: "WeLovePDF",
+        name: "PDFOrca",
         url: SITE_URL,
         logo: `${SITE_URL}/icon-512.png`,
         sameAs: [
-          "https://twitter.com/welovepdf",
-          "https://www.facebook.com/welovepdf",
+          "https://twitter.com/pdforca",
+          "https://www.facebook.com/pdforca",
         ],
       }}
     />
@@ -41,7 +41,7 @@ export function WebSiteJsonLd() {
       data={{
         "@context": "https://schema.org",
         "@type": "WebSite",
-        name: "WeLovePDF",
+        name: "PDFOrca",
         url: SITE_URL,
         potentialAction: {
           "@type": "SearchAction",
@@ -202,7 +202,7 @@ export function ArticleJsonLd({
         },
         publisher: {
           "@type": "Organization",
-          name: "WeLovePDF",
+          name: "PDFOrca",
           logo: {
             "@type": "ImageObject",
             url: `${SITE_URL}/icon-512.png`,

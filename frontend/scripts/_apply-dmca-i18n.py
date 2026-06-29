@@ -8,13 +8,13 @@ EN = {
     "subtitle": "How to report copyright infringement and our takedown process.",
     "last_updated_label": "Last updated: {date}",
 
-    "notice_title": "Important: WeLovePDF does not host user files",
+    "notice_title": "Important: PDFOrca does not host user files",
     "notice_body": "Files you upload to use our PDF tools are processed in temporary memory and deleted within 1 hour. We do not store, index, or distribute user-uploaded files. If you believe your work has been used to train our models or appears in our public assets (logos, templates, blog), please file a notice below.",
 
     "req_1_title": "1. Identification of the copyrighted work",
     "req_1_desc": "A clear description of the copyrighted material you claim is being infringed (e.g., title, registration number, URL of the original).",
     "req_2_title": "2. Identification of the infringing material",
-    "req_2_desc": "The exact URL on welovepdf.app (or sub-page) where the allegedly infringing content appears.",
+    "req_2_desc": "The exact URL on pdforca.com (or sub-page) where the allegedly infringing content appears.",
     "req_3_title": "3. Your contact information",
     "req_3_desc": "Full legal name, postal address, telephone number, and a valid email address where we can reach you.",
     "req_4_title": "4. Good-faith statement",
@@ -25,7 +25,7 @@ EN = {
     "req_6_desc": "A physical or electronic signature of the copyright owner or a person authorized to act on their behalf.",
 
     "s1_title": "1. Reporting copyright infringement",
-    "s1_p1": "WeLovePDF respects the intellectual property rights of others and complies with the notice-and-takedown procedures of the Digital Millennium Copyright Act (DMCA, United States) and Rule 3(2) of the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021 in India.",
+    "s1_p1": "PDFOrca respects the intellectual property rights of others and complies with the notice-and-takedown procedures of the Digital Millennium Copyright Act (DMCA, United States) and Rule 3(2) of the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021 in India.",
     "s1_p2": "If you are the copyright owner (or an authorized representative) and you believe content on our site infringes your copyright, send a written notice to our designated agent (details at the bottom of this page) containing the elements listed below.",
 
     "s2_title": "2. Required information in your notice",
@@ -55,7 +55,7 @@ EN = {
     "s7_p1": "We terminate the accounts of users who are determined to be repeat infringers of copyright. We maintain a record of valid takedown notices for this purpose.",
 
     "s8_title": "8. Designated agent for copyright notices",
-    "s8_agent_label": "WeLovePDF Copyright Agent",
+    "s8_agent_label": "PDFOrca Copyright Agent",
     "s8_email_label": "Email:",
     "s8_postal_label": "Postal address: available on written request to the email above.",
 
@@ -73,13 +73,13 @@ HI = {
     "subtitle": "कॉपीराइट उल्लंघन की रिपोर्ट कैसे करें और हमारी टेकडाउन प्रक्रिया।",
     "last_updated_label": "अंतिम अपडेट: {date}",
 
-    "notice_title": "महत्वपूर्ण: WeLovePDF यूज़र फ़ाइलें होस्ट नहीं करता",
+    "notice_title": "महत्वपूर्ण: PDFOrca यूज़र फ़ाइलें होस्ट नहीं करता",
     "notice_body": "हमारे PDF टूल्स इस्तेमाल करने के लिए आप जो फ़ाइलें अपलोड करते हैं वे टेम्पररी मेमोरी में प्रोसेस होती हैं और 1 घंटे के अंदर डिलीट हो जाती हैं। हम यूज़र-अपलोडेड फ़ाइलें स्टोर, इंडेक्स, या वितरित नहीं करते। अगर आपको लगता है कि आपके काम का इस्तेमाल हमारे मॉडल्स की ट्रेनिंग में हुआ है या हमारी सार्वजनिक सम्पत्तियों (लोगो, टेम्प्लेट्स, ब्लॉग) में दिखाई दे रहा है, तो कृपया नीचे एक नोटिस दर्ज करें।",
 
     "req_1_title": "1. कॉपीराइट कार्य की पहचान",
     "req_1_desc": "उस कॉपीराइट सामग्री का स्पष्ट विवरण जिसके उल्लंघन का आप दावा कर रहे हैं (जैसे शीर्षक, पंजीकरण संख्या, मूल का URL)।",
     "req_2_title": "2. उल्लंघनकारी सामग्री की पहचान",
-    "req_2_desc": "welovepdf.app (या उप-पेज) पर वह सटीक URL जहाँ कथित उल्लंघनकारी सामग्री दिखाई देती है।",
+    "req_2_desc": "pdforca.com (या उप-पेज) पर वह सटीक URL जहाँ कथित उल्लंघनकारी सामग्री दिखाई देती है।",
     "req_3_title": "3. आपकी संपर्क जानकारी",
     "req_3_desc": "पूरा कानूनी नाम, डाक पता, टेलीफ़ोन नंबर, और एक वैध ईमेल पता जहाँ हम आपसे संपर्क कर सकें।",
     "req_4_title": "4. सद्भावना का बयान",
@@ -90,7 +90,7 @@ HI = {
     "req_6_desc": "कॉपीराइट मालिक या उसकी ओर से कार्य करने के लिए अधिकृत व्यक्ति का भौतिक या इलेक्ट्रॉनिक हस्ताक्षर।",
 
     "s1_title": "1. कॉपीराइट उल्लंघन की रिपोर्टिंग",
-    "s1_p1": "WeLovePDF दूसरों के बौद्धिक संपदा अधिकारों का सम्मान करता है और डिजिटल मिलेनियम कॉपीराइट एक्ट (DMCA, संयुक्त राज्य) और भारत में सूचना प्रौद्योगिकी (मध्यवर्ती दिशानिर्देश और डिजिटल मीडिया आचार संहिता) नियम, 2021 के नियम 3(2) के नोटिस-और-टेकडाउन प्रक्रियाओं का पालन करता है।",
+    "s1_p1": "PDFOrca दूसरों के बौद्धिक संपदा अधिकारों का सम्मान करता है और डिजिटल मिलेनियम कॉपीराइट एक्ट (DMCA, संयुक्त राज्य) और भारत में सूचना प्रौद्योगिकी (मध्यवर्ती दिशानिर्देश और डिजिटल मीडिया आचार संहिता) नियम, 2021 के नियम 3(2) के नोटिस-और-टेकडाउन प्रक्रियाओं का पालन करता है।",
     "s1_p2": "अगर आप कॉपीराइट मालिक (या अधिकृत प्रतिनिधि) हैं और आपको लगता है कि हमारी साइट पर सामग्री आपके कॉपीराइट का उल्लंघन करती है, तो नीचे सूचीबद्ध तत्वों वाले एक लिखित नोटिस को हमारे नामित एजेंट (इस पेज के नीचे विवरण) को भेजें।",
 
     "s2_title": "2. आपके नोटिस में आवश्यक जानकारी",
@@ -120,7 +120,7 @@ HI = {
     "s7_p1": "हम उन यूज़र्स के अकाउंट्स समाप्त करते हैं जिन्हें कॉपीराइट का बार-बार उल्लंघन करने वाला निर्धारित किया जाता है। इस उद्देश्य के लिए हम वैध टेकडाउन नोटिस का रिकॉर्ड रखते हैं।",
 
     "s8_title": "8. कॉपीराइट नोटिस के लिए नामित एजेंट",
-    "s8_agent_label": "WeLovePDF कॉपीराइट एजेंट",
+    "s8_agent_label": "PDFOrca कॉपीराइट एजेंट",
     "s8_email_label": "ईमेल:",
     "s8_postal_label": "डाक पता: ऊपर वाले ईमेल पर लिखित अनुरोध पर उपलब्ध।",
 

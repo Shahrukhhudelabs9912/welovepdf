@@ -1,4 +1,4 @@
-"""MongoDB connection utility for WeLovePDF.
+"""MongoDB connection utility for PDFOrca.
 
 Provides a singleton AsyncIOMotorClient instance with lifecycle management
 (connect / disconnect) suitable for FastAPI startup / shutdown events.

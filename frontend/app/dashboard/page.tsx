@@ -39,7 +39,7 @@ export default function DashboardOverviewPage() {
     try {
       setLoading(true);
       setError(null);
-      const tokensStr = localStorage.getItem("welovepdf_auth_tokens");
+      const tokensStr = localStorage.getItem("pdforca_auth_tokens");
       if (!tokensStr) {
         setLoading(false);
         return;

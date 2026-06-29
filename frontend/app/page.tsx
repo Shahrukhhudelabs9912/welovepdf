@@ -2,23 +2,24 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { PageLoader } from "@/components/loading-spinner";
+import { AdBanner } from "@/components/ad-banner";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 export const metadata: Metadata = {
-  title: "WeLovePDF - Free Online PDF Tools | Merge, Split, Compress, Convert",
+  title: "PDFOrca - Free Online PDF Tools | Merge, Split, Compress, Convert",
   description: "Free online PDF tools to merge, split, compress, convert PDF to Word, Excel, JPG, and more. AI-powered, privacy-first, no registration required.",
   keywords: "pdf tools, merge pdf, split pdf, compress pdf, pdf to word, pdf converter, free pdf tools, online pdf editor",
   openGraph: {
-    title: "WeLovePDF - Free Online PDF Tools",
+    title: "PDFOrca - Free Online PDF Tools",
     description: "Free online PDF tools to merge, split, compress, and convert PDFs. AI-powered, privacy-first.",
     url: SITE_URL,
     type: "website",
-    siteName: "WeLovePDF",
+    siteName: "PDFOrca",
   },
   twitter: {
     card: "summary_large_image",
-    title: "WeLovePDF - Free Online PDF Tools",
+    title: "PDFOrca - Free Online PDF Tools",
     description: "Free online PDF tools to merge, split, compress, and convert PDFs.",
   },
   alternates: {
@@ -61,8 +62,10 @@ export default function Home() {
       <div className="flex min-h-screen flex-col">
         <HeroSection />
         <ToolsGrid />
+        <AdBanner slot="HOMEPAGE_MID" format="horizontal" className="my-4 px-4" />
         <FeaturesSection />
         <FAQ />
+        <AdBanner slot="HOMEPAGE_BOTTOM" format="horizontal" className="my-4 px-4" />
         <CTASection />
       </div>
     </Suspense>

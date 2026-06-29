@@ -8,7 +8,7 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 const PageNumberingClient = dynamic(
   () => import("./page-numbering-client").then((mod) => ({ default: mod.PageNumberingClient })),
@@ -16,17 +16,17 @@ const PageNumberingClient = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Add Page Numbers to PDF Online Free | WeLovePDF",
+  title: "Add Page Numbers to PDF Online Free | PDFOrca",
   description: "Add page numbers to a PDF document online for free. Customize position, format, and starting number. No registration required.",
   keywords: "add page numbers to pdf, pdf page numbering, number pdf pages, pdf page numbers, paginate pdf",
   openGraph: {
-    title: "Add Page Numbers to PDF Online Free | WeLovePDF",
+    title: "Add Page Numbers to PDF Online Free | PDFOrca",
     description: "Add page numbers to a PDF document online for free. Customize position, format, and starting number. No registration required.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Add Page Numbers to PDF Online Free | WeLovePDF",
+    title: "Add Page Numbers to PDF Online Free | PDFOrca",
     description: "Add page numbers to a PDF document online for free. Customize position, format, and starting number. No registration required.",
   },
   alternates: {

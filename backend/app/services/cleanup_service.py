@@ -33,7 +33,7 @@ from typing import Iterable
 
 from app.config import settings
 
-logger = logging.getLogger("welovepdf.cleanup")
+logger = logging.getLogger("pdforca.cleanup")
 
 
 # Filename prefixes this app writes into the system temp dir. Only entries
@@ -187,7 +187,7 @@ class CleanupScheduler:
             return
         if self._task and not self._task.done():
             return
-        self._task = asyncio.create_task(_sweeper_loop(), name="welovepdf-cleanup")
+        self._task = asyncio.create_task(_sweeper_loop(), name="pdforca-cleanup")
 
     async def stop(self) -> None:
         if self._task is None:

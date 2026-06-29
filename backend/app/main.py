@@ -1,4 +1,4 @@
-"""Main FastAPI application for WeLovePDF backend."""
+"""Main FastAPI application for PDFOrca backend."""
 from fastapi import FastAPI, Header
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
@@ -26,7 +26,7 @@ init_sentry()
 # /openapi.json stays accessible and Swagger UI can be rebuilt by hand.
 _docs_enabled = not settings.is_production
 app = FastAPI(
-    title="WeLovePDF API",
+    title="PDFOrca API",
     description="Backend API for PDF processing, AI tools, and user dashboard",
     version="2.0.0",
     docs_url="/api/docs" if _docs_enabled else None,
@@ -73,7 +73,7 @@ app.state.cleanup_scheduler = cleanup_scheduler
 async def root():
     """Health check endpoint."""
     return {
-        "message": "WeLovePDF API is running",
+        "message": "PDFOrca API is running",
         "version": "1.0.0",
         "docs": "/api/docs",
     }

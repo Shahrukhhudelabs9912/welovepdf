@@ -1,7 +1,7 @@
-// k6 load test for the WeLovePDF backend.
+// k6 load test for the PDFOrca backend.
 // Verifies the Phase 1 fix under load: while heavy conversions run, the
 // event loop stays responsive (health stays fast).
-// Usage: k6 run -e BASE_URL=https://welovepdf.com scripts/loadtest.k6.js
+// Usage: k6 run -e BASE_URL=https://pdforca.com scripts/loadtest.k6.js
 
 import http from "k6/http";
 import { check, sleep } from "k6";

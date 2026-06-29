@@ -8,7 +8,7 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 const WordToPDFClient = dynamic(
   () => import("./word-to-pdf-client").then((mod) => ({ default: mod.WordToPDFClient })),
@@ -16,17 +16,17 @@ const WordToPDFClient = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Convert Word to PDF Online Free | WeLovePDF",
+  title: "Convert Word to PDF Online Free | PDFOrca",
   description: "Convert Word documents (.doc, .docx) to PDF online for free. Preserve formatting, fonts, and images. No registration required.",
   keywords: "word to pdf, convert word to pdf, doc to pdf, docx to pdf, word to pdf converter, free word to pdf",
   openGraph: {
-    title: "Convert Word to PDF Online Free | WeLovePDF",
+    title: "Convert Word to PDF Online Free | PDFOrca",
     description: "Convert Word documents (.doc, .docx) to PDF online for free. Preserve formatting, fonts, and images. No registration required.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Convert Word to PDF Online Free | WeLovePDF",
+    title: "Convert Word to PDF Online Free | PDFOrca",
     description: "Convert Word documents (.doc, .docx) to PDF online for free. Preserve formatting, fonts, and images. No registration required.",
   },
   alternates: {

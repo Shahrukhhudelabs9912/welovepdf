@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/routing";
-import { FileText, Shield, Zap, Globe, Heart, Share2 } from "lucide-react";
+import { FileText, Shield, Zap, Globe } from "lucide-react";
+// [Phase 3] Restore: Heart, Share2 from "lucide-react" when social links are added
 
 export function Footer() {
   const t = useTranslations();
@@ -70,7 +71,7 @@ export function Footer() {
                 <FileText className="h-7 w-7 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold">WeLovePDF</h2>
+                <h2 className="text-2xl font-bold">PDFOrca</h2>
                 <p className="text-sm text-muted-foreground">
                   {t("footer.tagline")}
                 </p>
@@ -124,6 +125,7 @@ export function Footer() {
                 {t("footer.auto_delete")}
               </p>
             </div>
+            {/* [Phase 3] Restore social links with correct URLs when accounts are created
             <div className="flex items-center gap-4">
               <a
                 href="https://github.com"
@@ -146,6 +148,7 @@ export function Footer() {
                 <span className="sr-only">{t("footer.footer_links.twitter")}</span>
               </a>
             </div>
+            */}
           </div>
 
           <div className="mt-6 text-center text-xs text-muted-foreground">

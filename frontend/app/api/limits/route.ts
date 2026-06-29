@@ -24,10 +24,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch {
     // Backend unreachable — return free-tier defaults so the UI keeps working.
+    // [Phase 3] Restore free_tier_mb to 25 and max_upload_mb to 25 when freemium is enabled
     return NextResponse.json({
-      max_upload_bytes: 25 * 1024 * 1024,
-      max_upload_mb: 25,
-      free_tier_mb: 25,
+      max_upload_bytes: 100 * 1024 * 1024,
+      max_upload_mb: 100,
+      free_tier_mb: 100,
       pro_tier_mb: 100,
       tier: "free",
     });

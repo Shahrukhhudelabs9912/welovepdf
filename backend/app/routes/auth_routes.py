@@ -1,4 +1,4 @@
-"""Authentication routes for WeLovePDF API.
+"""Authentication routes for PDFOrca API.
 
 Provides: signup, login, logout, forgot-password, reset-password, me (user info),
 and token refresh endpoints. All endpoints use JSON request/response bodies.

@@ -39,7 +39,7 @@ function parseArgs() {
 // see meaningful per-page bytes — not just an empty MediaBox.
 function pageContent(pageNum) {
   const lines = [
-    `(WeLovePDF Load Test - page ${pageNum}) Tj`,
+    `(PDFOrca Load Test - page ${pageNum}) Tj`,
     `0 -20 Td (The quick brown fox jumps over the lazy dog.) Tj`,
     `0 -20 Td (Lorem ipsum dolor sit amet, consectetur adipiscing elit.) Tj`,
     `0 -20 Td (Sed do eiusmod tempor incididunt ut labore et dolore magna.) Tj`,

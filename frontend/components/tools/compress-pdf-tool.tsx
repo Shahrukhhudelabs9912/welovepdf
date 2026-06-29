@@ -320,7 +320,7 @@ export function CompressPDFTool() {
           <div className="mt-4 grid grid-cols-2 gap-4 rounded-lg bg-white p-4 dark:bg-gray-800">
             <div>
               <div className="text-sm text-gray-500 dark:text-gray-400">{t("file_name_label")}</div>
-              <div className="font-medium">welovepdf-compressfile.pdf</div>
+              <div className="font-medium">pdforca-compressfile.pdf</div>
             </div>
             <div>
               <div className="text-sm text-gray-500 dark:text-gray-400">{t("original_size")}</div>

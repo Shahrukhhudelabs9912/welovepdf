@@ -105,18 +105,19 @@ class UploadSizeLimitMiddleware(BaseHTTPMiddleware):
         # Per-tier check
         limit = await _resolve_tier_limit(request.headers.get("authorization"))
         if content_length > limit:
-            is_pro_limit = limit == settings.PRO_MAX_UPLOAD_SIZE
-            upgrade = (
-                ""
-                if is_pro_limit
-                else f" Upgrade to Pro for {_format_mb(settings.PRO_MAX_UPLOAD_SIZE)} uploads."
-            )
+            # [Phase 3] Restore upgrade hint when freemium tiers are enabled:
+            # is_pro_limit = limit == settings.PRO_MAX_UPLOAD_SIZE
+            # upgrade = (
+            #     ""
+            #     if is_pro_limit
+            #     else f" Upgrade to Pro for {_format_mb(settings.PRO_MAX_UPLOAD_SIZE)} uploads."
+            # )
             return JSONResponse(
                 status_code=413,
                 content={
                     "detail": (
-                        f"Upload is {_format_mb(content_length)}, exceeds your "
-                        f"{_format_mb(limit)} limit.{upgrade}"
+                        f"Upload is {_format_mb(content_length)}, exceeds the "
+                        f"{_format_mb(limit)} limit."
                     )
                 },
             )

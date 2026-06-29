@@ -10,20 +10,20 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 export const metadata: Metadata = {
-  title: "Rotate PDF Online Free - Rotate PDF Pages 90/180/270° | WeLovePDF",
+  title: "Rotate PDF Online Free - Rotate PDF Pages 90/180/270° | PDFOrca",
   description: "Rotate PDF pages clockwise or counter-clockwise online for free. Fix sideways or upside-down pages by 90, 180, or 270 degrees. No registration.",
   keywords: "rotate pdf, rotate pdf pages, pdf rotator, rotate pdf online, rotate pdf 90 degrees, fix pdf orientation",
   openGraph: {
-    title: "Rotate PDF Online Free - Rotate PDF Pages 90/180/270° | WeLovePDF",
+    title: "Rotate PDF Online Free - Rotate PDF Pages 90/180/270° | PDFOrca",
     description: "Rotate PDF pages clockwise or counter-clockwise online for free.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rotate PDF Online Free - Rotate PDF Pages 90/180/270° | WeLovePDF",
+    title: "Rotate PDF Online Free - Rotate PDF Pages 90/180/270° | PDFOrca",
     description: "Rotate PDF pages clockwise or counter-clockwise online for free.",
   },
   alternates: {

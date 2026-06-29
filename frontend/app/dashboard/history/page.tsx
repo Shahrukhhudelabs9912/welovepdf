@@ -23,7 +23,7 @@ export default function DashboardHistoryPage() {
     try {
       setLoading(true);
       setError(null);
-      const tokensStr = localStorage.getItem("welovepdf_auth_tokens");
+      const tokensStr = localStorage.getItem("pdforca_auth_tokens");
       if (!tokensStr) throw new Error("Not authenticated");
       const tokens = JSON.parse(tokensStr);
       const res = await fetch(
@@ -48,7 +48,7 @@ export default function DashboardHistoryPage() {
   const handleDelete = useCallback(
     async (id: string) => {
       try {
-        const tokensStr = localStorage.getItem("welovepdf_auth_tokens");
+        const tokensStr = localStorage.getItem("pdforca_auth_tokens");
         if (!tokensStr) return;
         const tokens = JSON.parse(tokensStr);
         const res = await fetch(`/api/dashboard/history/${id}`, {

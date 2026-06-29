@@ -27,22 +27,22 @@ EN = {
     "row1_category": "Essential",
     "row1_purpose": "Keeps you logged in across page loads.",
     "row1_duration": "30 minutes",
-    "row1_set_by": "WeLovePDF",
+    "row1_set_by": "PDFOrca",
 
     "row2_category": "Essential",
     "row2_purpose": "Renews your login session without re-entering password.",
     "row2_duration": "7 days",
-    "row2_set_by": "WeLovePDF",
+    "row2_set_by": "PDFOrca",
 
     "row3_category": "Essential",
     "row3_purpose": "Remembers your language preference (English / Hindi).",
     "row3_duration": "1 year",
-    "row3_set_by": "WeLovePDF",
+    "row3_set_by": "PDFOrca",
 
     "row4_category": "Preference",
     "row4_purpose": "Remembers your light / dark theme choice.",
     "row4_duration": "1 year",
-    "row4_set_by": "WeLovePDF (browser localStorage)",
+    "row4_set_by": "PDFOrca (browser localStorage)",
 
     "row5_category": "Essential",
     "row5_purpose": "Cloudflare bot management; distinguishes humans from bots.",
@@ -90,22 +90,22 @@ HI = {
     "row1_category": "आवश्यक",
     "row1_purpose": "पेज लोड के बीच आपको लॉग इन रखती है।",
     "row1_duration": "30 मिनट",
-    "row1_set_by": "WeLovePDF",
+    "row1_set_by": "PDFOrca",
 
     "row2_category": "आवश्यक",
     "row2_purpose": "पासवर्ड दोबारा दर्ज किए बिना आपका लॉगिन सेशन रिन्यू करती है।",
     "row2_duration": "7 दिन",
-    "row2_set_by": "WeLovePDF",
+    "row2_set_by": "PDFOrca",
 
     "row3_category": "आवश्यक",
     "row3_purpose": "आपकी भाषा प्राथमिकता (अंग्रेज़ी / हिंदी) याद रखती है।",
     "row3_duration": "1 साल",
-    "row3_set_by": "WeLovePDF",
+    "row3_set_by": "PDFOrca",
 
     "row4_category": "प्राथमिकता",
     "row4_purpose": "आपकी लाइट / डार्क थीम पसंद याद रखती है।",
     "row4_duration": "1 साल",
-    "row4_set_by": "WeLovePDF (ब्राउज़र localStorage)",
+    "row4_set_by": "PDFOrca (ब्राउज़र localStorage)",
 
     "row5_category": "आवश्यक",
     "row5_purpose": "Cloudflare बॉट प्रबंधन; मानव और बॉट्स के बीच अंतर करता है।",

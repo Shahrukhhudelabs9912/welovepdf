@@ -10,7 +10,7 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 const HOW_TO_STEPS = [
   { name: "Upload your PDF", text: "Click upload or drag the PDF you want to split into the tool." },
@@ -44,17 +44,17 @@ const SplitPDFClient = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Split PDF Online Free - Divide PDF into Multiple Files | WeLovePDF",
+  title: "Split PDF Online Free - Divide PDF into Multiple Files | PDFOrca",
   description: "Split PDF files into multiple documents online for free. Divide PDF by page ranges or extract specific pages. No registration required.",
   keywords: "split pdf, divide pdf, split pdf online, split pdf free, extract pdf pages, pdf splitter, separate pdf",
   openGraph: {
-    title: "Split PDF Online Free - Divide PDF into Multiple Files | WeLovePDF",
+    title: "Split PDF Online Free - Divide PDF into Multiple Files | PDFOrca",
     description: "Split PDF files into multiple documents online for free.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Split PDF Online Free - Divide PDF into Multiple Files | WeLovePDF",
+    title: "Split PDF Online Free - Divide PDF into Multiple Files | PDFOrca",
     description: "Split PDF files into multiple documents online for free.",
   },
   alternates: {

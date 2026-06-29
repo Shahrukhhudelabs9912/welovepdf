@@ -6,11 +6,11 @@ import { PageContainer } from "@/components/ui/page-container";
 import { PageHero } from "@/components/ui/page-hero";
 
 const LAST_UPDATED = "June 16, 2026";
-const PRIVACY_EMAIL = "privacy@welovepdf.app";
+const PRIVACY_EMAIL = "privacy@pdforca.com";
 
 const cookieRows = [
-  { name: "welovepdf_access_token", row: 1 },
-  { name: "welovepdf_refresh_token", row: 2 },
+  { name: "pdforca_access_token", row: 1 },
+  { name: "pdforca_refresh_token", row: 2 },
   { name: "NEXT_LOCALE", row: 3 },
   { name: "theme", row: 4 },
   { name: "__cf_bm", row: 5 },

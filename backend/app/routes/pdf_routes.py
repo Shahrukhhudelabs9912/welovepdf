@@ -1,5 +1,5 @@
 """
-PDF processing routes for WeLovePDF API.
+PDF processing routes for PDFOrca API.
 """
 import asyncio
 import io
@@ -1558,7 +1558,7 @@ async def compress_pdf(
         )
 
         # Generate output filename
-        output_filename = "welovepdf-compressfile.pdf"
+        output_filename = "pdforca-compressfile.pdf"
 
         # Return compressed file
         return create_file_response(

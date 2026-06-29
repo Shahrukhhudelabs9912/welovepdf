@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Careers - WeLovePDF",
+  title: "Careers - PDFOrca",
   description:
     "We're a small team focused on building the best free PDF tools. We're not actively hiring right now — but we'd love to hear from you.",
   robots: { index: false, follow: false },

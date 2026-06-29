@@ -1,4 +1,4 @@
-"""Concurrency and external-tool helpers for the WeLovePDF backend.
+"""Concurrency and external-tool helpers for the PDFOrca backend.
 
 The FastAPI app runs on a single asyncio event loop. CPU-bound or
 blocking work (PDF rendering, LibreOffice subprocesses, AI models) must

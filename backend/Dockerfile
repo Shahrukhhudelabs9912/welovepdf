@@ -1,4 +1,4 @@
-# WeLovePDF backend image.
+# PDFOrca backend image.
 # Python 3.12 matches the project interpreter (fastapi 0.104.1).
 FROM python:3.12-slim
 

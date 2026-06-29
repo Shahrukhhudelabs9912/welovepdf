@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "WeLovePDF - Free Online PDF Tools";
+export const alt = "PDFOrca - Free Online PDF Tools";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -29,7 +29,7 @@ export default async function TwitterImage() {
             marginBottom: 16,
           }}
         >
-          WeLovePDF
+          PDFOrca
         </div>
         <div
           style={{

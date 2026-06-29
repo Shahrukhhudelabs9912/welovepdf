@@ -6,7 +6,7 @@ import { PageContainer } from "@/components/ui/page-container";
 import { PageHero } from "@/components/ui/page-hero";
 
 const EFFECTIVE_DATE = "June 16, 2026";
-const LEGAL_EMAIL = "legal@welovepdf.app";
+const LEGAL_EMAIL = "legal@pdforca.com";
 
 export default function TermsPage() {
   const t = useTranslations("terms");

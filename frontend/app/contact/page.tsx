@@ -20,8 +20,8 @@ interface CaptchaChallenge {
  * lose trust (and break Google's misrepresentation policy). When real
  * details are available, fill the constants below.
  */
-const SUPPORT_EMAIL = "support@welovepdf.app";
-const PRIVACY_EMAIL = "privacy@welovepdf.app";
+const SUPPORT_EMAIL = "support@pdforca.com";
+const PRIVACY_EMAIL = "privacy@pdforca.com";
 
 export default function ContactPage() {
   const t = useTranslations("contact_page");
@@ -101,7 +101,7 @@ export default function ContactPage() {
       email: String(fd.get("email") || "").trim(),
       subject: String(fd.get("subject") || "").trim(),
       message: String(fd.get("message") || "").trim(),
-      website: String(fd.get("website") || ""), // honeypot — must stay empty
+      website: String(fd.get("fax_number") || ""), // honeypot — must stay empty
       captcha_id: captcha?.id || "",
       captcha_selected: Array.from(selectedIndices),
     };
@@ -240,12 +240,12 @@ export default function ContactPage() {
                     {/* Honeypot — invisible to humans, irresistible to bots. */}
                     <div className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
                       <label>
-                        Website
+                        Fax
                         <input
                           type="text"
-                          name="website"
+                          name="fax_number"
                           tabIndex={-1}
-                          autoComplete="off"
+                          autoComplete="nope"
                         />
                       </label>
                     </div>

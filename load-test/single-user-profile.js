@@ -1,5 +1,5 @@
 /**
- * Single-user latency profiler for WeLovePDF.
+ * Single-user latency profiler for PDFOrca.
  *
  * Purpose: figure out WHICH endpoint is the slow one, before bothering with
  * concurrent load tests. Hits each tool one request at a time through the

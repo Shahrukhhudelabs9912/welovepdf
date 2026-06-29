@@ -8,7 +8,7 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/seo/json-ld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://welovepdf.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pdforca.com";
 
 const PDFToExcelClient = dynamic(
   () => import("./pdf-to-excel-client").then((mod) => ({ default: mod.PDFToExcelClient })),
@@ -16,17 +16,17 @@ const PDFToExcelClient = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Convert PDF to Excel Online Free | WeLovePDF",
+  title: "Convert PDF to Excel Online Free | PDFOrca",
   description: "Convert PDF documents to editable Excel (.xlsx) spreadsheets online for free. Extract tables and data from PDFs.",
   keywords: "pdf to excel, convert pdf to excel, pdf to xlsx, pdf to spreadsheet, extract tables from pdf, pdf to excel converter",
   openGraph: {
-    title: "Convert PDF to Excel Online Free | WeLovePDF",
+    title: "Convert PDF to Excel Online Free | PDFOrca",
     description: "Convert PDF documents to editable Excel (.xlsx) spreadsheets online for free. Extract tables and data from PDFs.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Convert PDF to Excel Online Free | WeLovePDF",
+    title: "Convert PDF to Excel Online Free | PDFOrca",
     description: "Convert PDF documents to editable Excel (.xlsx) spreadsheets online for free. Extract tables and data from PDFs.",
   },
   alternates: {

@@ -1,4 +1,4 @@
-# WeLovePDF Load Testing
+# PDFOrca Load Testing
 
 k6-based load test that simulates many concurrent users hitting static pages, auth flow, PDF processing, and AI endpoints.
 

@@ -1,4 +1,4 @@
-"""Authentication service for WeLovePDF API.
+"""Authentication service for PDFOrca API.
 
 Provides JWT token generation, password hashing, user CRUD operations,
 and persistent MongoDB-based user storage.

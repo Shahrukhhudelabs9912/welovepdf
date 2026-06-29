@@ -15,7 +15,7 @@ import { PageContainer } from "@/components/ui/page-container";
 import { PageHero } from "@/components/ui/page-hero";
 
 const LAST_UPDATED = "June 16, 2026";
-const PRIVACY_EMAIL = "privacy@welovepdf.app";
+const PRIVACY_EMAIL = "privacy@pdforca.com";
 
 const RIGHT_ICONS = [
   <Eye key="1" className="h-5 w-5" />,

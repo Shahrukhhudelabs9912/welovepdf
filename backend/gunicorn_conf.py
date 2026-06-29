@@ -1,4 +1,4 @@
-"""Gunicorn configuration for the WeLovePDF backend.
+"""Gunicorn configuration for the PDFOrca backend.
 
 Tuned for a small 2 vCPU / 4 GB VPS. Because Phase 1 offloads every blocking
 conversion to a thread pool (app/utils/concurrency.py), a small number of

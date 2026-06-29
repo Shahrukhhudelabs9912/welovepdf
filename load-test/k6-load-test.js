@@ -1,4 +1,4 @@
-// WeLovePDF load test — k6 script
+// PDFOrca load test — k6 script
 //
 // Run all scenarios:        k6 run k6-load-test.js
 // Run one scenario only:    k6 run --env SCENARIO=static k6-load-test.js

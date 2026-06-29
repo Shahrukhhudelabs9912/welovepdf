@@ -20,7 +20,7 @@ export function AddWatermarkClient() {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [watermarkText, setWatermarkText] = useState("We Love PDF");
+  const [watermarkText, setWatermarkText] = useState("PDFOrca");
   const [position, setPosition] = useState<WatermarkPosition>("diagonal");
   const [opacity, setOpacity] = useState(50);
   const [rotation, setRotation] = useState(0);
@@ -84,7 +84,7 @@ export function AddWatermarkClient() {
 
   const handleClearAll = () => {
     setFiles([]);
-    setWatermarkText("We Love PDF");
+    setWatermarkText("PDFOrca");
     setPosition("center");
     setOpacity(50);
     setRotation(0);

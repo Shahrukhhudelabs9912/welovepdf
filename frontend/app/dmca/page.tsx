@@ -13,7 +13,7 @@ import { PageContainer } from "@/components/ui/page-container";
 import { PageHero } from "@/components/ui/page-hero";
 
 const LAST_UPDATED = "June 16, 2026";
-const DMCA_EMAIL = "dmca@welovepdf.app";
+const DMCA_EMAIL = "dmca@pdforca.com";
 
 export default function DMCAPage() {
   const t = useTranslations("dmca");

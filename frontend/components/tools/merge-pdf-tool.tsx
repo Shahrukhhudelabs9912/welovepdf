@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Upload, Merge, Download, Trash2, GripVertical, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ButtonLoader } from "@/components/brand-loader";
 import { FileUpload } from "@/components/file-upload";
 import { toast } from "sonner";
 import { formatFileSize } from "@/lib/utils";

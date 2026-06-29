@@ -1,4 +1,4 @@
-# Task 1 — Loading Experience Audit (WeLovePDF)
+# Task 1 — Loading Experience Audit (PDFOrca)
 
 > Analysis only. No code changed. Date: 2026-06-20.
 > Based on direct source review of `frontend/`.

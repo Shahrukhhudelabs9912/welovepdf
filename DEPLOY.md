@@ -1,4 +1,4 @@
-# WeLovePDF — Production Deployment Guide (VPS + Docker Compose)
+# PDFOrca — Production Deployment Guide (VPS + Docker Compose)
 
 This deploys the full stack on one Linux VPS (2 vCPU / 4 GB RAM tested):
 Nginx (TLS) -> Next.js frontend + FastAPI backend, with Redis for rate-limit
@@ -28,7 +28,7 @@ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 sudo ufw allow 22 && sudo ufw allow 80 && sudo ufw allow 443 && sudo ufw --force enable
 ```
 
-**DNS:** point an A-record for `welovepdf.com` (and `www`) at the VPS IP.
+**DNS:** point an A-record for `pdforca.com` (and `www`) at the VPS IP.
 
 **MongoDB Atlas:** create a free/shared cluster, add the VPS IP to the
 Network Access allowlist, copy the SRV connection string.
@@ -40,7 +40,7 @@ Network Access allowlist, copy the SRV connection string.
 ## 2. Configure secrets
 
 ```bash
-git clone <your-repo> welovepdf && cd welovepdf
+git clone <your-repo> pdforca && cd pdforca
 cp backend/.env.production.example backend/.env.production
 nano backend/.env.production
 ```
@@ -70,13 +70,13 @@ mkdir -p nginx/certbot/www nginx/certbot/conf
 docker compose up -d nginx
 
 docker compose run --rm certbot certonly --webroot -w /var/www/certbot \
-  -d welovepdf.com -d www.welovepdf.com --email you@example.com --agree-tos --no-eff-email
+  -d pdforca.com -d www.pdforca.com --email you@example.com --agree-tos --no-eff-email
 
 # Re-enable the 443 block if you commented it out, then reload.
 docker compose restart nginx
 ```
 
-Auto-renew (cron): `0 3 * * * cd /path/welovepdf && docker compose run --rm certbot renew && docker compose restart nginx`
+Auto-renew (cron): `0 3 * * * cd /path/pdforca && docker compose run --rm certbot renew && docker compose restart nginx`
 
 ---
 
@@ -93,8 +93,8 @@ docker compose logs -f backend   # watch first boot
 ## 5. Verify
 
 ```bash
-curl https://welovepdf.com/health          # {"status":"healthy"}
-curl https://welovepdf.com/api/limits       # JSON with upload limits
+curl https://pdforca.com/health          # {"status":"healthy"}
+curl https://pdforca.com/api/limits       # JSON with upload limits
 ```
 
 Then in a browser test one tool per category:
@@ -109,7 +109,7 @@ instantly. Before Phase 1 it would hang.
 
 **Load test:**
 ```bash
-k6 run -e BASE_URL=https://welovepdf.com scripts/loadtest.k6.js
+k6 run -e BASE_URL=https://pdforca.com scripts/loadtest.k6.js
 ```
 Target: `/health` p95 < 500ms under load, 0% 5xx. Seeing 429s on heavy
 endpoints is correct (rate limiting), not an error.

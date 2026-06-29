@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
 
     # CORS settings — comma-separated in .env, e.g.
-    #   CORS_ORIGINS=https://welovepdf.com,https://www.welovepdf.com
+    #   CORS_ORIGINS=https://pdforca.com,https://www.pdforca.com
     # Defaults are dev-only; production .env MUST override with real origins.
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
@@ -59,7 +59,8 @@ class Settings(BaseSettings):
     # Tier-based file upload limits (bytes).
     # Anonymous + free authenticated users get FREE_MAX_UPLOAD_SIZE.
     # Pro users get PRO_MAX_UPLOAD_SIZE. Enforced in routes via dependency.
-    FREE_MAX_UPLOAD_SIZE: int = 25 * 1024 * 1024
+    # [Phase 3] Restore FREE_MAX_UPLOAD_SIZE to 25 * 1024 * 1024 when freemium is enabled
+    FREE_MAX_UPLOAD_SIZE: int = 100 * 1024 * 1024
     PRO_MAX_UPLOAD_SIZE: int = 100 * 1024 * 1024
     # Legacy single-knob, used as the absolute hard ceiling at the API layer.
     MAX_UPLOAD_SIZE: int = 100 * 1024 * 1024
@@ -78,14 +79,16 @@ class Settings(BaseSettings):
 
     # Admin token gates manual cleanup/admin endpoints. Required in production.
     ADMIN_TOKEN: str = ""
+    ADMIN_PASSWORD: str = "987456321aA@"  # simple password for admin login UI
 
     # ── Rate limiting ─────────────────────────────────────────────────
     RATE_LIMIT_ENABLED: bool = True
-    RATE_LIMIT_FREE_HOURLY: str = "100/hour"
+    # [Phase 3] Restore FREE_HOURLY to "100/hour", AI to "30/hour", PROCESSING to "60/hour"
+    RATE_LIMIT_FREE_HOURLY: str = "1000/hour"
     RATE_LIMIT_PRO_HOURLY: str = "1000/hour"
     RATE_LIMIT_AUTH: str = "20/minute"
-    RATE_LIMIT_AI: str = "30/hour"
-    RATE_LIMIT_PROCESSING: str = "60/hour"
+    RATE_LIMIT_AI: str = "100/hour"
+    RATE_LIMIT_PROCESSING: str = "500/hour"
 
     # ── Sentry error tracking ─────────────────────────────────────────
     SENTRY_DSN: str = ""
@@ -115,10 +118,10 @@ class Settings(BaseSettings):
 
     # MongoDB settings
     MONGO_URL: str = "mongodb://localhost:27017"
-    MONGO_DB_NAME: str = "welovepdf"
+    MONGO_DB_NAME: str = "pdforca"
 
     # JWT Authentication settings
-    JWT_SECRET: str = "welovepdf-dev-secret-change-in-production"
+    JWT_SECRET: str = "pdforca-dev-secret-change-in-production"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -128,13 +131,13 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
-    SMTP_FROM_EMAIL: str = "noreply@welovepdf.com"
+    SMTP_FROM_EMAIL: str = "noreply@pdforca.com"
     RESEND_API_KEY: str = ""
 
     # Contact form destination — where the website contact form delivers messages.
     # Leave blank to skip email delivery (submissions still land in MongoDB).
     CONTACT_TO_EMAIL: str = ""
-    CONTACT_FROM_EMAIL: str = "noreply@welovepdf.app"
+    CONTACT_FROM_EMAIL: str = "noreply@pdforca.com"
 
     # User data storage (legacy)
     USERS_FILE: str = "data/users.json"
@@ -178,7 +181,7 @@ def _validate_production_safety(s: Settings) -> None:
     if not s.is_production:
         return
     errors = []
-    if s.JWT_SECRET == "welovepdf-dev-secret-change-in-production" or len(s.JWT_SECRET) < 32:
+    if s.JWT_SECRET == "pdforca-dev-secret-change-in-production" or len(s.JWT_SECRET) < 32:
         errors.append("JWT_SECRET must be set to a strong (>=32 char) value in production.")
     if not s.ADMIN_TOKEN or len(s.ADMIN_TOKEN) < 24:
         errors.append("ADMIN_TOKEN must be set to a strong (>=24 char) value in production.")

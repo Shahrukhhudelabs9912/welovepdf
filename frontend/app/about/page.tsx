@@ -140,7 +140,7 @@ export default function AboutPage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-white text-white hover:bg-white/10"
+                  className="border-white/60 bg-white/10 text-white hover:bg-white/20 hover:text-white"
                 >
                   <Users className="h-4 w-4" />
                   {t("cta_contact_us")}
