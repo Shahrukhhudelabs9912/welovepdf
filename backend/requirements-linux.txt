@@ -48,6 +48,7 @@ email-validator==2.1.0
 motor==3.7.0
 # Rate limiting — uses RATELIMIT_STORAGE_URI=redis://redis:6379/0 in prod.
 slowapi>=0.1.9
+redis>=5.0.0
 # Sentry error tracking. No-op until SENTRY_DSN is set.
 sentry-sdk[fastapi]>=2.0.0
 # Async HTTP client for the Resend transactional email integration.
