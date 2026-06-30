@@ -1221,8 +1221,7 @@ def create_improved_word_document(pdf_bytes: bytes, original_filename: str) -> b
         
     except Exception as e:
         # If anything fails, fall back to basic simulated document
-        logger = logging.getLogger(__name__)
-        logger.warning(f"Improved Word document creation failed: {e}, falling back to basic")
+        logging.getLogger(__name__).warning(f"Improved Word document creation failed: {e}, falling back to basic")
         return create_basic_word_document(pdf_bytes, original_filename)
 
 
@@ -1298,8 +1297,7 @@ def convert_with_pdfplumber(pdf_bytes: bytes, original_filename: str) -> bytes:
         return buffer.getvalue()
         
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f"pdfplumber conversion failed: {e}")
+        logging.getLogger(__name__).error(f"pdfplumber conversion failed: {e}")
         # Fall back to basic document
         return create_basic_word_document(pdf_bytes, original_filename)
 
@@ -1362,8 +1360,7 @@ def create_basic_word_document(pdf_bytes: bytes, original_filename: str) -> byte
         
     except Exception as e:
         # Ultimate fallback to the original simulated document
-        logger = logging.getLogger(__name__)
-        logger.error(f"Basic Word document creation also failed: {e}, using simulated document")
+        logging.getLogger(__name__).error(f"Basic Word document creation also failed: {e}, using simulated document")
         return create_simulated_word_document(pdf_bytes, original_filename)
 
 
@@ -1500,8 +1497,7 @@ async def word_to_pdf(file: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f"Word to PDF conversion failed: {e}")
+        logging.getLogger(__name__).error(f"Word to PDF conversion failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to convert Word to PDF: {str(e)}"
