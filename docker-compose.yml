@@ -35,7 +35,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 3g
+          memory: 6g
 
   frontend:
     build:

@@ -1,9 +1,10 @@
 """Gunicorn configuration for the PDFOrca backend.
 
-Tuned for a small 2 vCPU / 4 GB VPS. Because Phase 1 offloads every blocking
-conversion to a thread pool (app/utils/concurrency.py), a small number of
-async workers can serve many concurrent connections — the event loop never
-blocks on CPU-bound work.
+Tuned for a 4 vCPU / 8 GB VPS (Contabo Cloud VPS 10). Because Phase 1
+offloads every blocking conversion to a thread pool
+(app/utils/concurrency.py), a small number of async workers can serve
+many concurrent connections — the event loop never blocks on CPU-bound
+work.
 
 Override any value via environment variables (e.g. WEB_CONCURRENCY) without
 editing this file.
@@ -11,10 +12,10 @@ editing this file.
 import os
 
 # ── Workers ───────────────────────────────────────────────────────────
-# 2 workers for 2 vCPUs. Each runs its own event loop + thread pool, so
-# total throughput is high without oversubscribing the cores. Scale by
-# setting WEB_CONCURRENCY when you move to a bigger box.
-workers = int(os.getenv("WEB_CONCURRENCY", "2"))
+# 4 workers for 4 vCPUs — one per core. Each runs its own event loop +
+# thread pool, so total throughput is high without oversubscribing.
+# Scale by setting WEB_CONCURRENCY when you move to a bigger box.
+workers = int(os.getenv("WEB_CONCURRENCY", "4"))
 worker_class = "uvicorn.workers.UvicornWorker"
 
 # ── Network ───────────────────────────────────────────────────────────

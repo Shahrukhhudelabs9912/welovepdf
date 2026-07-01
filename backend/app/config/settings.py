@@ -114,7 +114,7 @@ class Settings(BaseSettings):
     # Max heavy jobs (AI / OCR / LibreOffice) running at once per worker.
     # Bounds RAM/CPU so a burst of expensive requests can't exhaust the box.
     # Stop-gap until a real task queue (Celery/RQ) is added.
-    HEAVY_JOB_CONCURRENCY: int = 4
+    HEAVY_JOB_CONCURRENCY: int = 2
 
     # MongoDB settings
     MONGO_URL: str = "mongodb://localhost:27017"

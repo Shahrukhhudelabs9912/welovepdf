@@ -119,14 +119,17 @@ come back up on its own (`restart: unless-stopped`).
 
 ---
 
-## 6. Tuning notes (2 vCPU / 4 GB)
+## 6. Tuning notes (4 vCPU / 8 GB — Contabo Cloud VPS 10)
 
-- `WEB_CONCURRENCY=2` (2 Gunicorn UvicornWorkers) — each has its own thread
-  pool, so blocking conversions never freeze the loop (Phase 1).
-- `HEAVY_JOB_CONCURRENCY=1` — at most 2 heavy jobs (AI/OCR/LibreOffice) across
-  the box at once, matching the 2 cores. Raise on a bigger VPS.
+- `WEB_CONCURRENCY=4` (4 Gunicorn UvicornWorkers, one per core) — each has
+  its own thread pool, so blocking conversions never freeze the loop.
+- `HEAVY_JOB_CONCURRENCY=2` — at most 8 heavy jobs (AI/OCR/LibreOffice/PDF
+  rendering) across the box at once. Each PDF-to-JPG conversion is gated
+  behind `heavy_job_slot()` to prevent OOM.
+- Backend container capped at 6 GB; total allocation across all containers
+  is ~7 GB, leaving ~1 GB for the OS and swap buffer.
 - AI uses Groq cloud, so `torch`/`transformers` are intentionally NOT in the
-  Linux image (they'd OOM a 4 GB box). The code falls back gracefully.
+  Linux image. The code falls back gracefully.
 - Redis capped at 256 MB with LRU eviction; MongoDB offloaded to Atlas.
 
 ---
