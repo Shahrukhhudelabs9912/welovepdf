@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { Shield, Zap, Brain, Globe, Lock, Cpu, Cloud, Users } from "lucide-react";
+import { Shield, Zap, Brain, Globe, Lock, Cpu, Layers, UserCheck } from "lucide-react";
 
 export function FeaturesSection() {
   const t = useTranslations();
@@ -39,13 +39,13 @@ export function FeaturesSection() {
       color: "text-cyan-600 bg-cyan-100 dark:text-cyan-400 dark:bg-cyan-900/30",
     },
     {
-      key: "cloud",
-      icon: Cloud,
+      key: "batch",
+      icon: Layers,
       color: "text-indigo-600 bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-900/30",
     },
     {
-      key: "team",
-      icon: Users,
+      key: "no_signup",
+      icon: UserCheck,
       color: "text-pink-600 bg-pink-100 dark:text-pink-400 dark:bg-pink-900/30",
     },
   ];

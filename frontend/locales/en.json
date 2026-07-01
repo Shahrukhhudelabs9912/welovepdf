@@ -200,13 +200,13 @@
       "title": "Parallel Processing",
       "description": "Use Web Workers and serverless functions to process multiple files simultaneously. No queues, no waiting."
     },
-    "cloud": {
-      "title": "Cloud Integration",
-      "description": "Connect directly to Google Drive, Dropbox, and OneDrive. Seamlessly import and export your documents."
+    "batch": {
+      "title": "Batch Processing",
+      "description": "Process up to 10 files at once. Merge, convert, or compress multiple documents simultaneously — save time on every task."
     },
-    "team": {
-      "title": "Team Collaboration",
-      "description": "Share processed files with team members, add comments, and collaborate in real-time on document workflows."
+    "no_signup": {
+      "title": "No Registration Required",
+      "description": "Use every tool instantly without creating an account. No sign-up walls, no email verification — just upload and go."
     },
     "stats": {
       "privacy": "File Privacy Guarantee",
