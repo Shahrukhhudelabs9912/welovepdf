@@ -10,7 +10,6 @@
 from __future__ import annotations
 
 import io
-import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -81,8 +80,10 @@ def pdf_to_powerpoint(pdf_bytes: bytes, dpi: int = 150) -> bytes:
             "Install python-pptx and pdf2image."
         )
 
-    # Render PDF pages to PIL images. POPPLER_PATH is set in app settings on Windows.
-    poppler_path = os.environ.get("POPPLER_PATH") or r"C:/shahrukh/poppler/Library/bin"
+    # Render PDF pages to PIL images.
+    # On Linux (Docker) poppler-utils is in PATH; on Windows set POPPLER_PATH.
+    from app.config import settings
+    poppler_path = settings.POPPLER_PATH or None
     try:
         images = convert_from_bytes(pdf_bytes, dpi=dpi, poppler_path=poppler_path)
     except Exception as e:

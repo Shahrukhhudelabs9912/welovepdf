@@ -182,18 +182,26 @@ async def split_pdf(
 
 
 @router.post("/jpg-to-pdf", summary="Convert images to PDF")
-async def jpg_to_pdf(files: List[UploadFile] = File(...)):
+async def jpg_to_pdf(
+    files: List[UploadFile] = File(...),
+    page_size: str = Form("a4"),
+    orientation: str = Form("portrait"),
+    margin: str = Form("medium"),
+):
     """
     Convert multiple JPG/PNG images to a single PDF.
-    
+
     - **files**: List of image files to convert
-    
+    - **page_size**: a4, letter, or legal
+    - **orientation**: portrait or landscape
+    - **margin**: small, medium, or large
+
     Returns PDF file containing all images.
     """
     try:
         # Validate files
         validate_uploaded_files(files, max_files=20)
-        
+
         image_files = []
         for file in files:
             # Validate file type
@@ -202,20 +210,23 @@ async def jpg_to_pdf(files: List[UploadFile] = File(...)):
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"File {file.filename} is not a valid image. Allowed types: {settings.ALLOWED_IMAGE_TYPES}"
                 )
-            
+
             # Validate file size
             if not validate_file_size(file):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"File {file.filename} exceeds maximum size of {settings.MAX_UPLOAD_SIZE} bytes"
                 )
-            
+
             # Read file
             file_bytes = await read_upload_file(file)
             image_files.append(file_bytes)
-        
-        # Convert images to PDF
-        pdf_bytes = await run_blocking(ImageToPDFService.convert_images_to_pdf, image_files)
+
+        # Convert images to PDF (resizes to fit page)
+        pdf_bytes = await run_blocking(
+            ImageToPDFService.convert_images_to_pdf,
+            image_files, page_size, orientation, margin,
+        )
         
         # Return PDF
         return create_file_response(

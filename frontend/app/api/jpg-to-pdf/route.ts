@@ -50,6 +50,14 @@ export async function POST(request: NextRequest) {
       backendFormData.append('files', file, file.name);
     }
 
+    // Forward layout settings
+    const pageSize = formData.get('page_size');
+    const orientation = formData.get('orientation');
+    const margin = formData.get('margin');
+    if (pageSize) backendFormData.append('page_size', pageSize as string);
+    if (orientation) backendFormData.append('orientation', orientation as string);
+    if (margin) backendFormData.append('margin', margin as string);
+
     console.log(`[jpg-to-pdf API] Forwarding ${rawFiles.length} image(s) to backend`);
 
     const backendResponse = await fetch(`${PYTHON_API_BASE}/jpg-to-pdf`, {

@@ -1329,51 +1329,70 @@ class PDFService:
 
 class ImageToPDFService:
     """Service for image to PDF conversion."""
-    
+
+    PAGE_SIZES_PT = {
+        "a4": (595.28, 841.89),
+        "letter": (612, 792),
+        "legal": (612, 1008),
+    }
+    MARGINS_PT = {
+        "small": 14.17,    # ~5 mm
+        "medium": 28.35,   # ~10 mm
+        "large": 56.69,    # ~20 mm
+    }
+    EMBED_DPI = 90
+
     @staticmethod
-    def convert_images_to_pdf(image_files: List[bytes]) -> bytes:
-        """
-        Convert multiple images to a single PDF.
-        
-        Args:
-            image_files: List of image file bytes
-            
-        Returns:
-            bytes: PDF containing all images
-            
-        Raises:
-            PDFProcessingError: If conversion fails
-        """
+    def _fit_image(img: "Image.Image", page_size: str, orientation: str, margin: str) -> "Image.Image":
+        """Resize image to fit the target page at EMBED_DPI. Keeps aspect ratio."""
+        pw, ph = ImageToPDFService.PAGE_SIZES_PT.get(page_size, (595.28, 841.89))
+        if orientation == "landscape":
+            pw, ph = ph, pw
+        m = ImageToPDFService.MARGINS_PT.get(margin, 28.35)
+        usable_w = pw - 2 * m
+        usable_h = ph - 2 * m
+
+        max_px_w = int(usable_w / 72 * ImageToPDFService.EMBED_DPI)
+        max_px_h = int(usable_h / 72 * ImageToPDFService.EMBED_DPI)
+
+        if img.width <= max_px_w and img.height <= max_px_h:
+            return img
+
+        img.thumbnail((max_px_w, max_px_h), Image.LANCZOS)
+        return img
+
+    @staticmethod
+    def convert_images_to_pdf(
+        image_files: List[bytes],
+        page_size: str = "a4",
+        orientation: str = "portrait",
+        margin: str = "medium",
+    ) -> bytes:
+        """Convert multiple images to a single PDF, resizing to fit the page."""
         try:
             pil_images = []
-            
+
             for img_bytes in image_files:
-                img_stream = io.BytesIO(img_bytes)
-                img = Image.open(img_stream)
-                
-                # Convert to RGB if necessary
+                img = Image.open(io.BytesIO(img_bytes))
                 if img.mode in ('RGBA', 'LA', 'P'):
                     img = img.convert('RGB')
-                
+                img = ImageToPDFService._fit_image(img, page_size, orientation, margin)
                 pil_images.append(img)
-            
-            # Create PDF from images using save_all (avoids Pillow 12.x
-            # "trailer loop found" bug with append=True in a loop)
+
             output_stream = io.BytesIO()
-            
+
             if pil_images:
                 pil_images[0].save(
                     output_stream,
                     "PDF",
-                    resolution=100.0,
+                    resolution=float(ImageToPDFService.EMBED_DPI),
                     save_all=True,
-                    append_images=pil_images[1:]
+                    append_images=pil_images[1:],
                 )
-            
-            # Close all images to free memory
+
             for img in pil_images:
                 img.close()
-            
+
             return output_stream.getvalue()
         except Exception as e:
             raise PDFProcessingError(
