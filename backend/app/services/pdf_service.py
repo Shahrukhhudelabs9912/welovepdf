@@ -1122,6 +1122,11 @@ class PDFService:
             # Determine which pages to number
             pages_to_number = PDFService._resolve_page_range(page_range, total_pages)
 
+            # Pre-compute the ordinal position of each numbered page so
+            # the inner loop is O(1) per page instead of O(n²).
+            sorted_numbered = sorted(pages_to_number)
+            page_ordinal = {p: i for i, p in enumerate(sorted_numbered)}
+
             for page_idx in range(total_pages):
                 page = reader.pages[page_idx]
 
@@ -1133,8 +1138,7 @@ class PDFService:
                 page_width = float(page.mediabox.width)
                 page_height = float(page.mediabox.height)
 
-                # Calculate actual page number for this page
-                page_number = starting_number + len([p for p in pages_to_number if p <= page_idx]) - 1
+                page_number = starting_number + page_ordinal[page_idx]
 
                 # Format the number text
                 number_text = PDFService._format_page_number(

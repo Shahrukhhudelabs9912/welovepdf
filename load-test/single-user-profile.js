@@ -131,7 +131,7 @@ const ENDPOINTS = [
       const fd = new FormData();
       fd.append('file', pdfFile());
       fd.append('quality', '85');
-      fd.append('dpi', '150');
+      fd.append('dpi', '72');
       fd.append('page_number', '0');
       return fd;
     },

@@ -98,7 +98,7 @@ class Settings(BaseSettings):
     # ── Cloud AI (Groq) ───────────────────────────────────────────────
     USE_CLOUD_LLM: bool = True
     GROQ_API_KEY: str = ""
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
     GROQ_TIMEOUT_SECONDS: int = 30
 
     # PDF processing settings
