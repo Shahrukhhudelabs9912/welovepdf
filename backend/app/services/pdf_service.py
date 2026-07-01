@@ -1680,7 +1680,7 @@ class PDFToImageService:
         except ImportError:
             logger.debug("[PDFToImageService] PyMuPDF not installed, falling back to pdf2image")
         except Exception as fitz_err:
-            logger.debug(
+            logger.warning(
                 f"[PDFToImageService] PyMuPDF render failed "
                 f"({type(fitz_err).__name__}: {fitz_err}), falling back to pdf2image"
             )
@@ -1776,7 +1776,90 @@ class PDFToImageService:
         
         logger.debug(f"[PDFToImageService] ZIP created: {zip_filename} ({len(zip_bytes)} bytes, {len(pages)} pages)")
         return zip_bytes, zip_filename
-    
+
+    @staticmethod
+    def fast_pdf_to_zip(pdf_bytes: bytes, base_filename: str, quality: int = 85, requested_dpi: int = 150) -> tuple:
+        """Optimized all-pages PDF-to-ZIP.
+
+        Opens the PDF once with fitz for page count + page dimensions (DPI
+        safety), renders with threaded PyMuPDF, zips the results.  Replaces
+        the safe_dpi → convert_pages_to_zip → convert_all_pages_to_images
+        chain which opens the PDF 6+ times.
+
+        Returns (zip_bytes, zip_filename, effective_dpi, dpi_was_adjusted).
+        """
+        import fitz
+        import math
+        import time
+        import zipfile
+
+        t_start = time.monotonic()
+
+        # -- 1. Single open: page count + largest page dimensions ----------
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        try:
+            total_pages = doc.page_count
+            largest_area = 0.0
+            largest_w = 612.0
+            largest_h = 792.0
+            for page in doc:
+                r = page.rect
+                w, h = r.width, r.height
+                if w * h > largest_area:
+                    largest_area = w * h
+                    largest_w = w
+                    largest_h = h
+        finally:
+            doc.close()
+
+        if total_pages <= 0:
+            raise PDFProcessingError("PDF has no pages")
+
+        # -- 2. DPI safety cap (inline, avoids a second PDF open) ----------
+        w_in = largest_w / 72.0
+        h_in = largest_h / 72.0
+        predicted = (w_in * requested_dpi) * (h_in * requested_dpi)
+        if predicted > PDFToImageService.SAFE_MAX_PIXELS_PER_PAGE:
+            max_dpi = int(math.floor(
+                math.sqrt(PDFToImageService.SAFE_MAX_PIXELS_PER_PAGE / (w_in * h_in))
+            ))
+            effective_dpi = max(72, min(max_dpi, requested_dpi))
+            adjusted = True
+        else:
+            effective_dpi = requested_dpi
+            adjusted = False
+
+        t_prep = time.monotonic()
+
+        # -- 3. Threaded PyMuPDF render ------------------------------------
+        pages = PDFToImageService._render_pages_pymupdf_threaded(
+            pdf_bytes, list(range(total_pages)), effective_dpi, quality,
+        )
+
+        t_render = time.monotonic()
+
+        if not pages:
+            raise PDFProcessingError("PyMuPDF rendered 0 pages")
+
+        # -- 4. ZIP (STORED — JPEGs are already entropy-coded) -------------
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_STORED) as zf:
+            for page_num, img_bytes in pages:
+                zf.writestr(f"{base_filename}_page_{page_num + 1}.jpg", img_bytes)
+
+        zip_buffer.seek(0)
+        zip_bytes = zip_buffer.getvalue()
+        t_zip = time.monotonic()
+
+        logger.info(
+            f"[pdf-to-zip] {total_pages} pages, dpi={effective_dpi}, q={quality} | "
+            f"prep={t_prep - t_start:.2f}s render={t_render - t_prep:.1f}s "
+            f"zip={t_zip - t_render:.2f}s total={t_zip - t_start:.1f}s "
+            f"({len(pdf_bytes) / 1048576:.1f}MB in → {len(zip_bytes) / 1048576:.1f}MB out)"
+        )
+
+        return zip_bytes, f"{base_filename}_images.zip", effective_dpi, adjusted
+
     @staticmethod
     def _create_fallback_jpeg(quality: int = 85) -> bytes:
         """Create a blank white JPEG as fallback when pdf2image is unavailable."""

@@ -1,4 +1,1 @@
-# AdSense placeholder — replace with your publisher ID after AdSense approval.
-# Format: <ad system domain>, <publisher account ID>, <relationship>, <certification authority ID>
-# Example after AdSense approval:
-# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+google.com, pub-3401938409886211, DIRECT, f08c47fec0942fa0

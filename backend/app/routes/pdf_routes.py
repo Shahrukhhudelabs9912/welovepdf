@@ -279,36 +279,21 @@ async def pdf_to_jpg(
         pdf_bytes = await read_upload_file(file)
         logger.debug(f"[DEBUG] Read PDF file: {len(pdf_bytes)} bytes")
 
-        # Safety: predict pixel count and cap DPI if needed. Prevents the
-        # Pillow decompression-bomb error on huge/high-DPI renders and keeps
-        # render time bounded.
-        effective_dpi, dpi_was_adjusted = PDFToImageService.safe_dpi(pdf_bytes, dpi)
-        if dpi_was_adjusted:
-            logger.debug(f"[DEBUG] DPI auto-capped {dpi} -> {effective_dpi} for safety")
-        # Header passed through to the client so the UI can show a notice.
-        # Single source of truth — built once and merged into every response.
-        adjust_headers = {
-            "X-DPI-Requested": str(dpi),
-            "X-DPI-Used": str(effective_dpi),
-            "X-DPI-Adjusted": "true" if dpi_was_adjusted else "false",
-        }
-
-        # Clean base filename (remove .pdf extension)
         base_name = file.filename.replace(".pdf", "").replace(".PDF", "")
 
-        # Gate the conversion behind heavy_job_slot so concurrent requests
-        # don't OOM the 2 GB container (PyMuPDF pixmaps + JPEG encoding
-        # can spike to hundreds of MB per conversion).
         async with heavy_job_slot():
             if page_number == 0:
-                # Convert ALL pages → ZIP
-                logger.debug(f"[DEBUG] All pages mode: converting all pages to ZIP (dpi={effective_dpi})")
+                # ── All pages → ZIP (fast path: single PDF open) ──
                 try:
-                    zip_bytes, zip_filename = await run_blocking(
-                        PDFToImageService.convert_pages_to_zip,
-                        pdf_bytes, base_name, quality, effective_dpi,
+                    zip_bytes, zip_filename, effective_dpi, dpi_was_adjusted = await run_blocking(
+                        PDFToImageService.fast_pdf_to_zip,
+                        pdf_bytes, base_name, quality, dpi,
                     )
-                    logger.debug(f"[DEBUG] ZIP created: {zip_filename} ({len(zip_bytes)} bytes)")
+                    adjust_headers = {
+                        "X-DPI-Requested": str(dpi),
+                        "X-DPI-Used": str(effective_dpi),
+                        "X-DPI-Adjusted": "true" if dpi_was_adjusted else "false",
+                    }
                     return Response(
                         content=zip_bytes,
                         media_type="application/zip",
@@ -318,26 +303,51 @@ async def pdf_to_jpg(
                             **adjust_headers,
                         }
                     )
-                except Exception as zip_err:
-                    logger.debug(f"[DEBUG] ZIP conversion failed: {zip_err}, falling back to single page")
-                    image_bytes = await run_blocking(
-                        PDFToImageService.convert_pdf_to_image,
-                        pdf_bytes, 0, quality, effective_dpi,
-                    )
-                    return Response(
-                        content=image_bytes,
-                        media_type="image/jpeg",
-                        headers={
-                            "Content-Disposition": f'attachment; filename="{base_name}_page_1.jpg"',
-                            "Content-Length": str(len(image_bytes)),
-                            **adjust_headers,
-                        }
-                    )
+                except Exception as fast_err:
+                    logger.warning(f"fast_pdf_to_zip failed ({type(fast_err).__name__}), falling back to legacy path")
+                    effective_dpi, dpi_was_adjusted = PDFToImageService.safe_dpi(pdf_bytes, dpi)
+                    adjust_headers = {
+                        "X-DPI-Requested": str(dpi),
+                        "X-DPI-Used": str(effective_dpi),
+                        "X-DPI-Adjusted": "true" if dpi_was_adjusted else "false",
+                    }
+                    try:
+                        zip_bytes, zip_filename = await run_blocking(
+                            PDFToImageService.convert_pages_to_zip,
+                            pdf_bytes, base_name, quality, effective_dpi,
+                        )
+                        return Response(
+                            content=zip_bytes,
+                            media_type="application/zip",
+                            headers={
+                                "Content-Disposition": f'attachment; filename="{zip_filename}"',
+                                "Content-Length": str(len(zip_bytes)),
+                                **adjust_headers,
+                            }
+                        )
+                    except Exception:
+                        image_bytes = await run_blocking(
+                            PDFToImageService.convert_pdf_to_image,
+                            pdf_bytes, 0, quality, effective_dpi,
+                        )
+                        return Response(
+                            content=image_bytes,
+                            media_type="image/jpeg",
+                            headers={
+                                "Content-Disposition": f'attachment; filename="{base_name}_page_1.jpg"',
+                                "Content-Length": str(len(image_bytes)),
+                                **adjust_headers,
+                            }
+                        )
             else:
-                # Convert single page
+                # ── Single page ──
+                effective_dpi, dpi_was_adjusted = PDFToImageService.safe_dpi(pdf_bytes, dpi)
+                adjust_headers = {
+                    "X-DPI-Requested": str(dpi),
+                    "X-DPI-Used": str(effective_dpi),
+                    "X-DPI-Adjusted": "true" if dpi_was_adjusted else "false",
+                }
                 page_idx = page_number - 1
-                logger.debug(f"[DEBUG] Single page mode: converting page {page_number} (index {page_idx})")
-
                 total_pages = PDFToImageService._get_page_count(pdf_bytes)
                 if total_pages > 0 and page_idx >= total_pages:
                     raise HTTPException(
@@ -349,8 +359,6 @@ async def pdf_to_jpg(
                     PDFToImageService.convert_pdf_to_image,
                     pdf_bytes, page_idx, quality, effective_dpi,
                 )
-                logger.debug(f"[DEBUG] Conversion successful: {len(image_bytes)} bytes")
-
                 return Response(
                     content=image_bytes,
                     media_type="image/jpeg",
