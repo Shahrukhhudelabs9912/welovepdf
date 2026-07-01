@@ -14,12 +14,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-// Files larger than this trigger the heavy-render confirmation when the
-// user picks 300 DPI. Picked empirically: a 7 MB PDF at 300 DPI takes
-// 5-7 min on a single backend worker — definitely worth a warning.
-const HEAVY_FILE_SIZE_BYTES = 3 * 1024 * 1024;
-const HEAVY_DPI_THRESHOLD = 300;
-
 type DpiOption = {
   value: number;
   speedKey:
@@ -27,19 +21,20 @@ type DpiOption = {
     | "dpi_speed_balanced"
     | "dpi_speed_slow";
   recommended?: boolean;
+  premium?: boolean;
 };
 
 const DPI_OPTIONS: DpiOption[] = [
-  { value: 72, speedKey: "dpi_speed_fast" },
-  { value: 150, speedKey: "dpi_speed_balanced", recommended: true },
-  { value: 300, speedKey: "dpi_speed_slow" },
+  { value: 72, speedKey: "dpi_speed_fast", recommended: true },
+  { value: 96, speedKey: "dpi_speed_balanced" },
+  { value: 120, speedKey: "dpi_speed_slow", premium: true },
 ];
 
 export function PDFToJPGClient() {
   const t = useTranslations("pdf_to_jpg");
   const [showSettings, setShowSettings] = useState(false);
   const [quality, setQuality] = useState(85);
-  const [dpi, setDpi] = useState(150);
+  const [dpi, setDpi] = useState(72);
   const [pageNumber, setPageNumber] = useState(0);
 
   // Conversion result for preview
@@ -84,24 +79,6 @@ export function PDFToJPGClient() {
     [dpi, t],
   );
 
-  // Pre-flight confirm for heavy renders. Wired into ToolComponent via
-  // onBeforeProcess — returning false aborts the upload.
-  const handleBeforeProcess = useCallback(
-    async (files: File[]): Promise<boolean> => {
-      if (files.length === 0) return true;
-      const file = files[0];
-      const isHeavy =
-        dpi >= HEAVY_DPI_THRESHOLD && file.size > HEAVY_FILE_SIZE_BYTES;
-      if (!isHeavy) return true;
-      // Native confirm keeps the dependency surface tiny. If the design
-      // calls for a richer dialog later, swap for a Radix AlertDialog.
-      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-      const msg = t("heavy_render_confirm", { sizeMb });
-      return window.confirm(msg);
-    },
-    [dpi, t],
-  );
-
   // Detect result type
   const isZipResult = hasResult && previewFilename
     ? previewFilename.endsWith(".zip")
@@ -135,15 +112,19 @@ export function PDFToJPGClient() {
           <div className="grid grid-cols-3 gap-2">
             {DPI_OPTIONS.map((opt) => {
               const selected = dpi === opt.value;
+              const locked = !!opt.premium;
               return (
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => setDpi(opt.value)}
+                  disabled={locked}
+                  onClick={() => !locked && setDpi(opt.value)}
                   className={`relative rounded-lg border px-3 py-2 text-left transition-colors ${
-                    selected
-                      ? "border-primary bg-primary/5"
-                      : "border-gray-200 hover:border-gray-300 dark:border-gray-700"
+                    locked
+                      ? "border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed"
+                      : selected
+                        ? "border-primary bg-primary/5"
+                        : "border-gray-200 hover:border-gray-300 dark:border-gray-700"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -155,6 +136,11 @@ export function PDFToJPGClient() {
                         {t("dpi_recommended")}
                       </span>
                     )}
+                    {locked && (
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-700 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300 px-1.5 py-0.5 rounded">
+                        PRO
+                      </span>
+                    )}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     {t(opt.speedKey)}
@@ -164,12 +150,6 @@ export function PDFToJPGClient() {
             })}
           </div>
           <p className="text-xs text-gray-500 mt-2">{t("dpi_hint")}</p>
-          {dpi >= HEAVY_DPI_THRESHOLD && (
-            <div className="mt-2 flex items-start gap-2 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-2 text-xs text-amber-800 dark:text-amber-300">
-              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>{t("dpi_slow_warning")}</span>
-            </div>
-          )}
         </div>
 
         <div>
@@ -203,7 +183,6 @@ export function PDFToJPGClient() {
         additionalData={{ quality, dpi, page_number: pageNumber }}
         autoClearFiles={true}
         onSuccess={handleSuccess}
-        onBeforeProcess={handleBeforeProcess}
       />
 
       {/* Settings Toggle Button */}

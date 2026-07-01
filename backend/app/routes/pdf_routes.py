@@ -242,7 +242,7 @@ async def pdf_to_jpg(
     file: UploadFile = File(...),
     page_number: int = Form(0, ge=0, description="Page number to convert (0 = all pages, 1+ = specific page)"),
     quality: int = Form(85, ge=1, le=100, description="Image quality (1-100%)"),
-    dpi: int = Form(150, ge=72, le=300, description="Image resolution in DPI")
+    dpi: int = Form(72, ge=72, le=120, description="Image resolution in DPI")
 ):
     """
     Convert PDF pages to JPEG image(s).
