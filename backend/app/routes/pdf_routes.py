@@ -1,7 +1,6 @@
 """
 PDF processing routes for PDFOrca API.
 """
-import asyncio
 import io
 import os
 import logging
@@ -297,82 +296,71 @@ async def pdf_to_jpg(
         # Clean base filename (remove .pdf extension)
         base_name = file.filename.replace(".pdf", "").replace(".PDF", "")
 
-        # Conversion is CPU-bound and synchronous (Poppler subprocess + Pillow
-        # encode). Run it on the thread pool so the FastAPI event loop stays
-        # responsive for other users while this single request is processing.
-        loop = asyncio.get_running_loop()
+        # Gate the conversion behind heavy_job_slot so concurrent requests
+        # don't OOM the 2 GB container (PyMuPDF pixmaps + JPEG encoding
+        # can spike to hundreds of MB per conversion).
+        async with heavy_job_slot():
+            if page_number == 0:
+                # Convert ALL pages → ZIP
+                logger.debug(f"[DEBUG] All pages mode: converting all pages to ZIP (dpi={effective_dpi})")
+                try:
+                    zip_bytes, zip_filename = await run_blocking(
+                        PDFToImageService.convert_pages_to_zip,
+                        pdf_bytes, base_name, quality, effective_dpi,
+                    )
+                    logger.debug(f"[DEBUG] ZIP created: {zip_filename} ({len(zip_bytes)} bytes)")
+                    return Response(
+                        content=zip_bytes,
+                        media_type="application/zip",
+                        headers={
+                            "Content-Disposition": f'attachment; filename="{zip_filename}"',
+                            "Content-Length": str(len(zip_bytes)),
+                            **adjust_headers,
+                        }
+                    )
+                except Exception as zip_err:
+                    logger.debug(f"[DEBUG] ZIP conversion failed: {zip_err}, falling back to single page")
+                    image_bytes = await run_blocking(
+                        PDFToImageService.convert_pdf_to_image,
+                        pdf_bytes, 0, quality, effective_dpi,
+                    )
+                    return Response(
+                        content=image_bytes,
+                        media_type="image/jpeg",
+                        headers={
+                            "Content-Disposition": f'attachment; filename="{base_name}_page_1.jpg"',
+                            "Content-Length": str(len(image_bytes)),
+                            **adjust_headers,
+                        }
+                    )
+            else:
+                # Convert single page
+                page_idx = page_number - 1
+                logger.debug(f"[DEBUG] Single page mode: converting page {page_number} (index {page_idx})")
 
-        if page_number == 0:
-            # Convert ALL pages → ZIP
-            logger.debug(f"[DEBUG] All pages mode: converting all pages to ZIP (dpi={effective_dpi})")
-            try:
-                zip_bytes, zip_filename = await loop.run_in_executor(
-                    None,
-                    PDFToImageService.convert_pages_to_zip,
-                    pdf_bytes, base_name, quality, effective_dpi,
-                )
-                logger.debug(f"[DEBUG] ZIP created: {zip_filename} ({len(zip_bytes)} bytes)")
-                # Plain Response (not StreamingResponse). Starlette's
-                # BaseHTTPMiddleware buffers streaming bodies chunk-by-chunk
-                # and adds ~600ms per MB on this stack — for 10MB outputs that
-                # was 6+ seconds of pure overhead. The bytes are already in
-                # memory so a single-send Response is strictly faster.
-                return Response(
-                    content=zip_bytes,
-                    media_type="application/zip",
-                    headers={
-                        "Content-Disposition": f'attachment; filename="{zip_filename}"',
-                        "Content-Length": str(len(zip_bytes)),
-                        **adjust_headers,
-                    }
-                )
-            except Exception as zip_err:
-                logger.debug(f"[DEBUG] ZIP conversion failed: {zip_err}, falling back to single page")
-                # Fallback: convert only first page
-                image_bytes = await loop.run_in_executor(
-                    None,
+                total_pages = PDFToImageService._get_page_count(pdf_bytes)
+                if total_pages > 0 and page_idx >= total_pages:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Page number {page_number} out of range. PDF has {total_pages} pages."
+                    )
+
+                image_bytes = await run_blocking(
                     PDFToImageService.convert_pdf_to_image,
-                    pdf_bytes, 0, quality, effective_dpi,
+                    pdf_bytes, page_idx, quality, effective_dpi,
                 )
+                logger.debug(f"[DEBUG] Conversion successful: {len(image_bytes)} bytes")
+
                 return Response(
                     content=image_bytes,
                     media_type="image/jpeg",
                     headers={
-                        "Content-Disposition": f'attachment; filename="{base_name}_page_1.jpg"',
+                        "Content-Disposition": f'attachment; filename="{base_name}_page_{page_number}.jpg"',
                         "Content-Length": str(len(image_bytes)),
                         **adjust_headers,
                     }
                 )
-        else:
-            # Convert single page
-            page_idx = page_number - 1  # Convert from 1-indexed (user-facing) to 0-indexed
-            logger.debug(f"[DEBUG] Single page mode: converting page {page_number} (index {page_idx})")
 
-            # Validate page number
-            total_pages = PDFToImageService._get_page_count(pdf_bytes)
-            if total_pages > 0 and page_idx >= total_pages:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Page number {page_number} out of range. PDF has {total_pages} pages."
-                )
-
-            image_bytes = await loop.run_in_executor(
-                None,
-                PDFToImageService.convert_pdf_to_image,
-                pdf_bytes, page_idx, quality, effective_dpi,
-            )
-            logger.debug(f"[DEBUG] Conversion successful: {len(image_bytes)} bytes")
-
-            return Response(
-                content=image_bytes,
-                media_type="image/jpeg",
-                headers={
-                    "Content-Disposition": f'attachment; filename="{base_name}_page_{page_number}.jpg"',
-                    "Content-Length": str(len(image_bytes)),
-                    **adjust_headers,
-                }
-            )
-        
     except HTTPException:
         raise
     except Exception as e:

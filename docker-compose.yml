@@ -35,11 +35,12 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2g
+          memory: 3g
 
   frontend:
     build:
-      context: ./frontend
+      context: .
+      dockerfile: frontend/Dockerfile
     restart: unless-stopped
     environment:
       PYTHON_API_BASE: http://backend:8000/api

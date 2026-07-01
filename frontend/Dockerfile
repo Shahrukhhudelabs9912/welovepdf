@@ -6,14 +6,17 @@ FROM node:20-slim AS deps
 WORKDIR /app
 # sharp (image optimization) needs libc; node:20-slim has it. Copy only
 # manifests first for layer caching.
-COPY package.json package-lock.json* ./
+COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm ci
 
 # ── Stage 2: build ────────────────────────────────────────────────────
 FROM node:20-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY frontend/ .
+# Blog markdown lives at <repo-root>/content/blog/; the blog lib reads
+# from path.join(cwd, '..', 'content', 'blog') so we mirror that layout.
+COPY content/blog/ ../content/blog/
 # Same-origin API: the browser calls /api/* which Nginx routes to backend.
 ENV NEXT_PUBLIC_API_URL=/api
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -29,6 +32,9 @@ ENV PORT=3000
 # Run as non-root.
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs
+
+# Blog markdown is read at runtime for on-demand rendering.
+COPY --from=builder --chown=nextjs:nodejs /content/blog ../content/blog
 
 # Standalone output bundles a minimal server + pruned node_modules.
 # `public` and `.next/static` are NOT included in standalone — copy them.
