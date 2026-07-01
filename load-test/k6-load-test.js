@@ -187,18 +187,16 @@ export function authFlow() {
 // ---------------------------------------------------------------------------
 export function pdfApi() {
   const payload = {
-    files: http.file(TINY_PDF, `test_${randomString(6)}.pdf`, 'application/pdf'),
+    file: http.file(TINY_PDF, `test_${randomString(6)}.pdf`, 'application/pdf'),
   };
-  // merge-pdf needs >= 2 files server-side validation, but the call still
-  // exercises upload + validation path. Use compress-pdf for single-file.
   const res = http.post(`${BASE}/api/compress-pdf`, payload, {
     tags: { endpoint: 'compress-pdf' },
     timeout: '60s',
   });
   pdfLatency.add(res.timings.duration);
   tag429(res);
-  // Acceptable: 200 (processed), 400 (validation), 413 (too large), 429, 503 (busy)
-  check(res, { 'pdf handled': r => [200, 400, 413, 429, 503].includes(r.status) })
+  // Acceptable: 200 (processed), 400/422 (validation), 413 (too large), 429, 503 (busy)
+  check(res, { 'pdf handled': r => [200, 400, 413, 422, 429, 503].includes(r.status) })
     || errors.add(1);
   sleep(randomIntBetween(3, 8));
 }
