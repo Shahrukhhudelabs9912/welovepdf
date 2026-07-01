@@ -1122,59 +1122,50 @@ class PDFService:
             # Determine which pages to number
             pages_to_number = PDFService._resolve_page_range(page_range, total_pages)
 
-            # Pre-compute the ordinal position of each numbered page so
-            # the inner loop is O(1) per page instead of O(n²).
+            # Pre-compute the ordinal position of each numbered page.
             sorted_numbered = sorted(pages_to_number)
             page_ordinal = {p: i for i, p in enumerate(sorted_numbered)}
 
+            # Build ONE multi-page overlay PDF with all page numbers.
+            # This avoids creating N separate Canvas + PdfReader objects.
+            overlay_packet = io.BytesIO()
+            c = canvas.Canvas(overlay_packet)
+
             for page_idx in range(total_pages):
                 page = reader.pages[page_idx]
-
-                if page_idx not in pages_to_number:
-                    writer.add_page(page)
-                    continue
-
-                # Get page dimensions
                 page_width = float(page.mediabox.width)
                 page_height = float(page.mediabox.height)
 
-                page_number = starting_number + page_ordinal[page_idx]
+                c.setPageSize((page_width, page_height))
 
-                # Format the number text
-                number_text = PDFService._format_page_number(
-                    page_number, total_pages, number_format, format_template,
-                    prefix, suffix
-                )
+                if page_idx in pages_to_number:
+                    page_number = starting_number + page_ordinal[page_idx]
+                    number_text = PDFService._format_page_number(
+                        page_number, total_pages, number_format, format_template,
+                        prefix, suffix
+                    )
+                    x, y, text_align = PDFService._calculate_position(
+                        position, alignment, page_width, page_height, font_size
+                    )
+                    c.setFont(font_family, font_size)
+                    c.setFillColorRGB(r, g, b)
+                    if text_align == "center":
+                        c.drawCentredString(x, y, number_text)
+                    elif text_align == "right":
+                        c.drawRightString(x, y, number_text)
+                    else:
+                        c.drawString(x, y, number_text)
 
-                # Calculate position
-                x, y, text_align = PDFService._calculate_position(
-                    position, alignment, page_width, page_height, font_size
-                )
+                c.showPage()
 
-                # Create overlay with reportlab
-                overlay_packet = io.BytesIO()
+            c.save()
+            overlay_packet.seek(0)
+            overlay_reader = PdfReader(overlay_packet)
 
-                # Use A4 if page size matches; otherwise use letter as base
-                c = canvas.Canvas(overlay_packet, pagesize=(page_width, page_height))
-
-                # Set styles
-                c.setFont(font_family, font_size)
-                c.setFillColorRGB(r, g, b)
-
-                # Draw page number
-                if text_align == "center":
-                    c.drawCentredString(x, y, number_text)
-                elif text_align == "right":
-                    c.drawRightString(x, y, number_text)
-                else:  # left
-                    c.drawString(x, y, number_text)
-
-                c.save()
-                overlay_packet.seek(0)
-
-                # Merge overlay onto page
-                overlay_pdf = PdfReader(overlay_packet)
-                page.merge_page(overlay_pdf.pages[0])
+            for page_idx in range(total_pages):
+                page = reader.pages[page_idx]
+                if page_idx in pages_to_number:
+                    page.merge_page(overlay_reader.pages[page_idx])
                 writer.add_page(page)
 
             output = io.BytesIO()
